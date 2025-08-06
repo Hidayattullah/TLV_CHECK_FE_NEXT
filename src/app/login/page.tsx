@@ -6,10 +6,10 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] p-4">
+    <div className="flex items-center justify-center min-h-screen p-4 bg-gray-100">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="font-headline text-3xl text-accent">Login</CardTitle>
+          <CardTitle className="font-headline text-3xl text-primary">Login</CardTitle>
           <CardDescription>Enter your phone number to receive a one-time password.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -27,10 +27,10 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button className="w-full">Login</Button>
-          <p className="text-sm text-center text-muted-foreground">
-            Forgot your password?{" "}
-            <Link href="/reset-password" prefetch={false} className="underline text-accent/80 hover:text-accent">
-              Reset it here
+           <p className="text-sm text-center text-muted-foreground">
+            Don't have an account?{" "}
+            <Link href="/register" prefetch={false} className="underline text-primary/80 hover:text-primary">
+              Register here
             </Link>
             .
           </p>

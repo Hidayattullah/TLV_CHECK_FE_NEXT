@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { BappendaLogo } from "@/components/bappenda-logo";
+import { TegarBerimanLogo } from "@/components/tegar-beriman-logo";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +21,7 @@ export default function LoginPage() {
           </Link>
         </div>
         <div className="my-8">
-          <BappendaLogo className="h-24 w-auto text-primary-foreground" />
+          <TegarBerimanLogo className="h-24 w-auto text-primary-foreground" />
         </div>
       </header>
       
@@ -33,7 +33,7 @@ export default function LoginPage() {
               <Input 
                 id="nik" 
                 placeholder="Masukkan NIK Anda" 
-                className="bg-accent border-0 placeholder:text-foreground/50 h-12 rounded-lg" 
+                className="bg-accent/50 border-0 placeholder:text-foreground/50 h-12 rounded-lg" 
               />
             </div>
             <div className="space-y-2">
@@ -43,7 +43,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"} 
                   placeholder="Masukkan password Anda" 
-                  className="bg-accent border-0 placeholder:text-foreground/50 h-12 rounded-lg pr-12" 
+                  className="bg-accent/50 border-0 placeholder:text-foreground/50 h-12 rounded-lg pr-12" 
                 />
                 <Button 
                   type="button"
@@ -58,14 +58,22 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="mt-8">
-             <Button className="w-full h-12 rounded-full bg-primary text-primary-foreground text-lg font-semibold hover:bg-primary/90">
-                Login
-            </Button>
+             <Link href="/" passHref className="w-full">
+              <Button className="w-full h-12 rounded-full bg-primary text-primary-foreground text-lg font-semibold hover:bg-primary/90">
+                  Login
+              </Button>
+            </Link>
           </div>
           <div className="mt-6 text-center">
-             <Link href="/reset-password" prefetch={false} className="text-cyan-500 hover:text-cyan-600 text-sm">
+             <Link href="/reset-password" prefetch={false} className="text-primary hover:text-primary/80 text-sm">
                 Lupa Password
              </Link>
+          </div>
+           <div className="mt-4 text-center text-sm">
+            <span className="text-muted-foreground">Belum punya akun? </span>
+            <Link href="/register" prefetch={false} className="font-semibold text-primary hover:text-primary/80">
+              Daftar
+            </Link>
           </div>
         </div>
       </main>

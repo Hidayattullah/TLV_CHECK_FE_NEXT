@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const FileUploadItem = ({ label }: { label: string }) => (
-    <div className="flex items-center justify-between bg-accent p-3 rounded-lg">
+    <div className="flex items-center justify-between bg-accent/50 p-3 rounded-lg">
       <div className="flex items-center gap-3">
         <div className="bg-primary/20 text-primary p-2 rounded-full">
             <FileText className="w-5 h-5" />
@@ -43,15 +43,15 @@ export default function RegisterPage() {
       
       <main className="p-4 space-y-6 pb-24">
         <div className="space-y-4">
-          <Input placeholder="NIK" className="bg-accent border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
-          <Input placeholder="Nama" className="bg-accent border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
-          <Input type="email" placeholder="Email" className="bg-accent border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
-          <Input type="tel" placeholder="Nomor Telepon" className="bg-accent border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+          <Input placeholder="NIK" className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+          <Input placeholder="Nama" className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+          <Input type="email" placeholder="Email" className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+          <Input type="tel" placeholder="Nomor Telepon" className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
           <div className="relative">
             <Input 
               type={showPassword ? "text" : "password"} 
               placeholder="Password" 
-              className="bg-accent border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
+              className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
             />
             <Button 
               type="button"
@@ -67,7 +67,7 @@ export default function RegisterPage() {
             <Input 
               type={showConfirmPassword ? "text" : "password"} 
               placeholder="Ulangi Password" 
-              className="bg-accent border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
+              className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
             />
             <Button 
               type="button"
@@ -91,7 +91,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
-          <Button className="w-full h-12 rounded-lg bg-cyan-200 text-cyan-700 hover:bg-cyan-300 text-lg font-semibold">
+          <Button className="w-full h-12 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-semibold">
             Submit
           </Button>
         </div>

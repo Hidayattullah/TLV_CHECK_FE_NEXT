@@ -19,13 +19,13 @@ export default function ResetPasswordPage() {
       <div className="flex items-center justify-center p-4">
         <Card className="w-full max-w-sm mt-8">
           <CardHeader>
-            <CardTitle className="font-headline text-2xl text-primary">Reset Password</CardTitle>
+            <CardTitle className="font-bold text-2xl text-primary">Reset Password</CardTitle>
             <CardDescription>Masukkan NIK Anda untuk menerima kode reset password.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nik">NIK</Label>
-              <Input id="nik" type="text" placeholder="Masukkan NIK terdaftar" required />
+              <Input id="nik" type="text" placeholder="Masukkan NIK terdaftar" required className="bg-accent/50 border-0"/>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">

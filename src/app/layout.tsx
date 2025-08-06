@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { MainLayout } from '@/components/main-layout';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'TLV Check',
-  description: 'Church attendance check-in system.',
+  title: 'Bappenda Juara',
+  description: 'Aplikasi PBB P2 Mobile Kabupaten Bogor',
 };
 
 export default function RootLayout({
@@ -18,9 +17,9 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-sans antialiased">
         <main>{children}</main>
         <Toaster />
       </body>

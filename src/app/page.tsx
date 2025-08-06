@@ -1,23 +1,79 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { BappendaLogo } from "@/components/bappenda-logo";
+import { Card, CardContent } from "@/components/ui/card";
+import { BappendaJuaraLogo } from "@/components/bappenda-juara-logo";
+import { TegarBerimanLogo } from "@/components/tegar-beriman-logo";
+import { FilePen, History, Search, BookOpen, MessageSquareQuote } from "lucide-react";
+import { UserCircle } from "lucide-react";
 
-export default function Home() {
+const menuItems = [
+  { href: "/register", label: "Registrasi E-SPPT", icon: FilePen },
+  { href: "#", label: "Catatan Pembayaran", icon: History },
+  { href: "#", label: "Cek Pelayanan", icon: Search },
+  { href: "#", label: "Panduan Aplikasi", icon: BookOpen },
+  { href: "#", label: "Pertanyaan", icon: MessageSquareQuote },
+];
+
+const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
+  <Link href={href} passHref>
+    <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 aspect-square flex flex-col items-center justify-center p-4 text-center rounded-2xl shadow-md">
+      <CardContent className="p-0 flex flex-col items-center justify-center gap-2">
+        <Icon className="w-10 h-10 text-primary" />
+        <p className="text-sm font-semibold text-foreground/80">{label}</p>
+      </CardContent>
+    </Card>
+  </Link>
+);
+
+
+export default function DashboardPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-8 bg-primary text-primary-foreground">
-      <BappendaLogo className="h-32 w-auto" />
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">Selamat Datang</h1>
-        <p className="mt-2 text-lg">di Aplikasi Bappenda Juara</p>
+    <div className="bg-primary min-h-screen flex flex-col relative overflow-hidden">
+      {/* Abstract background shapes */}
+      <div className="absolute top-0 left-0 w-full h-1/2">
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-white/10 rounded-full" />
+        <div className="absolute top-10 right-0 w-3/4 h-1/2 bg-white/5 rounded-full" />
       </div>
-      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-xs">
-        <Link href="/login" passHref className="w-full">
-          <Button size="lg" className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90">Masuk</Button>
+
+      <header className="p-4 flex items-center justify-between text-white relative z-10">
+        <div className="flex items-center gap-3">
+          <TegarBerimanLogo className="w-12 h-12" />
+          <div>
+            <h1 className="font-bold text-lg">PBB P2 Mobile</h1>
+            <p className="text-sm">Kabupaten Bogor</p>
+          </div>
+        </div>
+        <Link href="/profile" passHref>
+           <Button variant="ghost" size="icon" className="bg-white/90 text-primary rounded-full w-10 h-10 hover:bg-white">
+            <UserCircle className="w-6 h-6" />
+          </Button>
         </Link>
-        <Link href="/register" passHref className="w-full">
-          <Button variant="outline" size="lg" className="w-full bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">Daftar</Button>
-        </Link>
-      </div>
+      </header>
+
+      <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">
+        <div className="bg-card w-full flex-grow p-6 rounded-t-3xl shadow-lg space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+             <div className="col-span-2">
+              <Link href="/register" passHref>
+                <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 flex items-center p-4 text-center rounded-2xl shadow-md">
+                   <CardContent className="p-0 flex items-center gap-4">
+                    <FilePen className="w-10 h-10 text-primary" />
+                    <p className="text-base font-semibold text-foreground/80">Registrasi E-SPPT</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+            <MenuItem href="#" label="Catatan Pembayaran" icon={History} />
+            <MenuItem href="#" label="Cek Pelayanan" icon={Search} />
+            <MenuItem href="#" label="Panduan Aplikasi" icon={BookOpen} />
+            <MenuItem href="#" label="Pertanyaan" icon={MessageSquareQuote} />
+          </div>
+        </div>
+      </main>
+
+      <footer className="bg-card p-4 flex justify-center items-center relative z-10">
+        <BappendaJuaraLogo className="h-16 w-auto" />
+      </footer>
     </div>
   );
 }

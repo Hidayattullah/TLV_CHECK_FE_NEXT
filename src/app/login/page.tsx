@@ -1,41 +1,74 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { BappendaLogo } from "@/components/bappenda-logo";
 
 export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
-    <div className="flex items-center justify-center min-h-screen p-4 bg-gray-100">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="font-headline text-3xl text-primary">Login</CardTitle>
-          <CardDescription>Enter your phone number to receive a one-time password.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <div className="flex gap-2">
-              <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" required />
-              <Button variant="secondary">Send OTP</Button>
+    <div className="bg-background min-h-screen flex flex-col">
+      <header className="bg-primary w-full p-4 flex flex-col items-center justify-center flex-shrink-0">
+        <div className="w-full max-w-md">
+           <Link href="/" passHref>
+            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/80">
+              <ArrowLeft />
+            </Button>
+          </Link>
+        </div>
+        <div className="my-8">
+          <BappendaLogo className="h-24 w-auto text-primary-foreground" />
+        </div>
+      </header>
+      
+      <main className="flex-grow flex flex-col items-center w-full -mt-10">
+        <div className="bg-card text-card-foreground w-full max-w-md flex-grow p-8 rounded-t-3xl shadow-lg">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label htmlFor="nik" className="text-sm font-medium text-muted-foreground">NIK</label>
+              <Input 
+                id="nik" 
+                placeholder="Masukkan NIK Anda" 
+                className="bg-accent border-0 placeholder:text-foreground/50 h-12 rounded-lg" 
+              />
+            </div>
+            <div className="space-y-2">
+               <label htmlFor="password" className="text-sm font-medium text-muted-foreground">Password</label>
+              <div className="relative">
+                <Input 
+                  id="password"
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Masukkan password Anda" 
+                  className="bg-accent border-0 placeholder:text-foreground/50 h-12 rounded-lg pr-12" 
+                />
+                <Button 
+                  type="button"
+                  variant="ghost" 
+                  size="icon" 
+                  className="absolute top-1/2 right-2 -translate-y-1/2 text-foreground/60 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="otp">One-Time Password</Label>
-            <Input id="otp" type="text" placeholder="Enter OTP" required />
+          <div className="mt-8">
+             <Button className="w-full h-12 rounded-full bg-primary text-primary-foreground text-lg font-semibold hover:bg-primary/90">
+                Login
+            </Button>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full">Login</Button>
-           <p className="text-sm text-center text-muted-foreground">
-            Don't have an account?{" "}
-            <Link href="/register" prefetch={false} className="underline text-primary/80 hover:text-primary">
-              Register here
-            </Link>
-            .
-          </p>
-        </CardFooter>
-      </Card>
+          <div className="mt-6 text-center">
+             <Link href="/reset-password" prefetch={false} className="text-cyan-500 hover:text-cyan-600 text-sm">
+                Lupa Password
+             </Link>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

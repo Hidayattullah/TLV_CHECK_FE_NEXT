@@ -14,11 +14,6 @@ export default function LoginPage() {
     <div className="bg-background min-h-screen flex flex-col">
       <header className="bg-primary w-full p-4 flex flex-col items-center justify-center flex-shrink-0">
         <div className="w-full max-w-md">
-           <Link href="/" passHref>
-            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/80">
-              <ArrowLeft />
-            </Button>
-          </Link>
         </div>
         <div className="my-8">
           <TegarBerimanLogo className="h-24 w-auto text-primary-foreground" />

@@ -71,7 +71,7 @@ export default function DashboardPage() {
               </Link>
             </div>
             <MenuItem href="/attendance" label="Catatan Absensi" icon={History} />
-            <MenuItem href="#" label="Cek Pelayanan" icon={Search} />
+            <MenuItem href="/services" label="Cek Pelayanan" icon={Search} />
             <MenuItem href="#" label="Panduan Aplikasi" icon={BookOpen} />
             <MenuItem href="/faq" label="Pertanyaan" icon={MessageSquareQuote} />
           </div>

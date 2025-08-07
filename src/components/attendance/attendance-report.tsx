@@ -39,23 +39,22 @@ const mockData: AttendanceRecord[] = [
 const ITEMS_PER_PAGE = 5;
 
 export function AttendanceReport() {
-  const [searchTermIbadah, setSearchTermIbadah] = useState("");
-  const [searchTermPembicara, setSearchTermPembicara] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [filterMethod, setFilterMethod] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredData = useMemo(() => {
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
     return mockData
-      .filter((record) =>
-        record.service.toLowerCase().includes(searchTermIbadah.toLowerCase())
-      )
-      .filter((record) =>
-        record.speaker.toLowerCase().includes(searchTermPembicara.toLowerCase())
-      )
+      .filter((record) => {
+        const serviceMatch = record.service.toLowerCase().includes(lowercasedSearchTerm);
+        const speakerMatch = record.speaker.toLowerCase().includes(lowercasedSearchTerm);
+        return serviceMatch || speakerMatch;
+      })
       .filter((record) =>
         filterMethod === "all" ? true : record.checkinMethod === filterMethod
       );
-  }, [searchTermIbadah, searchTermPembicara, filterMethod]);
+  }, [searchTerm, filterMethod]);
 
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
 
@@ -68,22 +67,13 @@ export function AttendanceReport() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <Input
-          placeholder="Cari Ibadah..."
-          value={searchTermIbadah}
+          placeholder="Cari Ibadah atau Pembicara..."
+          value={searchTerm}
           onChange={(e) => {
-            setSearchTermIbadah(e.target.value);
+            setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="bg-card"
-        />
-        <Input
-          placeholder="Cari Pembicara..."
-          value={searchTermPembicara}
-          onChange={(e) => {
-            setSearchTermPembicara(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="bg-card"
+          className="bg-card flex-grow"
         />
         <Select
           value={filterMethod}
@@ -92,7 +82,7 @@ export function AttendanceReport() {
             setCurrentPage(1);
           }}
         >
-          <SelectTrigger className="bg-card">
+          <SelectTrigger className="bg-card sm:w-[180px]">
             <SelectValue placeholder="Metode Check-in" />
           </SelectTrigger>
           <SelectContent>

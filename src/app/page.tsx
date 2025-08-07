@@ -51,7 +51,7 @@ export default function DashboardPage() {
       </header>
 
       <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">
-        <div className="bg-card w-full flex-grow p-6 rounded-t-3xl shadow-lg space-y-4">
+        <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
              <div className="col-span-2">
               <Link href="/register" passHref>

@@ -71,8 +71,8 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <footer className="bg-card p-4 flex justify-center items-center relative z-10">
-        <BappendaJuaraLogo className="h-16 w-auto" />
+      <footer className="w-full p-4 text-center text-primary-foreground text-sm relative z-10">
+        &copy; {new Date().getFullYear()} Tubagus Rifan, All Rights Reserved
       </footer>
     </div>
   );

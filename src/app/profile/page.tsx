@@ -9,12 +9,70 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Edit, LogOut } from "lucide-react";
+import { ArrowLeft, Edit, LogOut, Upload } from "lucide-react";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Progress } from "@/components/ui/progress";
 
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState("https://placehold.co/100x100.png");
+  const [profileImagePreview, setProfileImagePreview] = useState(profileImage);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 95) {
+            clearInterval(progressInterval);
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 100);
+
+      reader.onloadstart = () => {
+         setUploadProgress(20);
+      };
+
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+           if(progress > 20) setUploadProgress(progress);
+        }
+      };
+      
+      reader.onloadend = () => {
+         setTimeout(() => {
+          setProfileImagePreview(reader.result as string);
+          setIsUploading(false);
+          clearInterval(progressInterval);
+        }, 500); // Give time for the progress bar to reach 100%
+      };
+
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleSaveChanges = () => {
+    setProfileImage(profileImagePreview);
+    setIsDialogOpen(false);
+  }
+
+  const handleCancelChanges = () => {
+    setProfileImagePreview(profileImage); // Reset preview to original image
+    setIsDialogOpen(false);
+  }
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
@@ -31,7 +89,7 @@ export default function ProfilePage() {
         <Card className="max-w-2xl mx-auto">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
-              <AvatarImage src="https://placehold.co/100x100.png" alt="User" data-ai-hint="person portrait" />
+              <AvatarImage src={profileImage} alt="User" data-ai-hint="person portrait" />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
             <CardTitle className="font-headline text-3xl text-primary">John Doe</CardTitle>
@@ -83,7 +141,13 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex gap-4 pt-4">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                if(!open) {
+                   handleCancelChanges();
+                } else {
+                  setIsDialogOpen(true);
+                }
+              }}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="w-full"><Edit /> Edit Profil</Button>
                 </DialogTrigger>
@@ -95,6 +159,26 @@ export default function ProfilePage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                     <div className="flex flex-col items-center gap-4">
+                      <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
+                        <AvatarImage src={profileImagePreview} alt="User" />
+                        <AvatarFallback>JD</AvatarFallback>
+                      </Avatar>
+                      {isUploading && (
+                        <div className="w-full px-4">
+                          <Progress value={uploadProgress} className="w-full" />
+                          <p className="text-xs text-center text-muted-foreground mt-1">{uploadProgress}%</p>
+                        </div>
+                      )}
+                      <Button asChild variant="outline" size="sm" disabled={isUploading}>
+                        <Label htmlFor="photo-upload" className="cursor-pointer">
+                          <Upload className="mr-2 h-4 w-4" />
+                          Ganti Foto
+                        </Label>
+                      </Button>
+                      <Input id="photo-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageChange} disabled={isUploading} />
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="nik">NIK</Label>
                       <Input id="nik" defaultValue="1234567890123456" />
@@ -135,9 +219,9 @@ export default function ProfilePage() {
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
-                       <Button type="button" variant="secondary">Batal</Button>
+                       <Button type="button" variant="secondary" onClick={handleCancelChanges}>Batal</Button>
                     </DialogClose>
-                    <Button type="submit" onClick={() => setIsDialogOpen(false)}>Simpan Perubahan</Button>
+                    <Button type="submit" onClick={handleSaveChanges}>Simpan Perubahan</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

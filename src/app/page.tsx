@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { FilePen, History, Search, BookOpen, MessageSquareQuote } from "lucide-react";
+import { FilePen, History, Search, BookOpen, MessageSquareQuote, Barcode } from "lucide-react";
 import { UserCircle } from "lucide-react";
 
 const menuItems = [
@@ -60,16 +60,16 @@ export default function DashboardPage() {
         <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
              <div className="col-span-2">
-              <Link href="/register" passHref>
+              <Link href="/scanner" passHref>
                 <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 flex items-center p-4 text-center rounded-2xl shadow-md">
                    <CardContent className="p-0 flex items-center gap-4">
-                    <FilePen className="w-10 h-10 text-primary" />
-                    <p className="text-base font-semibold text-foreground/80">Registrasi E-SPPT</p>
+                    <Barcode className="w-10 h-10 text-primary" />
+                    <p className="text-base font-semibold text-foreground/80">Scan Barcode</p>
                   </CardContent>
                 </Card>
               </Link>
             </div>
-            <MenuItem href="#" label="Catatan Pembayaran" icon={History} />
+            <MenuItem href="/attendance" label="Catatan Absensi" icon={History} />
             <MenuItem href="#" label="Cek Pelayanan" icon={Search} />
             <MenuItem href="#" label="Panduan Aplikasi" icon={BookOpen} />
             <MenuItem href="#" label="Pertanyaan" icon={MessageSquareQuote} />

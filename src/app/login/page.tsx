@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { TegarBerimanLogo } from "@/components/tegar-beriman-logo";
+import { GbiLogo } from "@/components/gbi-logo";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +16,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
         </div>
         <div className="my-8">
-          <TegarBerimanLogo className="h-24 w-auto text-primary-foreground" />
+          <GbiLogo className="h-24 w-auto text-primary-foreground" />
         </div>
       </header>
       

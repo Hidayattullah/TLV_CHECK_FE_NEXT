@@ -1,12 +1,20 @@
 
+"use client";
+
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, Edit, LogOut } from "lucide-react";
 import Link from "next/link";
 
 export default function ProfilePage() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
     <div className="bg-background min-h-screen flex flex-col">
       <header className="bg-primary text-primary-foreground p-4 flex items-center gap-4 sticky top-0 z-10">
@@ -58,8 +66,42 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex gap-4 pt-4">
-               <Button variant="outline" className="w-full"><Edit /> Edit Profile</Button>
-               <Button variant="secondary" className="w-full"><LogOut /> Logout</Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full"><Edit /> Edit Profile</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogDescription>
+                      Make changes to your profile here. Click save when you're done.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">Name</Label>
+                      <Input id="name" defaultValue="John Doe" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="phone" className="text-right">Phone</Label>
+                      <Input id="phone" defaultValue="+1 (555) 123-4567" className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="email" className="text-right">Email</Label>
+                      <Input id="email" type="email" defaultValue="john.doe@example.com" className="col-span-3" />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                       <Button type="button" variant="secondary">Cancel</Button>
+                    </DialogClose>
+                    <Button type="submit" onClick={() => setIsDialogOpen(false)}>Save changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+               <Link href="/login" passHref className="w-full">
+                <Button variant="secondary" className="w-full"><LogOut /> Logout</Button>
+               </Link>
             </div>
           </CardContent>
         </Card>

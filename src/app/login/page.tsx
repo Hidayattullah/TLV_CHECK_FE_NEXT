@@ -77,6 +77,9 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+      <footer className="w-full p-4 text-center text-muted-foreground text-sm">
+        &copy; {new Date().getFullYear()} Tubagus Rifan, All Rights Reserved
+      </footer>
     </div>
   );
 }

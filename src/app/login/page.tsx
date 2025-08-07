@@ -24,10 +24,11 @@ export default function LoginPage() {
         <div className="bg-card text-card-foreground w-full max-w-md flex-grow p-8 rounded-3xl shadow-lg">
           <div className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="nik" className="text-sm font-medium text-muted-foreground">NIK</label>
+              <label htmlFor="telephone" className="text-sm font-medium text-muted-foreground">Nomor Telepon</label>
               <Input 
-                id="nik" 
-                placeholder="Masukkan NIK Anda" 
+                id="telephone"
+                type="tel"
+                placeholder="Masukkan nomor telepon Anda" 
                 className="bg-accent/50 border-0 placeholder:text-foreground/50 h-12 rounded-lg" 
               />
             </div>

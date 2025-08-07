@@ -24,17 +24,17 @@ type AttendanceRecord = {
 };
 
 const mockData: AttendanceRecord[] = [
-  { id: "1", service: "Ibadah Pagi", speaker: "Pdt. Abraham", checkinDate: "2024-07-28 09:05", checkinMethod: "Barcode" },
-  { id: "2", service: "Ibadah Sore", speaker: "Pdt. Yusuf", checkinDate: "2024-07-28 17:02", checkinMethod: "RFID" },
-  { id: "3", service: "Ibadah Pagi", speaker: "Pdt. Abraham", checkinDate: "2024-07-21 09:01", checkinMethod: "Barcode" },
-  { id: "4", service: "Ibadah Sore", speaker: "Pdt. Yusuf", checkinDate: "2024-07-21 16:59", checkinMethod: "Barcode" },
-  { id: "5", service: "Ibadah Pagi", speaker: "Pdt. Daud", checkinDate: "2024-07-14 09:10", checkinMethod: "RFID" },
-  { id: "6", service: "Ibadah Remaja", speaker: "Pdt. Yohanes", checkinDate: "2024-07-27 18:30", checkinMethod: "Barcode" },
-  { id: "7", service: "Ibadah Pagi", speaker: "Pdt. Abraham", checkinDate: "2024-07-07 09:03", checkinMethod: "Barcode" },
-  { id: "8", service: "Ibadah Sore", speaker: "Pdt. Maria", checkinDate: "2024-07-07 17:05", checkinMethod: "RFID" },
-  { id: "9", service: "Ibadah Pagi", speaker: "Pdt. Daud", checkinDate: "2024-06-30 08:59", checkinMethod: "Barcode" },
-  { id: "10", service: "Ibadah Sore", speaker: "Pdt. Yusuf", checkinDate: "2024-06-30 17:01", checkinMethod: "RFID" },
-  { id: "11", service: "Ibadah Pagi", speaker: "Pdt. Abraham", checkinDate: "2024-06-23 09:05", checkinMethod: "Barcode" },
+  { id: "1", service: "Ibadah Raya 1", speaker: "Pdt. Stephen Purwanto", checkinDate: "2024-07-28 09:05", checkinMethod: "Barcode" },
+  { id: "2", service: "Ibadah Raya 2", speaker: "Pdt. Arwadi Cornelius Purba", checkinDate: "2024-07-28 17:02", checkinMethod: "RFID" },
+  { id: "3", service: "Ibadah Raya 1", speaker: "Pdt. Stephen Purwanto", checkinDate: "2024-07-21 09:01", checkinMethod: "Barcode" },
+  { id: "4", service: "Ibadah Raya 2", speaker: "Ev. Indra Cahyawanto ", checkinDate: "2024-07-21 16:59", checkinMethod: "Barcode" },
+  { id: "5", service: "Ibadah Raya 1", speaker: "Pdp. Frenky Sianturi", checkinDate: "2024-07-14 09:10", checkinMethod: "RFID" },
+  { id: "6", service: "Ibadah Dewasa Muda", speaker: "Ev. Christian Pakpahan", checkinDate: "2024-07-27 18:30", checkinMethod: "Barcode" },
+  { id: "7", service: "Ibadah Raya 1", speaker: "Ev. Nolfin", checkinDate: "2024-07-07 09:03", checkinMethod: "Barcode" },
+  { id: "8", service: "Ibadah Raya 2", speaker: "Pdt. George Ferry", checkinDate: "2024-07-07 17:05", checkinMethod: "RFID" },
+  { id: "9", service: "Ibadah Raya 1", speaker: "Pdt. George Ferry", checkinDate: "2024-06-30 08:59", checkinMethod: "Barcode" },
+  { id: "10", service: "Ibadah Raya 2", speaker: "Pdt. Ellya Makarawung", checkinDate: "2024-06-30 17:01", checkinMethod: "RFID" },
+  { id: "11", service: "Ibadah Raya 1", speaker: "Pdt. Ellya Makarawung", checkinDate: "2024-06-23 09:05", checkinMethod: "Barcode" },
 ];
 
 const ITEMS_PER_PAGE = 5;

@@ -103,7 +103,7 @@ export default function ProfilePage() {
         <Card className="max-w-2xl mx-auto">
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
-              <AvatarImage src={profileImage} alt="User" data-ai-hint="person portrait" />
+              {profileImage && <AvatarImage src={profileImage} alt="User" data-ai-hint="person portrait" />}
               <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
             <CardTitle className="font-headline text-3xl text-primary">{userName}</CardTitle>
@@ -175,7 +175,7 @@ export default function ProfilePage() {
                   <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
                      <div className="flex flex-col items-center gap-4">
                       <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
-                        <AvatarImage src={profileImagePreview} alt="User" />
+                        {profileImagePreview && <AvatarImage src={profileImagePreview} alt="User" />}
                         <AvatarFallback>{userInitials}</AvatarFallback>
                       </Avatar>
                       {isUploading && (

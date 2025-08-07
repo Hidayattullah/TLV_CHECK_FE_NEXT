@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Edit, LogOut } from "lucide-react";
 import Link from "next/link";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -38,64 +39,105 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <h3 className="font-headline text-lg text-primary">Contact Information</h3>
+              <h3 className="font-headline text-lg text-primary">Informasi Pribadi</h3>
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="font-medium text-muted-foreground">Phone Number</p>
-                  <p>+1 (555) 123-4567</p>
+                  <p className="font-medium text-muted-foreground">NIK</p>
+                  <p>1234567890123456</p>
                 </div>
                 <div>
-                  <p className="font-medium text-muted-foreground">Email Address</p>
+                  <p className="font-medium text-muted-foreground">Nomor Telepon</p>
+                  <p>+62 812 3456 7890</p>
+                </div>
+                <div>
+                  <p className="font-medium text-muted-foreground">Email</p>
                   <p>john.doe@example.com</p>
+                </div>
+                 <div>
+                  <p className="font-medium text-muted-foreground">Tanggal Lahir</p>
+                  <p>1 Januari 1990</p>
+                </div>
+                <div>
+                  <p className="font-medium text-muted-foreground">Jenis Kelamin</p>
+                  <p>Laki-laki</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="font-medium text-muted-foreground">Alamat</p>
+                  <p>Jl. Jenderal Sudirman No. 1, Jakarta</p>
                 </div>
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="font-headline text-lg text-primary">Membership Details</h3>
+              <h3 className="font-headline text-lg text-primary">Detail Keanggotaan</h3>
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="font-medium text-muted-foreground">Member Since</p>
-                  <p>January 15, 2020</p>
+                  <p className="font-medium text-muted-foreground">Anggota Sejak</p>
+                  <p>15 Januari 2020</p>
                 </div>
                 <div>
                   <p className="font-medium text-muted-foreground">Status</p>
-                  <p>Active</p>
+                  <p>Aktif</p>
                 </div>
               </div>
             </div>
             <div className="flex gap-4 pt-4">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full"><Edit /> Edit Profile</Button>
+                  <Button variant="outline" className="w-full"><Edit /> Edit Profil</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[480px]">
                   <DialogHeader>
-                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogTitle>Edit Profil</DialogTitle>
                     <DialogDescription>
-                      Make changes to your profile here. Click save when you're done.
+                      Perbarui informasi profil Anda di sini. Klik simpan jika sudah selesai.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">Name</Label>
-                      <Input id="name" defaultValue="John Doe" className="col-span-3" />
+                  <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nik">NIK</Label>
+                      <Input id="nik" defaultValue="1234567890123456" />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="phone" className="text-right">Phone</Label>
-                      <Input id="phone" defaultValue="+1 (555) 123-4567" className="col-span-3" />
+                     <div className="space-y-2">
+                      <Label htmlFor="name">Nama</Label>
+                      <Input id="name" defaultValue="John Doe" />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="email" className="text-right">Email</Label>
-                      <Input id="email" type="email" defaultValue="john.doe@example.com" className="col-span-3" />
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Nomor Telepon</Label>
+                      <Input id="phone" defaultValue="+62 812 3456 7890" />
+                    </div>
+                     <div className="space-y-2">
+                      <Label htmlFor="alamat">Alamat</Label>
+                      <Input id="alamat" defaultValue="Jl. Jenderal Sudirman No. 1, Jakarta" />
+                    </div>
+                     <div className="space-y-2">
+                      <Label htmlFor="tanggalLahir">Tanggal Lahir</Label>
+                      <Input id="tanggalLahir" type="date" defaultValue="1990-01-01" />
+                    </div>
+                    <div className="space-y-2">
+                       <Label>Jenis Kelamin</Label>
+                        <RadioGroup defaultValue="laki-laki" className="flex gap-4 pt-1">
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="laki-laki" id="r1-edit" />
+                            <Label htmlFor="r1-edit" className="font-normal">Laki-laki</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="perempuan" id="r2-edit" />
+                            <Label htmlFor="r2-edit" className="font-normal">Perempuan</Label>
+                          </div>
+                        </RadioGroup>
                     </div>
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
-                       <Button type="button" variant="secondary">Cancel</Button>
+                       <Button type="button" variant="secondary">Batal</Button>
                     </DialogClose>
-                    <Button type="submit" onClick={() => setIsDialogOpen(false)}>Save changes</Button>
+                    <Button type="submit" onClick={() => setIsDialogOpen(false)}>Simpan Perubahan</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

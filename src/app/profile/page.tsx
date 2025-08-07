@@ -16,7 +16,7 @@ import { Progress } from "@/components/ui/progress";
 
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [profileImage, setProfileImage] = useState("https://placehold.co/100x100.png");
+  const [profileImage, setProfileImage] = useState("");
   const [profileImagePreview, setProfileImagePreview] = useState(profileImage);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { FilePen, History, Search, BookOpen, MessageSquareQuote, Barcode } from "lucide-react";
+import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode } from "lucide-react";
 import { UserCircle } from "lucide-react";
 
 const menuItems = [
@@ -63,7 +63,7 @@ export default function DashboardPage() {
               <Link href="/scanner" passHref>
                 <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 flex items-center p-4 text-center rounded-2xl shadow-md">
                    <CardContent className="p-0 flex items-center gap-4">
-                    <Barcode className="w-10 h-10 text-primary" />
+                    <QrCode className="w-10 h-10 text-primary" />
                     <p className="text-base font-semibold text-foreground/80">Scan Barcode</p>
                   </CardContent>
                 </Card>

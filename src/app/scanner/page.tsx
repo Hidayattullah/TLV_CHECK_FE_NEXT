@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { CameraOff, RotateCw } from "lucide-react";
@@ -13,54 +13,69 @@ export default function ScannerPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
 
-  const getCameraPermission = useCallback(async (deviceId?: string) => {
-    try {
-      // Stop any existing stream before starting a new one
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-      
-      const constraints = {
-        video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" }
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      const videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter(
-        (device) => device.kind === "videoinput"
-      );
-      
-      setDevices(videoDevices);
-      if (!deviceId && videoDevices.length > 0) {
-        setCurrentDeviceId(videoDevices[0].deviceId);
-      }
-      
-      setHasCameraPermission(true);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      setHasCameraPermission(false);
-      toast({
-        variant: "destructive",
-        title: "Akses Kamera Ditolak",
-        description: "Mohon izinkan akses kamera di pengaturan browser Anda untuk menggunakan fitur ini.",
-      });
+  const getStream = async (deviceId?: string) => {
+    // Stop any existing stream before starting a new one
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
     }
-  }, [toast]);
+
+    const constraints = {
+      video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" }
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  };
 
   useEffect(() => {
-    getCameraPermission();
+    const getCameraDevices = async () => {
+      try {
+        // Request permission and get a stream to enumerate devices.
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter(
+          (device) => device.kind === "videoinput"
+        );
+        setDevices(videoDevices);
+        setHasCameraPermission(true);
+        
+        // Find the environment-facing camera first.
+        const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear'));
+        const initialDeviceId = rearCamera ? rearCamera.deviceId : videoDevices[0]?.deviceId;
+
+        if (initialDeviceId) {
+          setCurrentDeviceId(initialDeviceId);
+          await getStream(initialDeviceId);
+        } else {
+            // If no devices, let it fall through to the error state.
+            throw new Error("No video input devices found.");
+        }
+        
+        // Stop the initial permission stream as getStream will start a new one
+        stream.getTracks().forEach(track => track.stop());
+
+      } catch (error) {
+        console.error("Error accessing camera:", error);
+        setHasCameraPermission(false);
+        toast({
+          variant: "destructive",
+          title: "Akses Kamera Ditolak",
+          description: "Mohon izinkan akses kamera di pengaturan browser Anda untuk menggunakan fitur ini.",
+        });
+      }
+    };
+
+    getCameraDevices();
 
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
-    }
-  }, [getCameraPermission]);
+    };
+  }, [toast]);
 
   const handleSwitchCamera = () => {
     if (devices.length < 2) {
@@ -69,12 +84,12 @@ export default function ScannerPage() {
         description: "Hanya satu kamera yang terdeteksi di perangkat ini.",
       });
       return;
-    };
+    }
     const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
     const nextIndex = (currentIndex + 1) % devices.length;
     const nextDeviceId = devices[nextIndex].deviceId;
     setCurrentDeviceId(nextDeviceId);
-    getCameraPermission(nextDeviceId);
+    getStream(nextDeviceId);
   };
 
   return (

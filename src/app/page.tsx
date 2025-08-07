@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BappendaJuaraLogo } from "@/components/bappenda-juara-logo";
-import { TegarBerimanLogo } from "@/components/tegar-beriman-logo";
+import Image from "next/image";
 import { FilePen, History, Search, BookOpen, MessageSquareQuote } from "lucide-react";
 import { UserCircle } from "lucide-react";
 
@@ -37,10 +36,17 @@ export default function DashboardPage() {
 
       <header className="p-4 flex items-center justify-between text-white relative z-10">
         <div className="flex items-center gap-3">
-          <TegarBerimanLogo className="w-12 h-12" />
+          <Image
+            src="/images/emblem_nbg.png"
+            alt="The Lord's Vineyard Logo"
+            width={48}
+            height={48}
+            className="w-12 h-12"
+            data-ai-hint="emblem"
+          />
           <div>
-            <h1 className="font-bold text-lg">PBB P2 Mobile</h1>
-            <p className="text-sm">Kabupaten Bogor</p>
+            <h1 className="font-bold text-lg">The Lord&apos;s Vineyard</h1>
+            <p className="text-sm">Entry Sistem</p>
           </div>
         </div>
         <Link href="/profile" passHref>
@@ -71,7 +77,7 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <footer className="w-full p-4 text-center text-primary-foreground text-sm relative z-10">
+      <footer className="w-full p-4 text-center text-primary-foreground text-sm relative z-10 bg-primary">
         &copy; {new Date().getFullYear()} Tubagus Rifan, All Rights Reserved
       </footer>
     </div>

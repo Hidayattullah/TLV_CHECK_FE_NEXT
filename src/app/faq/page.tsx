@@ -1,12 +1,19 @@
 
+"use client";
+
+import { useState } from "react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-const faqs = [
+const initialFaqs = [
   {
     question: "Bagaimana keamanan data yang sudah diregistrasi?",
     answer:
@@ -25,26 +32,68 @@ const faqs = [
 ];
 
 export default function FAQPage() {
+  const [faqs, setFaqs] = useState(initialFaqs);
+  const [newQuestion, setNewQuestion] = useState("");
+
+  const handleQuestionSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newQuestion.trim()) {
+      setFaqs([
+        ...faqs,
+        {
+          question: newQuestion,
+          answer: "Menunggu jawaban dari admin...",
+        },
+      ]);
+      setNewQuestion("");
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <header className="mb-8">
         <h1 className="font-headline text-4xl mb-2 text-primary">Pertanyaan Umum (FAQ)</h1>
         <p className="text-muted-foreground max-w-2xl">
-          Temukan jawaban untuk pertanyaan yang sering diajukan di sini.
+          Temukan jawaban untuk pertanyaan yang sering diajukan di sini. Jika Anda memiliki pertanyaan lain, jangan ragu untuk bertanya.
         </p>
       </header>
-      <Accordion type="single" collapsible className="w-full max-w-3xl">
-        {faqs.map((faq, index) => (
-          <AccordionItem value={`item-${index}`} key={index}>
-            <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
-              {faq.question}
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-base">
-              {faq.answer}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+      
+      <div className="max-w-3xl mx-auto space-y-8">
+        <Accordion type="single" collapsible className="w-full">
+          {faqs.map((faq, index) => (
+            <AccordionItem value={`item-${index}`} key={index}>
+              <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground text-base">
+                {faq.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+
+        <Separator />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl text-primary">Punya Pertanyaan Lain?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleQuestionSubmit} className="space-y-4">
+              <Textarea
+                placeholder="Tuliskan pertanyaan Anda di sini..."
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+                className="bg-accent/50 border-0"
+                rows={4}
+              />
+              <Button type="submit" disabled={!newQuestion.trim()}>
+                Kirim Pertanyaan
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

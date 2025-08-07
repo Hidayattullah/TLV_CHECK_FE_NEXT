@@ -4,19 +4,27 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
-import { GbiLogo } from "@/components/gbi-logo";
+import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="bg-background min-h-screen flex flex-col">
-      <header className="bg-primary w-full p-4 flex flex-col items-center justify-center flex-shrink-0">
+      <header className="bg-primary w-full p-4 flex flex-col items-center justify-center flex-shrink-0 text-primary-foreground">
         <div className="w-full max-w-md">
         </div>
-        <div className="my-8">
-          <GbiLogo className="h-24 w-auto text-primary-foreground" />
+        <div className="my-4 flex flex-col items-center text-center">
+           <Image 
+              src="/images/emblem_nbg.png" 
+              alt="The Lord's Vineyard Logo"
+              width={96}
+              height={96}
+              data-ai-hint="emblem"
+            />
+           <h1 className="text-2xl font-headline mt-2">The Lord&apos;s Vineyard</h1>
+           <p className="text-lg opacity-80">entry</p>
         </div>
       </header>
       

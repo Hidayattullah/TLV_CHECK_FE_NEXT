@@ -15,7 +15,7 @@ export default function AttendanceLayout({
             <ArrowLeft />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold">Laporan Absensi</h1>
+        <h1 className="text-xl font-bold">Absenku</h1>
       </header>
       <main className="flex-grow">
         {children}

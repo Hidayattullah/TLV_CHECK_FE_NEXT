@@ -16,7 +16,7 @@ export default function ServicesLayout({
             <ArrowLeft />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold">Jadwal Pelayanan</h1>
+        <h1 className="text-xl font-bold">Tentang Kami</h1>
       </header>
       <main className="flex-grow">
         {children}

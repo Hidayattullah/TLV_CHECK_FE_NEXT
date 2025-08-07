@@ -24,7 +24,7 @@ export default function LoginPage() {
               data-ai-hint="emblem"
             />
            <h1 className="text-2xl font-headline mt-2">The Lord&apos;s Vineyard</h1>
-           <p className="text-lg opacity-80">entry</p>
+           <p className="text-lg opacity-80 mb-2">Entry Sistem</p>
         </div>
       </header>
       

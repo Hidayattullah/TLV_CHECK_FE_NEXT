@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +11,7 @@ const menuItems = [
   { href: "#", label: "Catatan Pembayaran", icon: History },
   { href: "#", label: "Cek Pelayanan", icon: Search },
   { href: "#", label: "Panduan Aplikasi", icon: BookOpen },
-  { href: "#", label: "Pertanyaan", icon: MessageSquareQuote },
+  { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
 ];
 
 const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
@@ -72,7 +73,7 @@ export default function DashboardPage() {
             <MenuItem href="/attendance" label="Catatan Absensi" icon={History} />
             <MenuItem href="#" label="Cek Pelayanan" icon={Search} />
             <MenuItem href="#" label="Panduan Aplikasi" icon={BookOpen} />
-            <MenuItem href="#" label="Pertanyaan" icon={MessageSquareQuote} />
+            <MenuItem href="/faq" label="Pertanyaan" icon={MessageSquareQuote} />
           </div>
         </div>
       </main>

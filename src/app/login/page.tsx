@@ -26,7 +26,7 @@ export default function LoginPage() {
       </header>
       
       <main className="flex-grow flex flex-col items-center w-full -mt-10">
-        <div className="bg-card text-card-foreground w-full max-w-md flex-grow p-8 rounded-t-3xl shadow-lg">
+        <div className="bg-card text-card-foreground w-full max-w-md flex-grow p-8 rounded-3xl shadow-lg">
           <div className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="nik" className="text-sm font-medium text-muted-foreground">NIK</label>

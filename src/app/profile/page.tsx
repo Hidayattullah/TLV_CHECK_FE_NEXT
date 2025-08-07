@@ -38,7 +38,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
-              <h3 className="font-headline text-lg text-primary/80">Contact Information</h3>
+              <h3 className="font-headline text-lg text-primary">Contact Information</h3>
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -52,7 +52,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="space-y-4">
-              <h3 className="font-headline text-lg text-primary/80">Membership Details</h3>
+              <h3 className="font-headline text-lg text-primary">Membership Details</h3>
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -100,7 +100,7 @@ export default function ProfilePage() {
                 </DialogContent>
               </Dialog>
                <Link href="/login" passHref className="w-full">
-                <Button variant="secondary" className="w-full"><LogOut /> Logout</Button>
+                <Button variant="outline" className="w-full text-primary border-primary hover:bg-primary/10 hover:text-primary"><LogOut /> Logout</Button>
                </Link>
             </div>
           </CardContent>

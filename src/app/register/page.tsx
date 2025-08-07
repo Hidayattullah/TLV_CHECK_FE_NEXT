@@ -60,7 +60,7 @@ export default function RegisterPage() {
   return (
     <div className="bg-background min-h-screen">
       <header className="bg-primary text-primary-foreground p-4 flex items-center gap-4 sticky top-0 z-10">
-        <Link href="/" passHref>
+        <Link href="/login" passHref>
           <Button variant="ghost" size="icon">
             <ArrowLeft />
           </Button>

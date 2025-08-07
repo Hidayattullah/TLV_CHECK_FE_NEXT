@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import {
   Table,
   TableBody,
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type AttendanceRecord = {
   id: string;
@@ -42,6 +43,8 @@ export function AttendanceReport() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterMethod, setFilterMethod] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const filteredData = useMemo(() => {
     const lowercasedSearchTerm = searchTerm.toLowerCase();
@@ -62,6 +65,16 @@ export function AttendanceReport() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredData, currentPage]);
+  
+  const handlePageChange = (newPage: number) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      startTransition(() => {
+        setCurrentPage(newPage);
+        setIsLoading(false);
+      });
+    }, 500); // Simulate network delay
+  };
 
   return (
     <div className="space-y-4">
@@ -103,25 +116,37 @@ export function AttendanceReport() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedData.map((record) => (
-              <TableRow key={record.id}>
-                <TableCell className="font-medium">{record.service}</TableCell>
-                <TableCell>{record.speaker}</TableCell>
-                <TableCell>{record.checkinDate}</TableCell>
-                <TableCell className="text-right">
-                  <Badge variant={record.checkinMethod === "Barcode" ? "default" : "secondary"}>
-                    {record.checkinMethod}
-                  </Badge>
+            {isLoading ? (
+              Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                  <TableCell className="text-right"><Skeleton className="h-5 w-16" /></TableCell>
+                </TableRow>
+              ))
+            ) : paginatedData.length > 0 ? (
+              paginatedData.map((record) => (
+                <TableRow key={record.id}>
+                  <TableCell className="font-medium">{record.service}</TableCell>
+                  <TableCell>{record.speaker}</TableCell>
+                  <TableCell>{record.checkinDate}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant={record.checkinMethod === "Barcode" ? "default" : "secondary"}>
+                      {record.checkinMethod}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center p-4 text-muted-foreground">
+                  Data tidak ditemukan.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
-         {paginatedData.length === 0 && (
-          <div className="text-center p-4 text-muted-foreground">
-            Data tidak ditemukan.
-          </div>
-        )}
       </div>
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
@@ -131,16 +156,16 @@ export function AttendanceReport() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1 || isLoading || isPending}
           >
             Sebelumnya
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || isLoading || isPending}
           >
             Berikutnya
           </Button>

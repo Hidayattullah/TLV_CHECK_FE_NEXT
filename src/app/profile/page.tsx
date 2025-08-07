@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,18 @@ export default function ProfilePage() {
   const [profileImagePreview, setProfileImagePreview] = useState(profileImage);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [userName, setUserName] = useState("John Doe");
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
+  const userInitials = useMemo(() => getInitials(userName), [userName]);
 
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,6 +78,8 @@ export default function ProfilePage() {
   
   const handleSaveChanges = () => {
     setProfileImage(profileImagePreview);
+    const newName = (document.getElementById("name") as HTMLInputElement).value;
+    setUserName(newName);
     setIsDialogOpen(false);
   }
 
@@ -90,9 +104,9 @@ export default function ProfilePage() {
           <CardHeader className="flex flex-col items-center text-center">
             <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
               <AvatarImage src={profileImage} alt="User" data-ai-hint="person portrait" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
-            <CardTitle className="font-headline text-3xl text-primary">John Doe</CardTitle>
+            <CardTitle className="font-headline text-3xl text-primary">{userName}</CardTitle>
             <p className="text-muted-foreground">Member</p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -162,7 +176,7 @@ export default function ProfilePage() {
                      <div className="flex flex-col items-center gap-4">
                       <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
                         <AvatarImage src={profileImagePreview} alt="User" />
-                        <AvatarFallback>JD</AvatarFallback>
+                        <AvatarFallback>{userInitials}</AvatarFallback>
                       </Avatar>
                       {isUploading && (
                         <div className="w-full px-4">
@@ -185,7 +199,7 @@ export default function ProfilePage() {
                     </div>
                      <div className="space-y-2">
                       <Label htmlFor="name">Nama</Label>
-                      <Input id="name" defaultValue="John Doe" />
+                      <Input id="name" defaultValue={userName} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>

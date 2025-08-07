@@ -4,9 +4,9 @@ export default function AttendancePage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <header className="mb-8">
-        <h1 className="font-headline text-4xl mb-2 text-primary">Attendance Report</h1>
+        <h1 className="font-headline text-4xl mb-2 text-primary">Laporan Absensi</h1>
         <p className="text-muted-foreground max-w-2xl">
-          View member attendance records. For members with low attendance, you can generate a personalized outreach message to encourage them.
+          Lihat catatan absensi untuk setiap ibadah. Anda dapat melihat detail kehadiran anggota di sini.
         </p>
       </header>
       <AttendanceReport />

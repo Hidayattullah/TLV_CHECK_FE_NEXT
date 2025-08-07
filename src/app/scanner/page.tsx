@@ -25,9 +25,19 @@ export default function ScannerPage() {
       video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" }
     };
 
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch(err) {
+      console.error("Error getting stream:", err);
+      setHasCameraPermission(false);
+       toast({
+          variant: "destructive",
+          title: "Akses Kamera Ditolak",
+          description: "Tidak dapat memulai kamera dengan perangkat yang dipilih.",
+        });
     }
   };
 
@@ -39,6 +49,11 @@ export default function ScannerPage() {
         const videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter(
           (device) => device.kind === "videoinput"
         );
+        
+        if (videoDevices.length === 0) {
+          throw new Error("No video input devices found.");
+        }
+
         setDevices(videoDevices);
         setHasCameraPermission(true);
         
@@ -46,15 +61,9 @@ export default function ScannerPage() {
         const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear'));
         const initialDeviceId = rearCamera ? rearCamera.deviceId : videoDevices[0]?.deviceId;
 
-        if (initialDeviceId) {
-          setCurrentDeviceId(initialDeviceId);
-          await getStream(initialDeviceId);
-        } else {
-            // If no devices, let it fall through to the error state.
-            throw new Error("No video input devices found.");
-        }
+        setCurrentDeviceId(initialDeviceId);
         
-        // Stop the initial permission stream as getStream will start a new one
+        // Stop the initial permission stream as getStream will be called inside the other effect
         stream.getTracks().forEach(track => track.stop());
 
       } catch (error) {
@@ -76,7 +85,16 @@ export default function ScannerPage() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if(currentDeviceId) {
+        getStream(currentDeviceId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDeviceId]);
+
 
   const handleSwitchCamera = () => {
     if (devices.length < 2) {
@@ -90,7 +108,6 @@ export default function ScannerPage() {
     const nextIndex = (currentIndex + 1) % devices.length;
     const nextDeviceId = devices[nextIndex].deviceId;
     setCurrentDeviceId(nextDeviceId);
-    getStream(nextDeviceId);
   };
 
   return (
@@ -112,15 +129,15 @@ export default function ScannerPage() {
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
                 <div className="scanner-line absolute top-0 left-0 w-full h-1 bg-blue-400 rounded-full shadow-[0_0_10px_theme(colors.blue.400)]" />
             </div>
+            {devices.length > 1 && (
+              <Button onClick={handleSwitchCamera} size="icon" variant="ghost" className="absolute top-2 right-2 bg-black/50 hover:bg-black/75 text-white hover:text-white">
+                <RotateCw className="h-6 w-6" />
+              </Button>
+            )}
           </>
         )}
       </div>
       <div className="mt-4 w-full max-w-md space-y-4">
-         {hasCameraPermission === true && devices.length > 1 && (
-          <Button onClick={handleSwitchCamera} className="w-full">
-            <RotateCw className="mr-2 h-4 w-4" /> Ganti Kamera
-          </Button>
-        )}
         {hasCameraPermission === false && (
             <Alert variant="destructive">
               <AlertTitle>Akses Kamera Diperlukan</AlertTitle>

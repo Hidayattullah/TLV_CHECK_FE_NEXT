@@ -31,15 +31,21 @@ const initialFaqs = [
   },
 ];
 
+type FAQ = {
+  question: string;
+  answer: string;
+};
+
 export default function FAQPage() {
-  const [faqs, setFaqs] = useState(initialFaqs);
+  const [faqs] = useState<FAQ[]>(initialFaqs);
+  const [userQuestions, setUserQuestions] = useState<FAQ[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
 
   const handleQuestionSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newQuestion.trim()) {
-      setFaqs([
-        ...faqs,
+      setUserQuestions([
+        ...userQuestions,
         {
           question: newQuestion,
           answer: "Menunggu jawaban dari admin...",
@@ -93,6 +99,24 @@ export default function FAQPage() {
             </form>
           </CardContent>
         </Card>
+
+        {userQuestions.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-headline text-primary">Pertanyaan Anda</h2>
+            <Accordion type="single" collapsible className="w-full">
+              {userQuestions.map((faq, index) => (
+                <AccordionItem value={`user-item-${index}`} key={`user-${index}`}>
+                  <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground text-base">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
       </div>
     </div>
   );

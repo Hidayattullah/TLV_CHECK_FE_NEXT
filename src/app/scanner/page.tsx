@@ -12,13 +12,13 @@ export default function ScannerPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | undefined>(undefined);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
   const getStream = async (deviceId?: string) => {
     // Stop any existing stream before starting a new one
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
     }
 
     const constraints = {
@@ -27,6 +27,7 @@ export default function ScannerPage() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream; // Save stream to ref
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -45,7 +46,7 @@ export default function ScannerPage() {
     const getCameraDevices = async () => {
       try {
         // Request permission and get a stream to enumerate devices.
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
         const videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter(
           (device) => device.kind === "videoinput"
         );
@@ -64,7 +65,7 @@ export default function ScannerPage() {
         setCurrentDeviceId(initialDeviceId);
         
         // Stop the initial permission stream as getStream will be called inside the other effect
-        stream.getTracks().forEach(track => track.stop());
+        tempStream.getTracks().forEach(track => track.stop());
 
       } catch (error) {
         console.error("Error accessing camera:", error);
@@ -79,10 +80,10 @@ export default function ScannerPage() {
 
     getCameraDevices();
 
+    // This is the cleanup function that will run when the component unmounts
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps

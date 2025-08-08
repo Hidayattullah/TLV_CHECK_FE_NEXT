@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode } from "lucide-react";
+import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode, Home } from "lucide-react";
 import { UserCircle } from "lucide-react";
 
 const menuItems = [
@@ -28,7 +28,7 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
 
 export default function DashboardPage() {
   return (
-    <div className="bg-primary min-h-screen flex flex-col relative overflow-hidden">
+    <div className="bg-primary min-h-screen flex flex-col relative overflow-hidden pb-24">
       {/* Abstract background shapes */}
       <div className="absolute top-0 left-0 w-full h-1/2">
         <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-white/10 rounded-full" />
@@ -60,16 +60,6 @@ export default function DashboardPage() {
       <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">
         <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
-             <div className="col-span-2">
-              <Link href="/scanner" passHref>
-                <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 flex items-center p-4 text-center rounded-2xl shadow-md">
-                   <CardContent className="p-0 flex items-center gap-4">
-                    <QrCode className="w-10 h-10 text-primary" />
-                    <p className="text-base font-semibold text-foreground/80">Scan Barcode</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
             <MenuItem href="/attendance" label="Absenku" icon={History} />
             <MenuItem href="/services" label="Tentang Kita" icon={Search} />
             <MenuItem href="#" label="Panduan Aplikasi" icon={BookOpen} />
@@ -78,9 +68,30 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <footer className="w-full p-4 text-center text-primary-foreground text-sm relative z-10 bg-primary">
-        &copy; {new Date().getFullYear()} Tubagus Rifan, All Rights Reserved
-      </footer>
+      {/* Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 h-20 bg-card border-t border-border/50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-20">
+        <div className="flex justify-around items-center h-full max-w-lg mx-auto relative">
+          <Link href="/" passHref className="flex flex-col items-center justify-center text-primary w-20">
+            <Home className="w-7 h-7" />
+            <span className="text-xs mt-1">Home</span>
+          </Link>
+          
+          <Link href="/scanner" passHref className="absolute -top-7">
+            <div className="relative">
+              <div className="absolute inset-0 bg-card rounded-full transform scale-110"></div>
+               <Button size="icon" className="relative w-16 h-16 rounded-full bg-primary shadow-lg hover:bg-primary/90">
+                <QrCode className="w-8 h-8 text-primary-foreground" />
+              </Button>
+            </div>
+          </Link>
+          
+          <Link href="/profile" passHref className="flex flex-col items-center justify-center text-foreground/70 hover:text-primary w-20">
+            <UserCircle className="w-7 h-7" />
+            <span className="text-xs mt-1">Profil</span>
+          </Link>
+        </div>
+      </div>
+
     </div>
   );
 }

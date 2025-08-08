@@ -70,20 +70,23 @@ export default function DashboardPage() {
 
       {/* Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 h-20 bg-card border-t border-border/50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-20">
-        <div className="flex justify-around items-center h-full max-w-lg mx-auto relative">
+        <div className="flex justify-around items-center h-full max-w-lg mx-auto">
           <Link href="/" passHref className="flex flex-col items-center justify-center text-primary w-20">
             <Home className="w-7 h-7" />
             <span className="text-xs mt-1">Home</span>
           </Link>
           
-          <Link href="/scanner" passHref className="absolute -top-7">
-            <div className="relative">
-              <div className="absolute inset-0 bg-card rounded-full transform scale-110"></div>
-               <Button size="icon" className="relative w-16 h-16 rounded-full bg-primary shadow-lg hover:bg-primary/90">
-                <QrCode className="w-8 h-8 text-primary-foreground" />
-              </Button>
-            </div>
-          </Link>
+          <div className="flex flex-col items-center">
+            <Link href="/scanner" passHref className="absolute -top-8">
+              <div className="relative">
+                <div className="absolute inset-0 bg-card rounded-full transform scale-110"></div>
+                 <Button size="icon" className="relative w-20 h-20 rounded-full bg-primary shadow-lg hover:bg-primary/90">
+                  <QrCode className="w-10 h-10 text-primary-foreground" />
+                </Button>
+              </div>
+            </Link>
+            <span className="text-xs mt-12 text-foreground/70">Scan</span>
+          </div>
           
           <Link href="/profile" passHref className="flex flex-col items-center justify-center text-foreground/70 hover:text-primary w-20">
             <UserCircle className="w-7 h-7" />

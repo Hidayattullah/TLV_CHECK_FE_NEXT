@@ -26,16 +26,11 @@ const aboutData = [
         <div className="space-y-4">
             <div>
                 <h3 className="font-semibold flex items-center gap-2 mb-1"><Rocket className="w-4 h-4 text-primary" />Visi</h3>
-                <p>Menjadi gereja yang berdampak, yang menjangkau jiwa-jiwa bagi Kristus dan memuridkan mereka untuk menjadi serupa dengan-Nya.</p>
+                <p>Menjadi Gereja yang mengasihi Tuhan Yesus dan sesama.</p>
             </div>
             <div>
                 <h3 className="font-semibold flex items-center gap-2 mb-1"><Cross className="w-4 h-4 text-primary" />Misi</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                    <li>Menyelenggarakan ibadah yang penuh hadirat Tuhan.</li>
-                    <li>Membangun komunitas yang saling mengasihi dan mendukung.</li>
-                    <li>Melengkapi jemaat untuk melayani sesuai karunia.</li>
-                    <li>Menjadi berkat bagi masyarakat sekitar.</li>
-                </ul>
+                 <p>Mempersiapkan Jemaat yang kudus, penuh belas kasihan dan berdampak.</p>
             </div>
         </div>
     )

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { BottomNav } from "@/components/common/bottom-nav";
 
 export default function ResetPasswordPage() {
   const [view, setView] = useState<'request' | 'verify' | 'reset'>('request');
@@ -37,7 +38,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen pb-20">
       <header className="bg-primary text-primary-foreground p-4 flex items-center gap-4 sticky top-0 z-10">
         <Link href="/login" passHref>
           <Button variant="ghost" size="icon">
@@ -166,6 +167,7 @@ export default function ResetPasswordPage() {
           </Card>
         )}
       </div>
+      <BottomNav />
     </div>
   );
 }

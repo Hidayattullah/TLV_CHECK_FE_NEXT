@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { BottomNav } from "@/components/common/bottom-nav";
 
 export default function ScannerLayout({
   children,
@@ -8,7 +9,7 @@ export default function ScannerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-background min-h-screen flex flex-col">
+    <div className="bg-background min-h-screen flex flex-col pb-20">
       <header className="bg-primary text-primary-foreground p-4 flex items-center gap-4 sticky top-0 z-10">
         <Link href="/" passHref>
           <Button variant="ghost" size="icon">
@@ -20,9 +21,7 @@ export default function ScannerLayout({
       <main className="flex-grow">
         {children}
       </main>
-      <footer className="w-full p-4 text-center text-muted-foreground text-sm">
-        &copy; {new Date().getFullYear()} Tubagus Rifan, All Rights Reserved
-      </footer>
+      <BottomNav />
     </div>
   );
 }

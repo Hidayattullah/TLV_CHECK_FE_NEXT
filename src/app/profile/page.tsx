@@ -13,6 +13,7 @@ import { ArrowLeft, Edit, LogOut, Upload } from "lucide-react";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
+import { BottomNav } from "@/components/common/bottom-nav";
 
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -89,7 +90,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="bg-background min-h-screen flex flex-col">
+    <div className="bg-background min-h-screen flex flex-col pb-20">
       <header className="bg-primary text-primary-foreground p-4 flex items-center gap-4 sticky top-0 z-10">
         <Link href="/" passHref>
           <Button variant="ghost" size="icon">
@@ -246,10 +247,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </main>
-
-       <footer className="w-full p-4 text-center text-muted-foreground text-sm">
-        &copy; {new Date().getFullYear()} Tubagus Rifan, All Rights Reserved
-      </footer>
+      <BottomNav />
     </div>
   );
 }

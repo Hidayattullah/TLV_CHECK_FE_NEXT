@@ -52,11 +52,6 @@ export default function DashboardPage() {
             <h1 className="font-bold text-lg">{userName}</h1>
           </div>
         </div>
-        <Link href="/profile" passHref>
-           <Button variant="ghost" size="icon" className="bg-white/90 text-primary rounded-full w-10 h-10 hover:bg-white">
-            <UserCircle className="w-6 h-6" />
-          </Button>
-        </Link>
       </header>
 
       <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">

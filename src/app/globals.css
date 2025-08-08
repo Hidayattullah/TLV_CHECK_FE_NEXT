@@ -4,75 +4,88 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    /* 🌕 Light Theme */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
- 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
- 
-    --primary: 142.1 76.2% 31.2%;
-    --primary-foreground: 355.7 100% 97.3%;
- 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
- 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
- 
-    --accent: 142.1 76.2% 90.2%;
-    --accent-foreground: 222.2 47.4% 11.2%;
- 
-    --destructive: 0 84.2% 60.2%;
+    --background: 42 33% 96%;         /* Background utama (#FAF9F6) */
+    --foreground: 0 0% 18%;           /* Teks utama (#2E2E2E) */
+
+    --card: 0 0% 100%;                /* Background card (putih) */
+    --card-foreground: 0 0% 18%;      /* Teks dalam card */
+
+    --popover: 0 0% 100%;             /* Background popover */
+    --popover-foreground: 0 0% 18%;   /* Teks popover */
+
+    --primary: 324, 69%, 34%;           /* Ungu untuk border/utama */
+    --primary-foreground: 0 0% 100%;  /* Teks di atas primary */
+
+    --secondary: 42 33% 92%;          /* Background sekunder */
+    --secondary-foreground: 0 0% 25%; /* Teks sekunder */
+
+    --muted: 42 33% 92%;              /* Latar belakang non-fokus */
+    --muted-foreground: 0 0% 40%;     /* Teks non-fokus */
+
+    --accent: 324 69% 34%;            /* 🌸 Magenta gelap (#931c58) */
+    --accent-foreground: 0 0% 100%;   /* Teks putih di atas accent */
+
+    --destructive: 0 84.2% 60.2%;     /* Warna merah untuk hapus */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 142.1 76.2% 90.2%;
-    --ring: 142.1 76.2% 41.2%;
- 
+    --border: 42 30% 85%;             /* Border abu lembut */
+    --input: 42 30% 85%;
+    --ring: 42 30% 75%;              /* Abu halus efek focus */
+
     --radius: 0.5rem;
 
-    --sidebar-background: 280 44% 10%;
-    --sidebar-foreground: 45 80% 70%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    /* Sidebar (opsional) */
+    --sidebar-background: 42 33% 96%;
+    --sidebar-foreground: 0 0% 25%;
+    --sidebar-primary: 215 85% 47%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 44% 20%;
-    --sidebar-accent-foreground: 45 86% 62%;
-    --sidebar-border: 280 44% 20%;
-    --sidebar-ring: 45 86% 62%;
+    --sidebar-accent: 324 69% 34%;         /* 🔄 Ganti ke magenta gelap */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 42 30% 85%;
+    --sidebar-ring: 215 85% 47%;
   }
 
   .dark {
-    --background: 280 44% 16%;
-    --foreground: 45 86% 62%;
-    --card: 280 44% 12%;
-    --card-foreground: 45 86% 62%;
-    --popover: 280 44% 10%;
-    --popover-foreground: 45 86% 62%;
-    --primary: 45 86% 62%;
-    --primary-foreground: 280 44% 12%;
-    --secondary: 280 44% 20%;
-    --secondary-foreground: 45 86% 62%;
-    --muted: 280 44% 20%;
-    --muted-foreground: 45 80% 70%;
-    --accent: 280 44% 25%;
-    --accent-foreground: 45 86% 62%;
+    /* 🌑 Dark Theme */
+
+    --background: 0 0% 10%;
+    --foreground: 0 0% 90%;
+
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 90%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 90%;
+
+    --primary: 215 85% 47%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 80%;
+
+    --muted: 0 0% 25%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 324 69% 34%;            /* 🌸 Tetap magenta gelap */
+    --accent-foreground: 0 0% 100%;
+
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 280 44% 20%;
-    --input: 280 44% 20%;
-    --ring: 45 86% 62%;
 
-    --sidebar-background: 280 44% 10%;
-    --sidebar-foreground: 45 80% 70%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 215 85% 47%;
+
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 215 85% 47%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 44% 20%;
-    --sidebar-accent-foreground: 45 86% 62%;
-    --sidebar-border: 280 44% 20%;
-    --sidebar-ring: 45 86% 62%;
+    --sidebar-accent: 324 69% 34%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 25%;
+    --sidebar-ring: 215 85% 47%;
   }
 }
 
@@ -80,6 +93,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }

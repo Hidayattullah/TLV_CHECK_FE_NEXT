@@ -44,7 +44,7 @@ export default function DashboardPage() {
       <header className="p-4 flex items-center justify-between text-white relative z-10">
         <div className="flex items-center gap-3">
           <Avatar className="w-12 h-12">
-            <AvatarImage src="https://placehold.co/100x100.png" alt={userName} data-ai-hint="person portrait" />
+            <AvatarImage src="https://placehold.co/.png" alt={userName} data-ai-hint="person portrait" />
             <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>
           <div>

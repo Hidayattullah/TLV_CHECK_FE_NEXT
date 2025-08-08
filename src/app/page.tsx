@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode, Home, Church } from "lucide-react";
+import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode, Home, Church, HeartHandshake } from "lucide-react";
 import { UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/common/bottom-nav";
@@ -14,7 +14,7 @@ const menuItems = [
   { href: "/attendance", label: "Absenku", icon: History },
   { href: "/services", label: "Tentang Kita", icon: Church },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
-  { href: "/register", label: "Registrasi", icon: FilePen },
+  { href: "/prayer-support", label: "Dukungan Doa", icon: HeartHandshake },
 ];
 
 const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (

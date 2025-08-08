@@ -30,7 +30,7 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
 
 
 export default function DashboardPage() {
-  const userName = "John Doe";
+  const userName = "Tubagus Rifan";
   const userInitials = userName.split(' ').map(n => n[0]).join('');
 
   return (

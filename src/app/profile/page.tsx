@@ -21,7 +21,7 @@ export default function ProfilePage() {
   const [profileImagePreview, setProfileImagePreview] = useState(profileImage);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [userName, setUserName] = useState("John Doe");
+  const [userName, setUserName] = useState("Tubagus Rifan");
 
   const getInitials = (name: string) => {
     return name
@@ -125,7 +125,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <p className="font-medium text-muted-foreground">Email</p>
-                  <p>john.doe@example.com</p>
+                  <p>tubagusrifan@gmail.com</p>
                 </div>
                  <div>
                   <p className="font-medium text-muted-foreground">Tanggal Lahir</p>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" defaultValue="john.doe@example.com" />
+                      <Input id="email" type="email" defaultValue="tubagusrifan@gmail.com" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Nomor Telepon</Label>

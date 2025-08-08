@@ -40,11 +40,12 @@ const aboutData = [
     title: "Jadwal Ibadah",
     icon: Calendar,
     content: (
-      <ul className="space-y-2">
-        <li><strong>Ibadah Raya Minggu:</strong> 09:00 & 17:00</li>
-        <li><strong>Ibadah Pemuda (Youth):</strong> Sabtu, 18:30</li>
-        <li><strong>Sekolah Minggu:</strong> Minggu, 09:30</li>
-        <li><strong>Ibadah Tengah Minggu:</strong> Rabu, 19:00</li>
+      <ul className="space-y-2 list-disc pl-4">
+        <li><strong>Ibadah Raya 1 & 2:</strong> Minggu, 07.30 & 10.00</li>
+        <li><strong>Sekolah Minggu:</strong> Minggu, 10.00</li>
+        <li><strong>Ibadah Kasih Agape:</strong> Minggu, 13.30</li>
+        <li><strong>Ibadah Dewasa Muda:</strong> Minggu, 17.00</li>
+        <li><strong>Ibadah Youth Burning Spirit:</strong> Sabtu, 18.00</li>
       </ul>
     ),
   },

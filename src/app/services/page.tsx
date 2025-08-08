@@ -7,9 +7,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Church, Cross, Calendar, Users, Target, Rocket } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 
 const aboutData = [
   {
@@ -53,7 +54,19 @@ const aboutData = [
     value: "item-4",
     title: "Pelayanan & Ministries",
     icon: Users,
-    content: "Kami memiliki berbagai pelayanan untuk segala usia dan minat, termasuk Pelayanan Anak, Pelayanan Remaja & Pemuda, Pelayanan Musik & Multimedia, Pelayanan Wanita, dan Pelayanan Sosial. Mari bergabung dan melayani bersama kami!",
+    content: (
+      <div className="space-y-3">
+        <p>🎶 "Pakai Talentamu untuk Kemuliaan Tuhan"</p>
+        <p>Setiap talenta adalah pemberian Tuhan, dan pelayanan adalah cara kita mengembalikannya untuk kemuliaan-Nya. Di gereja ini, ada banyak kesempatan buat kamu terlibat sesuai passion dan kemampuanmu.</p>
+        <p>Karena pelayanan bukan cuma soal tampil di depan, tapi soal hati yang mau dipakai Tuhan. ❤️ Yuk, temukan tempatmu, pakai talentamu, dan jadilah berkat bagi banyak orang!</p>
+        <p>
+          📲 Buat kamu yang rindu melayani bersama, klik link berikut ini untuk mendaftarnya:{" "}
+          <Link href="https://forms.gle/kqWn3st16WkubzVx7" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+            https://forms.gle/kqWn3st16WkubzVx7
+          </Link>
+        </p>
+      </div>
+    ),
   },
 ];
 

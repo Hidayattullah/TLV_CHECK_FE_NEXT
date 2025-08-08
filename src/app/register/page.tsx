@@ -69,7 +69,7 @@ export default function RegisterPage() {
       </header>
       
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="p-4 space-y-6 pb-24">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="p-4 space-y-6">
           <div className="space-y-4">
             <FormField
               control={form.control}
@@ -236,7 +236,7 @@ export default function RegisterPage() {
             />
           </div>
           
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
+          <div className="pb-16">
             <Button type="submit" className="w-full h-12 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-semibold">
               Submit
             </Button>

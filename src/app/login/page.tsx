@@ -6,13 +6,12 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
-import { BottomNav } from "@/components/common/bottom-nav";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="bg-background min-h-screen flex flex-col pb-20">
+    <div className="bg-background min-h-screen flex flex-col">
       <header className="bg-primary w-full p-4 flex flex-col items-center justify-center flex-shrink-0 text-primary-foreground">
         <div className="w-full max-w-md">
         </div>
@@ -82,7 +81,6 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
-      <BottomNav />
     </div>
   );
 }

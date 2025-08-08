@@ -17,7 +17,7 @@ const aboutData = [
     value: "item-1",
     title: "Tentang Gereja",
     icon: Church,
-    content: "The Lord's Vineyard Church adalah sebuah komunitas orang percaya yang berdedikasi untuk menyebarkan kasih Kristus dan membangun jemaat yang kuat dalam iman. Kami adalah tempat bagi semua orang untuk bertumbuh, melayani, dan menemukan keluarga di dalam Kristus.",
+    content: "The Lord's Vineyard adalah gereja yang berlandaskan kasih kepada Tuhan Yesus dan sesama. Sebagai komunitas, kami berkomitmen untuk mempersiapkan jemaat yang kudus, penuh belas kasihan, dan berdampak bagi lingkungan sekitar. Kami adalah keluarga di dalam Kristus, tempat bagi semua orang untuk bertumbuh dan melayani bersama.",
   },
   {
     value: "item-2",

@@ -57,10 +57,9 @@ export default function DashboardPage() {
       <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">
         <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <MenuItem href="/attendance" label="Absenku" icon={History} />
-            <MenuItem href="/services" label="Tentang Kita" icon={Church} />
-            <MenuItem href="/faq" label="Pertanyaan" icon={MessageSquareQuote} />
-            <MenuItem href="/register" label="Registrasi" icon={FilePen} />
+            {menuItems.map((item) => (
+              <MenuItem key={item.href} {...item} />
+            ))}
           </div>
         </div>
       </main>
@@ -69,4 +68,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

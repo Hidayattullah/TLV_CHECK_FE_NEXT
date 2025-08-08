@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { History, Search, QrCode, Home, UserCircle } from "lucide-react";
+import { History, Church, QrCode, Home, UserCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ export function BottomNav() {
           </Link>
         </div>
         
-        <NavLink href="/services" icon={Search} label="Tentang" />
+        <NavLink href="/services" icon={Church} label="Tentang" />
         <NavLink href="/profile" icon={UserCircle} label="Profil" />
       </div>
     </nav>

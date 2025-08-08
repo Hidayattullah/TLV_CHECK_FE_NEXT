@@ -7,11 +7,10 @@ import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode, Home } 
 import { UserCircle } from "lucide-react";
 
 const menuItems = [
-  { href: "/register", label: "Registrasi E-SPPT", icon: FilePen },
-  { href: "#", label: "Catatan Pembayaran", icon: History },
-  { href: "#", label: "Cek Pelayanan", icon: Search },
-  { href: "#", label: "Panduan Aplikasi", icon: BookOpen },
+  { href: "/attendance", label: "Absenku", icon: History },
+  { href: "/services", label: "Tentang Kita", icon: Search },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
+  { href: "/register", label: "Registrasi", icon: FilePen },
 ];
 
 const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
@@ -62,38 +61,46 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-4">
             <MenuItem href="/attendance" label="Absenku" icon={History} />
             <MenuItem href="/services" label="Tentang Kita" icon={Search} />
-            <MenuItem href="#" label="Panduan Aplikasi" icon={BookOpen} />
             <MenuItem href="/faq" label="Pertanyaan" icon={MessageSquareQuote} />
+            <MenuItem href="/register" label="Registrasi" icon={FilePen} />
           </div>
         </div>
       </main>
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 h-20 bg-card border-t border-border/50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-20">
+      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-card border-t border-border/50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-20">
         <div className="flex justify-around items-center h-full max-w-lg mx-auto">
-          <Link href="/" passHref className="flex flex-col items-center justify-center text-primary w-20">
-            <Home className="w-7 h-7" />
-            <span className="text-xs mt-1">Home</span>
+          <Link href="/" className="flex flex-col items-center justify-center text-primary w-16 text-center">
+            <Home className="w-6 h-6 mb-1" />
+            <span className="text-xs">Home</span>
+          </Link>
+          <Link href="/attendance" className="flex flex-col items-center justify-center text-foreground/70 hover:text-primary w-16 text-center">
+            <History className="w-6 h-6 mb-1" />
+            <span className="text-xs">Absenku</span>
           </Link>
           
-          <div className="flex flex-col items-center">
-            <Link href="/scanner" passHref className="absolute -top-8">
-              <div className="relative">
-                <div className="absolute inset-0 bg-card rounded-full transform scale-110"></div>
-                 <Button size="icon" className="relative w-20 h-20 rounded-full bg-primary shadow-lg hover:bg-primary/90">
-                  <QrCode className="w-10 h-10 text-primary-foreground" />
-                </Button>
-              </div>
+          <div className="relative w-16 h-full flex items-center justify-center">
+             <Link href="/scanner" className="absolute bottom-5 flex flex-col items-center justify-center">
+                <div className="relative w-16 h-16 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-card rounded-full transform scale-110"></div>
+                   <Button size="icon" className="relative w-16 h-16 rounded-full bg-primary shadow-lg hover:bg-primary/90">
+                    <QrCode className="w-9 h-9 text-primary-foreground" />
+                  </Button>
+                </div>
+              <span className="text-xs mt-2 text-foreground/70">Scan</span>
             </Link>
-            <span className="text-xs mt-12 text-foreground/70">Scan</span>
           </div>
           
-          <Link href="/profile" passHref className="flex flex-col items-center justify-center text-foreground/70 hover:text-primary w-20">
-            <UserCircle className="w-7 h-7" />
-            <span className="text-xs mt-1">Profil</span>
+          <Link href="/services" className="flex flex-col items-center justify-center text-foreground/70 hover:text-primary w-16 text-center">
+            <Search className="w-6 h-6 mb-1" />
+            <span className="text-xs">Tentang</span>
+          </Link>
+          <Link href="/profile" className="flex flex-col items-center justify-center text-foreground/70 hover:text-primary w-16 text-center">
+            <UserCircle className="w-6 h-6 mb-1" />
+            <span className="text-xs">Profil</span>
           </Link>
         </div>
-      </div>
+      </nav>
 
     </div>
   );

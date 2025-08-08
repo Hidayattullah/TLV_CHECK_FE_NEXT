@@ -5,14 +5,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode, Home } from "lucide-react";
+import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode, Home, Church } from "lucide-react";
 import { UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/common/bottom-nav";
 
 const menuItems = [
   { href: "/attendance", label: "Absenku", icon: History },
-  { href: "/services", label: "Tentang Kita", icon: Search },
+  { href: "/services", label: "Tentang Kita", icon: Church },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
   { href: "/register", label: "Registrasi", icon: FilePen },
 ];
@@ -58,7 +58,7 @@ export default function DashboardPage() {
         <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <MenuItem href="/attendance" label="Absenku" icon={History} />
-            <MenuItem href="/services" label="Tentang Kita" icon={Search} />
+            <MenuItem href="/services" label="Tentang Kita" icon={Church} />
             <MenuItem href="/faq" label="Pertanyaan" icon={MessageSquareQuote} />
             <MenuItem href="/register" label="Registrasi" icon={FilePen} />
           </div>
@@ -69,3 +69,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

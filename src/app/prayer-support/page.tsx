@@ -64,7 +64,6 @@ export default function PrayerSupportPage() {
                 placeholder="Anda bisa menggunakan 'Anonim'"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-accent/50 border-0"
               />
             </div>
             <div className="space-y-2">
@@ -74,7 +73,6 @@ export default function PrayerSupportPage() {
                 placeholder="Tuliskan permohonan doa Anda di sini..."
                 value={prayerRequest}
                 onChange={(e) => setPrayerRequest(e.target.value)}
-                className="bg-accent/50 border-0"
                 rows={6}
                 required
               />

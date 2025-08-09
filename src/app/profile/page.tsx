@@ -23,6 +23,9 @@ export default function ProfilePage() {
   const [userName, setUserName] = useState("Tubagus Rifan");
   const [isSaving, setIsSaving] = useState(false);
 
+  // State untuk tracking pressed buttons (simulasi active state)
+  const [pressedButtons, setPressedButtons] = useState<{[key: string]: boolean}>({});
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -33,6 +36,14 @@ export default function ProfilePage() {
   };
 
   const userInitials = useMemo(() => getInitials(userName), [userName]);
+
+  // Handler untuk button press states
+  const handleButtonPress = (buttonId: string) => {
+    setPressedButtons(prev => ({ ...prev, [buttonId]: true }));
+    setTimeout(() => {
+      setPressedButtons(prev => ({ ...prev, [buttonId]: false }));
+    }, 150); // Reset after 150ms
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -77,6 +88,7 @@ export default function ProfilePage() {
   };
   
   const handleSaveChanges = async () => {
+    handleButtonPress('save-button');
     setIsSaving(true);
     
     // Simulate API call delay
@@ -90,6 +102,7 @@ export default function ProfilePage() {
   }
 
   const handleCancelChanges = () => {
+    handleButtonPress('cancel-button');
     setProfileImagePreview(profileImage); // Reset preview to original image
     setIsSaving(false);
     setIsDialogOpen(false);
@@ -99,7 +112,12 @@ export default function ProfilePage() {
     <div className="bg-background min-h-screen flex flex-col pb-20">
       <header className="bg-primary text-primary-foreground p-4 flex items-center gap-4 sticky top-0 z-10">
         <Link href="/" passHref>
-          <Button variant="ghost" size="icon">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            pressed={pressedButtons['back-button']}
+            onClick={() => handleButtonPress('back-button')}
+          >
             <ArrowLeft />
           </Button>
         </Link>
@@ -121,10 +139,6 @@ export default function ProfilePage() {
               <h3 className="font-headline text-lg text-primary">Informasi Pribadi</h3>
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="font-medium text-muted-foreground">NIK</p>
-                  <p>1234567890123456</p>
-                </div>
                 <div>
                   <p className="font-medium text-muted-foreground">Nomor Telepon</p>
                   <p>+62 812 3456 7890</p>
@@ -170,9 +184,17 @@ export default function ProfilePage() {
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full" disabled={isSaving}>
-                    <Edit />
-                    Edit Profil
+                  <Button 
+                    variant="management" 
+                    className="w-full" 
+                    disabled={isSaving}
+                    pressed={pressedButtons['edit-button']}
+                    onClick={() => handleButtonPress('edit-button')}
+                  >
+                    <span>
+                      <Edit />
+                      Edit Profil
+                    </span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[480px]">
@@ -199,7 +221,11 @@ export default function ProfilePage() {
                         size="sm" 
                         loading={isUploading}
                         disabled={isSaving}
-                        onClick={() => document.getElementById("photo-upload")?.click()}
+                        pressed={pressedButtons['upload-button']}
+                        onClick={() => {
+                          handleButtonPress('upload-button');
+                          document.getElementById("photo-upload")?.click();
+                        }}
                       >
                         <Upload className="mr-2 h-4 w-4" />
                         {isUploading ? "Mengunggah..." : "Ganti Foto"}
@@ -214,10 +240,6 @@ export default function ProfilePage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="nik">NIK</Label>
-                      <Input id="nik" defaultValue="1234567890123456" disabled={isSaving} />
-                    </div>
                      <div className="space-y-2">
                       <Label htmlFor="name">Nama</Label>
                       <Input id="name" defaultValue={userName} disabled={isSaving} />
@@ -259,6 +281,7 @@ export default function ProfilePage() {
                          variant="secondary" 
                          onClick={handleCancelChanges}
                          disabled={isSaving}
+                         pressed={pressedButtons['cancel-button']}
                        >
                          Batal
                        </Button>
@@ -267,6 +290,8 @@ export default function ProfilePage() {
                       type="submit" 
                       onClick={handleSaveChanges}
                       loading={isSaving}
+                      pressed={pressedButtons['save-button']}
+                      className="btn-default-focus-override"
                     >
                       {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
                     </Button>
@@ -277,9 +302,13 @@ export default function ProfilePage() {
                 <Button 
                   variant="outline" 
                   className="w-full text-primary border-primary hover:bg-primary/10 hover:text-primary"
+                  pressed={pressedButtons['logout-button']}
+                  onClick={() => handleButtonPress('logout-button')}
                 >
-                  <LogOut />
-                  Logout
+                  <span>
+                    <LogOut />
+                    Logout
+                  </span>
                 </Button>
                </Link>
             </div>

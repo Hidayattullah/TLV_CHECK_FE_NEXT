@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -91,93 +90,132 @@
 }
 
 @layer components {
-  /* PERBAIKAN KONTRAS BUTTON - Management Variant */
+  /* 
+   * 🎨 PERBAIKAN FOKUS untuk variant DEFAULT 
+   * Override focus state agar text ungu pada background putih
+   */
+  .btn-default-focus-override:focus {
+    background-color: hsl(0 0% 100%) !important;     /* 📝 Background putih */
+    color: hsl(var(--primary)) !important;          /* 📝 Text ungu */
+    border: 2px solid hsl(var(--primary)) !important; /* 📝 Border ungu */
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2) !important; /* 📝 Ring ungu */
+  }
+
+  /* 
+   * 🎨 PERBAIKAN KONTRAS BUTTON - Management Variant 
+   * Variant ini untuk tombol dengan style management yang lebih subtle
+   */
   .btn-management-contrast {
-    background-color: hsl(0 0% 100%);
-    color: hsl(0 0% 10%);
-    border: 1px solid hsl(0 0% 85%);
+    background-color: hsl(0 0% 100%);      /* 📝 Background putih */
+    color: hsl(0 0% 10%);                  /* 📝 Text hitam gelap */
+    border: 1px solid hsl(0 0% 85%);      /* 📝 Border abu muda */
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     transition: all 0.2s ease-in-out;
   }
   
+  /* 🎯 HOVER STATE - Background berubah ke ungu, text jadi putih */
   .btn-management-contrast:hover {
-    background-color: hsl(var(--primary));
-    color: hsl(0 0% 100%);
-    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary));  /* 📝 Background ungu */
+    color: hsl(0 0% 100%);                  /* 📝 Text putih */
+    border-color: hsl(var(--primary));      /* 📝 Border ungu */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     transform: translateY(-1px);
   }
   
+  /* 🎯 FOCUS STATE - Background putih, text ungu dengan ring */
   .btn-management-contrast:focus {
-    background-color: hsl(var(--primary));
-    color: hsl(0 0% 100%);
-    border-color: hsl(var(--primary));
+    background-color: hsl(0 0% 100%);       /* 📝 Background putih */
+    color: hsl(var(--primary));             /* 📝 Text ungu */
+    border-color: hsl(var(--primary));      /* 📝 Border ungu */
     box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
     transform: translateY(-1px);
   }
   
+  /* 
+   * 🎯 ACTIVE/PRESSED STATE - PERBAIKAN UTAMA! 
+   * Background putih, text ungu (kebalikan dari hover)
+   */
   .btn-management-contrast:active,
   .btn-management-contrast[data-pressed="true"] {
-    background-color: hsl(var(--primary) / 0.8);
-    color: hsl(0 0% 100%);
-    border-width: 2px;
-    border-color: hsl(var(--primary) / 0.6);
-    transform: translateY(0) scale(0.95);
+    background-color: hsl(0 0% 100%);       /* 📝 Background putih (bukan ungu!) */
+    color: hsl(var(--primary));             /* 📝 Text ungu (bukan putih!) */
+    border-width: 2px;                      /* 📝 Border lebih tebal */
+    border-color: hsl(var(--primary));      /* 📝 Border ungu */
+    transform: translateY(0) scale(0.95);   /* 📝 Efek press */
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1); /* 📝 Shadow dalam untuk efek pressed */
   }
   
+  /* 🎯 DISABLED STATE */
   .btn-management-contrast:disabled {
-    background-color: hsl(0 0% 100% / 0.5);
-    color: hsl(0 0% 10% / 0.5);
-    border-color: hsl(0 0% 85% / 0.5);
+    background-color: hsl(0 0% 100% / 0.5); /* 📝 Background putih transparan */
+    color: hsl(0 0% 10% / 0.5);             /* 📝 Text abu-abu */
+    border-color: hsl(0 0% 85% / 0.5);      /* 📝 Border abu-abu */
     cursor: not-allowed;
     transform: none;
   }
 
-  /* PERBAIKAN KONTRAS - Outline Variant */
+  /* 
+   * 🎨 PERBAIKAN KONTRAS - Outline Variant 
+   * Tombol transparan dengan border
+   */
   .btn-outline-contrast {
-    background-color: transparent;
-    color: hsl(var(--primary));
-    border: 1px solid hsl(var(--primary));
+    background-color: transparent;          /* 📝 Background transparan */
+    color: hsl(var(--primary));            /* 📝 Text ungu */
+    border: 1px solid hsl(var(--primary)); /* 📝 Border ungu */
   }
   
   .btn-outline-contrast:hover {
-    background-color: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary));      /* 📝 Background ungu saat hover */
+    color: hsl(var(--primary-foreground));     /* 📝 Text putih saat hover */
+    border-color: hsl(var(--primary));         /* 📝 Border ungu */
   }
   
   .btn-outline-contrast:focus {
-    background-color: hsl(var(--primary) / 0.9);
-    color: hsl(0 0% 100%);
-    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.9); /* 📝 Background ungu agak transparan */
+    color: hsl(0 0% 100%);                       /* 📝 Text putih */
+    border-color: hsl(var(--primary));           /* 📝 Border ungu */
   }
   
+  /* 🎯 ACTIVE STATE untuk outline - background putih, text ungu */
   .btn-outline-contrast[data-state=open],
-  .btn-outline-contrast:active {
-    background-color: hsl(var(--primary) / 0.8);
-    color: hsl(0 0% 100%);
-    border-color: hsl(var(--primary) / 0.8);
+  .btn-outline-contrast:active,
+  .btn-outline-contrast[data-pressed="true"] {
+    background-color: hsl(0 0% 100%);           /* 📝 Background putih */
+    color: hsl(var(--primary));                /* 📝 Text ungu */
+    border-color: hsl(var(--primary));         /* 📝 Border ungu */
+    border-width: 2px;                         /* 📝 Border lebih tebal */
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
   }
 
-  /* PERBAIKAN KONTRAS - Ghost Variant */
+  /* 
+   * 🎨 PERBAIKAN KONTRAS - Ghost Variant 
+   * Tombol transparan tanpa border
+   */
   .btn-ghost-contrast {
-    background-color: transparent;
-    color: hsl(var(--foreground));
+    background-color: transparent;          /* 📝 Background transparan */
+    color: hsl(var(--foreground));         /* 📝 Text warna default */
   }
   
   .btn-ghost-contrast:hover {
-    background-color: hsl(var(--primary));
-    color: hsl(0 0% 100%);
+    background-color: hsl(var(--primary));  /* 📝 Background ungu saat hover */
+    color: hsl(0 0% 100%);                  /* 📝 Text putih saat hover */
   }
   
+  /* 🎯 FOCUS STATE - Background putih, text ungu dengan ring */
   .btn-ghost-contrast:focus {
-    background-color: hsl(var(--primary) / 0.9);
-    color: hsl(0 0% 100%);
+    background-color: hsl(0 0% 100%);       /* 📝 Background putih */
+    color: hsl(var(--primary));            /* 📝 Text ungu */
+    border: 1px solid hsl(var(--primary)); /* 📝 Border ungu */
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2); /* 📝 Ring ungu transparan */
   }
   
-  .btn-ghost-contrast:active {
-    background-color: hsl(var(--primary) / 0.8);
-    color: hsl(0 0% 100%);
+  /* 🎯 ACTIVE STATE untuk ghost - background putih, text ungu */
+  .btn-ghost-contrast:active,
+  .btn-ghost-contrast[data-pressed="true"] {
+    background-color: hsl(0 0% 100%);       /* 📝 Background putih */
+    color: hsl(var(--primary));            /* 📝 Text ungu */
+    border: 1px solid hsl(var(--primary)); /* 📝 Tambah border ungu saat active */
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
   }
 
   /* Loading spinner dengan kontras yang baik */
@@ -194,28 +232,38 @@
     }
   }
 
-  /* Efek hover tombol agar tetap kontras - DIPERBAIKI */
+  /* 
+   * 🎨 Efek hover tombol accent - DIPERBAIKI 
+   * Warna accent (magenta gelap)
+   */
   .btn-accent {
-    background-color: hsl(var(--accent));
-    color: hsl(0 0% 100%);
+    background-color: hsl(var(--accent));   /* 📝 Background magenta gelap */
+    color: hsl(0 0% 100%);                  /* 📝 Text putih */
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 200ms;
   }
   
   .btn-accent:hover {
-    background-color: hsl(324, 69%, 28%); /* Gelapkan sedikit agar hover terlihat */
-    color: hsl(0 0% 100%);
+    background-color: hsl(324, 69%, 28%);   /* 📝 Gelapkan sedikit agar hover terlihat */
+    color: hsl(0 0% 100%);                  /* 📝 Text putih */
   }
   
+  /* 🎯 FOCUS STATE - Background putih, text ungu dengan ring */
   .btn-accent:focus {
-    background-color: hsl(324, 69%, 25%);
-    color: hsl(0 0% 100%);
+    background-color: hsl(0 0% 100%);       /* 📝 Background putih */
+    color: hsl(var(--accent));             /* 📝 Text magenta gelap */
+    border: 2px solid hsl(var(--accent));  /* 📝 Border magenta gelap */
+    box-shadow: 0 0 0 2px hsl(var(--accent) / 0.2); /* 📝 Ring magenta transparan */
   }
   
-  .btn-accent:active {
-    background-color: hsl(324, 69%, 22%);
-    color: hsl(0 0% 100%);
+  /* 🎯 ACTIVE STATE untuk accent - background putih, text ungu */
+  .btn-accent:active,
+  .btn-accent[data-pressed="true"] {
+    background-color: hsl(0 0% 100%);       /* 📝 Background putih */
+    color: hsl(var(--accent));             /* 📝 Text magenta gelap */
+    border: 2px solid hsl(var(--accent));  /* 📝 Border magenta gelap */
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -242,22 +290,25 @@
   animation: scan 2.5s infinite alternate ease-in-out;
 }
 
-/* UTILITY CLASSES untuk kontras yang lebih baik */
+/* 
+ * 🎨 UTILITY CLASSES untuk kontras yang lebih baik 
+ * Classes tambahan untuk membantu kontras
+ */
 @layer utilities {
   .text-high-contrast {
-    color: hsl(0 0% 100%) !important;
+    color: hsl(0 0% 100%) !important;      /* 📝 Text putih kontras tinggi */
   }
   
   .text-low-contrast {
-    color: hsl(0 0% 10%) !important;
+    color: hsl(0 0% 10%) !important;       /* 📝 Text hitam kontras rendah */
   }
   
   .bg-high-contrast {
-    background-color: hsl(0 0% 10%) !important;
+    background-color: hsl(0 0% 10%) !important; /* 📝 Background hitam */
   }
   
   .bg-low-contrast {
-    background-color: hsl(0 0% 100%) !important;
+    background-color: hsl(0 0% 100%) !important; /* 📝 Background putih */
   }
 
   .border-success {

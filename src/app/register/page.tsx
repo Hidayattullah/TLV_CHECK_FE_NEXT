@@ -15,7 +15,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  nik: z.string().min(1, { message: "NIK tidak boleh kosong." }),
   nama: z.string().min(1, { message: "Nama tidak boleh kosong." }),
   email: z.string().email({ message: "Format email tidak valid." }).optional().or(z.literal('')),
   telepon: z.string().min(1, { message: "Nomor telepon tidak boleh kosong." }),
@@ -38,7 +37,6 @@ export default function RegisterPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nik: "",
       nama: "",
       email: "",
       telepon: "",
@@ -71,18 +69,6 @@ export default function RegisterPage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="p-4 space-y-6">
           <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="nik"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="NIK" {...field} className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="nama"

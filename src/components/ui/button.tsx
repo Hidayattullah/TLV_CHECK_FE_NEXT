@@ -57,12 +57,19 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       {
         "cursor-not-allowed": isDisabled,
         "cursor-wait": loading,
-        // Pressed state dengan kontras yang konsisten menggunakan data attribute
+        // PERBAIKAN: Pressed state dengan kontras yang benar - text ungu pada background putih
         "[&[data-pressed='true']]:!scale-95": pressed,
+        // Management variant - background putih, text ungu saat pressed
+        "[&[data-pressed='true']]:!bg-white": pressed && (variant === "management"),
+        "[&[data-pressed='true']]:!text-primary": pressed && (variant === "management"),
+        "[&[data-pressed='true']]:!border-primary": pressed && (variant === "management"),
+        // Default variant tetap menggunakan primary background
         "[&[data-pressed='true']]:!bg-primary": pressed && (variant === "default"),
         "[&[data-pressed='true']]:!text-primary-foreground": pressed && (variant === "default"),
+        // Destructive variant
         "[&[data-pressed='true']]:!bg-destructive": pressed && variant === "destructive", 
         "[&[data-pressed='true']]:!text-destructive-foreground": pressed && variant === "destructive",
+        // Secondary variant
         "[&[data-pressed='true']]:!bg-secondary": pressed && variant === "secondary",
         "[&[data-pressed='true']]:!text-secondary-foreground": pressed && variant === "secondary",
       }

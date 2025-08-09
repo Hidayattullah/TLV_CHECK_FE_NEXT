@@ -90,13 +90,129 @@
 }
 
 @layer components {
-  /* Efek hover tombol agar tetap kontras */
-  .btn-accent {
-    @apply bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] transition-colors duration-200;
+  /* PERBAIKAN KONTRAS BUTTON - Management Variant */
+  .btn-management-contrast {
+    background-color: hsl(0 0% 100%);
+    color: hsl(0 0% 10%);
+    border: 1px solid hsl(0 0% 85%);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease-in-out;
   }
+  
+  .btn-management-contrast:hover {
+    background-color: hsl(var(--primary));
+    color: hsl(0 0% 100%);
+    border-color: hsl(var(--primary));
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+  
+  .btn-management-contrast:focus {
+    background-color: hsl(var(--primary));
+    color: hsl(0 0% 100%);
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+    transform: translateY(-1px);
+  }
+  
+  .btn-management-contrast:active,
+  .btn-management-contrast[data-pressed="true"] {
+    background-color: hsl(var(--primary) / 0.9);
+    color: hsl(0 0% 100%);
+    border-color: hsl(var(--primary) / 0.9);
+    transform: translateY(0) scale(0.95);
+  }
+  
+  .btn-management-contrast:disabled {
+    background-color: hsl(0 0% 100% / 0.5);
+    color: hsl(0 0% 10% / 0.5);
+    border-color: hsl(0 0% 85% / 0.5);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* PERBAIKAN KONTRAS - Outline Variant */
+  .btn-outline-contrast {
+    background-color: transparent;
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+  }
+  
+  .btn-outline-contrast:hover {
+    background-color: hsl(var(--primary));
+    color: hsl(0 0% 100%);
+    border-color: hsl(var(--primary));
+  }
+  
+  .btn-outline-contrast:focus {
+    background-color: hsl(var(--primary) / 0.9);
+    color: hsl(0 0% 100%);
+    border-color: hsl(var(--primary));
+  }
+  
+  .btn-outline-contrast:active {
+    background-color: hsl(var(--primary) / 0.8);
+    color: hsl(0 0% 100%);
+    border-color: hsl(var(--primary) / 0.8);
+  }
+
+  /* PERBAIKAN KONTRAS - Ghost Variant */
+  .btn-ghost-contrast {
+    background-color: transparent;
+    color: hsl(var(--foreground));
+  }
+  
+  .btn-ghost-contrast:hover {
+    background-color: hsl(var(--primary));
+    color: hsl(0 0% 100%);
+  }
+  
+  .btn-ghost-contrast:focus {
+    background-color: hsl(var(--primary) / 0.9);
+    color: hsl(0 0% 100%);
+  }
+  
+  .btn-ghost-contrast:active {
+    background-color: hsl(var(--primary) / 0.8);
+    color: hsl(0 0% 100%);
+  }
+
+  /* Loading spinner dengan kontras yang baik */
+  .btn-loading-spinner {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Efek hover tombol agar tetap kontras - DIPERBAIKI */
+  .btn-accent {
+    background-color: hsl(var(--accent));
+    color: hsl(0 0% 100%);
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+  
   .btn-accent:hover {
     background-color: hsl(324, 69%, 28%); /* Gelapkan sedikit agar hover terlihat */
-    color: hsl(var(--accent-foreground));
+    color: hsl(0 0% 100%);
+  }
+  
+  .btn-accent:focus {
+    background-color: hsl(324, 69%, 25%);
+    color: hsl(0 0% 100%);
+  }
+  
+  .btn-accent:active {
+    background-color: hsl(324, 69%, 22%);
+    color: hsl(0 0% 100%);
   }
 }
 
@@ -121,4 +237,23 @@
 
 .scanner-line {
   animation: scan 2.5s infinite alternate ease-in-out;
+}
+
+/* UTILITY CLASSES untuk kontras yang lebih baik */
+@layer utilities {
+  .text-high-contrast {
+    color: hsl(0 0% 100%) !important;
+  }
+  
+  .text-low-contrast {
+    color: hsl(0 0% 10%) !important;
+  }
+  
+  .bg-high-contrast {
+    background-color: hsl(0 0% 10%) !important;
+  }
+  
+  .bg-low-contrast {
+    background-color: hsl(0 0% 100%) !important;
+  }
 }

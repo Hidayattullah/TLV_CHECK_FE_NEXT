@@ -164,7 +164,11 @@ export default function ProfilePage() {
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full"><Edit /> Edit Profil</Button>
+                  <Button variant="outline" className="w-full">
+                    <span>
+                      <Edit /> Edit Profil
+                    </span>
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[480px]">
                   <DialogHeader>

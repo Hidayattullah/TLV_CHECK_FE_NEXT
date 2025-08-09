@@ -10,13 +10,14 @@ import { UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/common/bottom-nav";
 
-const menuItems = [
+const mainMenuItems = [
   { href: "/attendance", label: "Absenku", icon: History },
   { href: "/services", label: "Tentang Kita", icon: Church },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
   { href: "/prayer-support", label: "Dukungan Doa", icon: HeartHandshake },
-  { href: "/management", label: "Manajemen", icon: ClipboardList },
 ];
+
+const managementItem = { href: "/management", label: "Manajemen", icon: ClipboardList };
 
 const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
   <Link href={href} passHref>
@@ -27,6 +28,17 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
       </CardContent>
     </Card>
   </Link>
+);
+
+const ManagementMenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
+    <Link href={href} passHref>
+        <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 flex items-center justify-center p-4 text-center rounded-2xl shadow-md">
+             <CardContent className="p-0 flex items-center justify-center gap-4">
+                <Icon className="w-8 h-8 text-primary" />
+                <p className="text-base font-semibold text-foreground/80">{label}</p>
+            </CardContent>
+        </Card>
+    </Link>
 );
 
 
@@ -49,7 +61,7 @@ export default function DashboardPage() {
             <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm">Shalom,</p>
+            <p className="text-sm">Selamat Datang,</p>
             <h1 className="font-bold text-lg">{userName}</h1>
           </div>
         </div>
@@ -57,11 +69,14 @@ export default function DashboardPage() {
 
       <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">
         <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            {menuItems.map((item) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {mainMenuItems.map((item) => (
               <MenuItem key={item.href} {...item} />
             ))}
           </div>
+           <div className="pt-2">
+             <ManagementMenuItem {...managementItem} />
+           </div>
         </div>
       </main>
 

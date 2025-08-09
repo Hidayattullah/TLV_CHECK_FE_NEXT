@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -22,6 +21,7 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [userName, setUserName] = useState("Tubagus Rifan");
+  const [isSaving, setIsSaving] = useState(false);
 
   const getInitials = (name: string) => {
     return name
@@ -33,7 +33,6 @@ export default function ProfilePage() {
   };
 
   const userInitials = useMemo(() => getInitials(userName), [userName]);
-
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -77,15 +76,22 @@ export default function ProfilePage() {
     }
   };
   
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
     setProfileImage(profileImagePreview);
     const newName = (document.getElementById("name") as HTMLInputElement).value;
     setUserName(newName);
+    setIsSaving(false);
     setIsDialogOpen(false);
   }
 
   const handleCancelChanges = () => {
     setProfileImagePreview(profileImage); // Reset preview to original image
+    setIsSaving(false);
     setIsDialogOpen(false);
   }
 
@@ -157,17 +163,16 @@ export default function ProfilePage() {
             </div>
             <div className="flex gap-4 pt-4">
               <Dialog open={isDialogOpen} onOpenChange={(open) => {
-                if(!open) {
+                if(!open && !isSaving) {
                    handleCancelChanges();
-                } else {
+                } else if(open) {
                   setIsDialogOpen(true);
                 }
               }}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    <span>
-                      <Edit /> Edit Profil
-                    </span>
+                  <Button variant="outline" className="w-full" disabled={isSaving}>
+                    <Edit />
+                    Edit Profil
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[480px]">
@@ -189,48 +194,59 @@ export default function ProfilePage() {
                           <p className="text-xs text-center text-muted-foreground mt-1">{uploadProgress}%</p>
                         </div>
                       )}
-                      <Button asChild variant="outline" size="sm" disabled={isUploading}>
-                        <Label htmlFor="photo-upload" className="cursor-pointer">
-                          <Upload className="mr-2 h-4 w-4" />
-                          Ganti Foto
-                        </Label>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        loading={isUploading}
+                        disabled={isSaving}
+                        onClick={() => document.getElementById("photo-upload")?.click()}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isUploading ? "Mengunggah..." : "Ganti Foto"}
                       </Button>
-                      <Input id="photo-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageChange} disabled={isUploading} />
+                      <Input 
+                        id="photo-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        accept="image/*" 
+                        onChange={handleImageChange} 
+                        disabled={isUploading || isSaving} 
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="nik">NIK</Label>
-                      <Input id="nik" defaultValue="1234567890123456" />
+                      <Input id="nik" defaultValue="1234567890123456" disabled={isSaving} />
                     </div>
                      <div className="space-y-2">
                       <Label htmlFor="name">Nama</Label>
-                      <Input id="name" defaultValue={userName} />
+                      <Input id="name" defaultValue={userName} disabled={isSaving} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" defaultValue="tubagusrifan@gmail.com" />
+                      <Input id="email" type="email" defaultValue="tubagusrifan@gmail.com" disabled={isSaving} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Nomor Telepon</Label>
-                      <Input id="phone" defaultValue="+62 812 3456 7890" />
+                      <Input id="phone" defaultValue="+62 812 3456 7890" disabled={isSaving} />
                     </div>
                      <div className="space-y-2">
                       <Label htmlFor="alamat">Alamat</Label>
-                      <Input id="alamat" defaultValue="Jl. Jenderal Sudirman No. 1, Jakarta" />
+                      <Input id="alamat" defaultValue="Jl. Jenderal Sudirman No. 1, Jakarta" disabled={isSaving} />
                     </div>
                      <div className="space-y-2">
                       <Label htmlFor="tanggalLahir">Tanggal Lahir</Label>
-                      <Input id="tanggalLahir" type="date" defaultValue="1990-01-01" />
+                      <Input id="tanggalLahir" type="date" defaultValue="1990-01-01" disabled={isSaving} />
                     </div>
                     <div className="space-y-2">
                        <Label>Jenis Kelamin</Label>
-                        <RadioGroup defaultValue="laki-laki" className="flex gap-4 pt-1">
+                        <RadioGroup defaultValue="laki-laki" className="flex gap-4 pt-1" disabled={isSaving}>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="laki-laki" id="r1-edit" />
+                            <RadioGroupItem value="laki-laki" id="r1-edit" disabled={isSaving} />
                             <Label htmlFor="r1-edit" className="font-normal">Laki-laki</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="perempuan" id="r2-edit" />
+                            <RadioGroupItem value="perempuan" id="r2-edit" disabled={isSaving} />
                             <Label htmlFor="r2-edit" className="font-normal">Perempuan</Label>
                           </div>
                         </RadioGroup>
@@ -238,15 +254,32 @@ export default function ProfilePage() {
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
-                       <Button type="button" variant="secondary" onClick={handleCancelChanges}>Batal</Button>
+                       <Button 
+                         type="button" 
+                         variant="secondary" 
+                         onClick={handleCancelChanges}
+                         disabled={isSaving}
+                       >
+                         Batal
+                       </Button>
                     </DialogClose>
-                    <Button type="submit" onClick={handleSaveChanges}>Simpan Perubahan</Button>
+                    <Button 
+                      type="submit" 
+                      onClick={handleSaveChanges}
+                      loading={isSaving}
+                    >
+                      {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
                <Link href="/login" passHref className="w-full">
-                <Button variant="outline" className="w-full text-primary border-primary hover:bg-primary/10 hover:text-primary">
-                  <span><LogOut /> Logout</span>
+                <Button 
+                  variant="outline" 
+                  className="w-full text-primary border-primary hover:bg-primary/10 hover:text-primary"
+                >
+                  <LogOut />
+                  Logout
                 </Button>
                </Link>
             </div>

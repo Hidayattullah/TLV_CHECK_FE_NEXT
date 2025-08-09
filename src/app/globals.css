@@ -26,7 +26,7 @@
     --muted-foreground: 0 0% 40%;     /* Teks non-fokus */
 
     --accent: 324 69% 34%;            /* 🌸 Magenta gelap (#931c58) */
-    --accent-foreground: 0 0% 100%;   /* Teks putih di atas accent */
+    --accent-foreground: 0 0% 10%;   /* Teks putih di atas accent */
 
     --destructive: 0 84.2% 60.2%;     /* Warna merah untuk hapus */
     --destructive-foreground: 210 40% 98%;
@@ -136,13 +136,13 @@
   /* PERBAIKAN KONTRAS - Outline Variant */
   .btn-outline-contrast {
     background-color: transparent;
-    color: hsl(var(--foreground));
-    border: 1px solid hsl(var(--border));
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary));
   }
   
   .btn-outline-contrast:hover {
     background-color: hsl(var(--primary));
-    color: hsl(0 0% 100%);
+    color: hsl(var(--primary-foreground));
     border-color: hsl(var(--primary));
   }
   
@@ -152,6 +152,7 @@
     border-color: hsl(var(--primary));
   }
   
+  .btn-outline-contrast[data-state=open],
   .btn-outline-contrast:active {
     background-color: hsl(var(--primary) / 0.8);
     color: hsl(0 0% 100%);

@@ -14,7 +14,7 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:bg-destructive/80 active:bg-destructive/80 active:scale-95 disabled:bg-destructive/50",
         outline:
-          "btn-outline-contrast border border-input bg-background active:scale-95 disabled:border-input/50 disabled:bg-background/50",
+          "btn-outline-contrast active:scale-95 disabled:border-input/50 disabled:bg-background/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:bg-secondary/70 active:bg-secondary/70 active:scale-95 disabled:bg-secondary/50",
         ghost: "btn-ghost-contrast active:scale-95",
@@ -68,6 +68,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       }
     )
 
+    // Jika menggunakan asChild, kita tidak bisa menambahkan loading spinner
+    // karena Slot hanya menerima satu child element
+    if (asChild) {
+      return (
+        <Comp
+          className={buttonClasses}
+          ref={ref}
+          disabled={isDisabled}
+          data-pressed={pressed}
+          {...props}
+        >
+          {children}
+        </Comp>
+      )
+    }
+
+    // Untuk button biasa, kita bisa menambahkan loading spinner
     return (
       <Comp
         className={buttonClasses}
@@ -77,7 +94,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
-          <Loader2 className="w-4 h-4 btn-loading-spinner" />
+          <Loader2 className="w-4 h-4 btn-loading-spinner animate-spin" />
         )}
         {children}
       </Comp>

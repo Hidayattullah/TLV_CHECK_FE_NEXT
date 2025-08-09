@@ -245,7 +245,9 @@ export default function ProfilePage() {
                 </DialogContent>
               </Dialog>
                <Link href="/login" passHref className="w-full">
-                <Button variant="outline" className="w-full text-primary border-primary hover:bg-primary/10 hover:text-primary"><LogOut /> Logout</Button>
+                <Button variant="outline" className="w-full text-primary border-primary hover:bg-primary/10 hover:text-primary">
+                  <span><LogOut /> Logout</span>
+                </Button>
                </Link>
             </div>
           </CardContent>

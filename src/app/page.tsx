@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { FilePen, History, Search, BookOpen, MessageSquareQuote, QrCode, Home, Church, HeartHandshake } from "lucide-react";
+import { History, Church, HeartHandshake, MessageSquareQuote, ClipboardList } from "lucide-react";
 import { UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/common/bottom-nav";
@@ -15,6 +15,7 @@ const menuItems = [
   { href: "/services", label: "Tentang Kita", icon: Church },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
   { href: "/prayer-support", label: "Dukungan Doa", icon: HeartHandshake },
+  { href: "/management", label: "Manajemen", icon: ClipboardList },
 ];
 
 const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
@@ -48,7 +49,7 @@ export default function DashboardPage() {
             <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm">Selamat Datang,</p>
+            <p className="text-sm">Shalom,</p>
             <h1 className="font-bold text-lg">{userName}</h1>
           </div>
         </div>
@@ -56,7 +57,7 @@ export default function DashboardPage() {
 
       <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">
         <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {menuItems.map((item) => (
               <MenuItem key={item.href} {...item} />
             ))}

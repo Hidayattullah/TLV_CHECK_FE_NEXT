@@ -15,9 +15,8 @@ const mainMenuItems = [
   { href: "/services", label: "Tentang Kita", icon: Church },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
   { href: "/prayer-support", label: "Dukungan Doa", icon: HeartHandshake },
+  { href: "/management", label: "Manajemen", icon: ClipboardList },
 ];
-
-const managementItem = { href: "/management", label: "Manajemen", icon: ClipboardList };
 
 const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
   <Link href={href} passHref>
@@ -63,9 +62,6 @@ export default function DashboardPage() {
               <MenuItem key={item.href} {...item} />
             ))}
           </div>
-           <div className="pt-2">
-             <MenuItem {...managementItem} />
-           </div>
         </div>
       </main>
 

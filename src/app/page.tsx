@@ -30,17 +30,6 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
   </Link>
 );
 
-const ManagementMenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
-    <Link href={href} passHref>
-        <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 flex items-center justify-center p-4 text-center rounded-2xl shadow-md">
-             <CardContent className="p-0 flex items-center justify-center gap-4">
-                <Icon className="w-8 h-8 text-primary" />
-                <p className="text-base font-semibold text-foreground/80">{label}</p>
-            </CardContent>
-        </Card>
-    </Link>
-);
-
 
 export default function DashboardPage() {
   const userName = "Tubagus Rifan";
@@ -75,7 +64,7 @@ export default function DashboardPage() {
             ))}
           </div>
            <div className="pt-2">
-             <ManagementMenuItem {...managementItem} />
+             <MenuItem {...managementItem} />
            </div>
         </div>
       </main>

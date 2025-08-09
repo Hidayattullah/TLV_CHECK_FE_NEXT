@@ -1,10 +1,13 @@
+
 "use client";
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, QrCode, ScrollText, MessageSquareQuote, Settings, Save, Trash2, Download, Plus, Edit } from "lucide-react";
+import { Users, QrCode, ScrollText, MessageSquareQuote, Settings, Save, Trash2, Download, Plus, Edit, Loader2, AlertTriangle, XCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const managementSections = [
   {
@@ -90,6 +93,59 @@ export function ManagementDashboard() {
           ))}
         </div>
       </div>
+
+      {/* Textarea UI Kit Showcase */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Textarea UI Kit</CardTitle>
+          <CardDescription>Berbagai status dan varian untuk komponen Textarea.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label>Default</Label>
+            <Textarea placeholder="Tulis pesan Anda..." />
+          </div>
+          <div className="space-y-2">
+            <Label>Disabled</Label>
+            <Textarea placeholder="Tidak dapat diubah" disabled />
+          </div>
+          <div className="space-y-2">
+            <Label>Filled</Label>
+            <Textarea defaultValue="Ini adalah contoh teks yang sudah diisi." />
+          </div>
+          <div className="space-y-2">
+            <Label>Validation (Warning)</Label>
+            <Textarea defaultValue="Perlu diperiksa kembali." className="border-yellow-500 focus-visible:ring-yellow-500" />
+            <div className="flex items-center text-sm text-yellow-600">
+              <AlertTriangle className="w-4 h-4 mr-1" />
+              <span>Periksa kembali input Anda.</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Error</Label>
+            <Textarea defaultValue="Ada kesalahan input." className="border-destructive focus-visible:ring-destructive" />
+             <div className="flex items-center text-sm text-destructive">
+              <XCircle className="w-4 h-4 mr-1" />
+              <span>Input tidak boleh kosong.</span>
+            </div>
+          </div>
+           <div className="space-y-2">
+            <Label>Loading</Label>
+            <div className="relative">
+              <Textarea defaultValue="Sedang memproses..." disabled />
+              <Loader2 className="absolute top-1/2 right-3 -translate-y-1/2 w-5 h-5 animate-spin text-muted-foreground" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Success</Label>
+            <Textarea defaultValue="Pesan berhasil dikirim." className="border-green-500 focus-visible:ring-green-500" />
+             <div className="flex items-center text-sm text-green-600">
+              <CheckCircle className="w-4 h-4 mr-1" />
+              <span>Berhasil disimpan.</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

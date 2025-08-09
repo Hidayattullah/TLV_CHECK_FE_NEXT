@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -256,5 +257,25 @@
   
   .bg-low-contrast {
     background-color: hsl(0 0% 100%) !important;
+  }
+
+  .border-success {
+    border-color: #22c55e; /* green-500 */
+  }
+  .text-success {
+    color: #166534; /* green-800 */
+  }
+  .ring-success {
+    --tw-ring-color: #22c55e;
+  }
+
+  .border-warning {
+    border-color: #f59e0b; /* amber-500 */
+  }
+  .text-warning {
+    color: #b45309; /* amber-700 */
+  }
+  .ring-warning {
+    --tw-ring-color: #f59e0b;
   }
 }

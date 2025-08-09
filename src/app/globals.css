@@ -117,9 +117,10 @@
   
   .btn-management-contrast:active,
   .btn-management-contrast[data-pressed="true"] {
-    background-color: hsl(var(--primary) / 0.9);
+    background-color: hsl(var(--primary) / 0.8);
     color: hsl(0 0% 100%);
-    border-color: hsl(var(--primary) / 0.9);
+    border-width: 2px;
+    border-color: hsl(var(--primary) / 0.6);
     transform: translateY(0) scale(0.95);
   }
   

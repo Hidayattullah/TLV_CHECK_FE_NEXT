@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, QrCode, ScrollText, MessageSquareQuestion } from "lucide-react";
+import { Users, QrCode, ScrollText, MessageSquareQuote } from "lucide-react";
 import Link from "next/link";
 
 const managementSections = [
@@ -31,7 +31,7 @@ const managementSections = [
   {
     title: "Pertanyaan Jemaat",
     description: "Lihat dan jawab pertanyaan yang diajukan oleh jemaat.",
-    icon: MessageSquareQuestion,
+    icon: MessageSquareQuote,
     href: "/management/questions",
     cta: "Lihat Pertanyaan",
   },

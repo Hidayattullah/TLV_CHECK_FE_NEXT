@@ -41,8 +41,8 @@ export function ManagementDashboard() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {managementSections.map((section) => (
-        <Card key={section.title}>
-          <CardHeader>
+        <Card key={section.title} className="flex flex-col">
+          <CardHeader className="flex-grow">
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-xl text-primary">{section.title}</CardTitle>

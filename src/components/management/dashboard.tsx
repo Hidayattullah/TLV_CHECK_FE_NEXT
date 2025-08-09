@@ -53,7 +53,7 @@ export function ManagementDashboard() {
           </CardHeader>
           <CardContent>
             <Link href={section.href}>
-              <Button className="w-full">{section.cta}</Button>
+              <Button variant="management" className="w-full">{section.cta}</Button>
             </Link>
           </CardContent>
         </Card>

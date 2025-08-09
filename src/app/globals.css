@@ -89,6 +89,17 @@
   }
 }
 
+@layer components {
+  /* Efek hover tombol agar tetap kontras */
+  .btn-accent {
+    @apply bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] transition-colors duration-200;
+  }
+  .btn-accent:hover {
+    background-color: hsl(324, 69%, 28%); /* Gelapkan sedikit agar hover terlihat */
+    color: hsl(var(--accent-foreground));
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

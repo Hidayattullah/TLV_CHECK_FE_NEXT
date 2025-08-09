@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -32,8 +33,15 @@ export function BottomNav() {
            <Link href="/scanner" className="absolute bottom-5 flex flex-col items-center justify-center">
               <div className="relative w-16 h-16 flex items-center justify-center">
                 <div className="absolute inset-0 bg-card rounded-full transform scale-110"></div>
-                 <Button size="icon" className="relative w-16 h-16 rounded-full bg-primary shadow-lg hover:bg-primary/90">
-                  <QrCode className="w-9 h-9 text-primary-foreground" />
+                 <Button 
+                    size="icon" 
+                    className={cn(
+                        "relative w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-200",
+                        "hover:bg-card hover:text-primary",
+                        "active:bg-primary/90 active:scale-95"
+                    )}
+                 >
+                  <QrCode className="w-9 h-9" />
                 </Button>
               </div>
             <span className={cn("text-xs mt-2", scanIsActive ? "text-primary" : "text-foreground/70")}>Scan</span>

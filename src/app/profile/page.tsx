@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -191,7 +192,7 @@ export default function ProfilePage() {
                     pressed={pressedButtons['edit-button']}
                     onClick={() => handleButtonPress('edit-button')}
                   >
-                    <span>
+                    <span className="inline-flex items-center gap-2">
                       <Edit />
                       Edit Profil
                     </span>
@@ -305,7 +306,7 @@ export default function ProfilePage() {
                   pressed={pressedButtons['logout-button']}
                   onClick={() => handleButtonPress('logout-button')}
                 >
-                  <span>
+                  <span className="inline-flex items-center gap-2">
                     <LogOut />
                     Logout
                   </span>

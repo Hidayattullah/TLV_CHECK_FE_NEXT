@@ -171,9 +171,10 @@
   }
   
   .btn-outline-contrast:focus {
-    background-color: hsl(var(--primary) / 0.9); /* 📝 Background ungu agak transparan */
-    color: hsl(0 0% 100%);                       /* 📝 Text putih */
-    border-color: hsl(var(--primary));           /* 📝 Border ungu */
+    background-color: hsl(0 0% 100%);           /* 📝 Background putih */
+    color: hsl(var(--primary));                /* 📝 Text ungu */
+    border: 2px solid hsl(var(--primary));     /* 📝 Border lebih tebal */
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2); /* 📝 Ring ungu transparan */
   }
   
   /* 🎯 ACTIVE STATE untuk outline - background putih, text ungu */

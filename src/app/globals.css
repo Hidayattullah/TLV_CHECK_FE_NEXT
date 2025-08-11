@@ -91,6 +91,46 @@
 
 @layer components {
   /* 
+   * 🎨 Primary Button Variant 
+   * Button utama dengan warna ungu yang konsisten
+   */
+  .btn-primary-fixed {
+    background-color: hsl(var(--primary));      /* Background ungu */
+    color: hsl(var(--primary-foreground));      /* Text putih */
+    border: 1px solid hsl(var(--primary));      /* Border ungu */
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .btn-primary-fixed:hover:not(:disabled) {
+    background-color: hsl(324, 69%, 28%);       /* Ungu lebih gelap saat hover */
+    color: hsl(var(--primary-foreground));      /* Text tetap putih */
+    border-color: hsl(324, 69%, 28%);          /* Border ungu gelap */
+  }
+  
+  .btn-primary-fixed:active:not(:disabled),
+  .btn-primary-fixed[data-pressed="true"]:not(:disabled) {
+    background-color: hsl(0 0% 100%);          /* Background putih saat klik */
+    color: hsl(var(--primary));                /* Text ungu saat klik */
+    border-color: hsl(var(--primary));         /* Border ungu */
+    transform: scale(0.95);
+  }
+  
+  .btn-primary-fixed:focus-visible {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+  }
+  
+  .btn-primary-fixed:disabled {
+    background-color: hsl(var(--primary) / 0.5);
+    color: hsl(var(--primary-foreground) / 0.5);
+    border-color: hsl(var(--primary) / 0.5);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* 
    * 🎨 Management Variant 
    * Variant ini untuk tombol dengan style management yang lebih subtle
    */

@@ -91,17 +91,6 @@
 
 @layer components {
   /* 
-   * 🎨 PERBAIKAN FOKUS untuk variant DEFAULT 
-   * Override focus state agar text ungu pada background putih
-   */
-  .btn-default-focus-override:focus {
-    background-color: hsl(0 0% 100%) !important;     /* 📝 Background putih */
-    color: hsl(var(--primary)) !important;          /* 📝 Text ungu */
-    border: 2px solid hsl(var(--primary)) !important; /* 📝 Border ungu */
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2) !important; /* 📝 Ring ungu */
-  }
-
-  /* 
    * 🎨 PERBAIKAN KONTRAS BUTTON - Management Variant 
    * Variant ini untuk tombol dengan style management yang lebih subtle
    */
@@ -137,8 +126,8 @@
    */
   .btn-management-contrast:active,
   .btn-management-contrast[data-pressed="true"] {
-    background-color: hsl(0 0% 100%);       /* 📝 Background putih (bukan ungu!) */
-    color: hsl(var(--primary));             /* 📝 Text ungu (bukan putih!) */
+    background-color: hsl(var(--primary));       /* 📝 Background ungu */
+    color: hsl(var(--primary-foreground));       /* 📝 Text putih */
     border-width: 2px;                      /* 📝 Border lebih tebal */
     border-color: hsl(var(--primary));      /* 📝 Border ungu */
     transform: translateY(0) scale(0.95);   /* 📝 Efek press */

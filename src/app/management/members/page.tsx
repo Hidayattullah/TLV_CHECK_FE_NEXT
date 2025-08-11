@@ -33,6 +33,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
 
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
@@ -41,6 +43,7 @@ type Member = {
   id: string;
   name: string;
   email: string;
+  avatarUrl: string;
   joinedDate: string;
   isActive: boolean;
   permissions: Record<Module, Permission[]>;
@@ -51,6 +54,7 @@ const initialMembers: Member[] = [
     id: "1",
     name: "Tubagus Rifan",
     email: "tubagus@example.com",
+    avatarUrl: "https://placehold.co/40x40.png",
     joinedDate: "2023-01-15",
     isActive: true,
     permissions: {
@@ -64,6 +68,7 @@ const initialMembers: Member[] = [
     id: "2",
     name: "Jane Doe",
     email: "jane@example.com",
+    avatarUrl: "https://placehold.co/40x40.png",
     joinedDate: "2023-02-20",
     isActive: false,
     permissions: {
@@ -77,6 +82,7 @@ const initialMembers: Member[] = [
     id: "3",
     name: "Admin Gereja",
     email: "admin@thelordsvineyard.org",
+    avatarUrl: "https://placehold.co/40x40.png",
     joinedDate: "2022-11-10",
     isActive: true,
     permissions: {
@@ -182,6 +188,8 @@ export default function MembersManagementPage() {
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [searchTerm, setSearchTerm] = useState("");
   const [openDialogs, setOpenDialogs] = useState<Record<string, boolean>>({});
+  const [viewingAvatar, setViewingAvatar] = useState<{name: string, url: string} | null>(null);
+
 
   const handleStatusChange = (id: string, isActive: boolean) => {
     setMembers(prevMembers =>
@@ -234,6 +242,7 @@ export default function MembersManagementPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Avatar</TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Tgl Bergabung</TableHead>
@@ -244,6 +253,24 @@ export default function MembersManagementPage() {
           <TableBody>
             {filteredMembers.map(member => (
               <TableRow key={member.id}>
+                 <TableCell>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Avatar className="cursor-pointer">
+                        <AvatarImage src={member.avatarUrl} alt={member.name} data-ai-hint="person portrait" />
+                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{member.name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="flex justify-center items-center p-4">
+                        <Image src={member.avatarUrl.replace('40x40', '400x400')} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </TableCell>
                 <TableCell className="font-medium">{member.name}</TableCell>
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.joinedDate}</TableCell>
@@ -298,3 +325,5 @@ export default function MembersManagementPage() {
     </div>
   );
 }
+
+    

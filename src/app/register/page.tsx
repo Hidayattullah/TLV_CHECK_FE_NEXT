@@ -75,7 +75,7 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="Nama" {...field} className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+                    <Input placeholder="Nama" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -87,7 +87,7 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="email" placeholder="Email (Opsional)" {...field} className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+                    <Input type="email" placeholder="Email (Opsional)" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,7 +99,7 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="tel" placeholder="Nomor Telepon" {...field} className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+                    <Input type="tel" placeholder="Nomor Telepon" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -111,7 +111,7 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="Alamat" {...field} className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
+                    <Input placeholder="Alamat" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -125,7 +125,7 @@ export default function RegisterPage() {
                    <div className="relative">
                       <FormLabel className="absolute left-3 top-[-0.6rem] bg-background px-1 text-xs text-foreground/60">Tanggal Lahir</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg text-foreground/60" />
+                        <Input type="date" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg text-foreground/60" />
                       </FormControl>
                     </div>
                   <FormMessage />
@@ -175,7 +175,7 @@ export default function RegisterPage() {
                         type={showPassword ? "text" : "password"} 
                         placeholder="Password" 
                         {...field}
-                        className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
+                        className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
                       />
                     </FormControl>
                     <Button 
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                          type={showConfirmPassword ? "text" : "password"} 
                          placeholder="Ulangi Password" 
                         {...field}
-                        className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
+                        className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
                       />
                     </FormControl>
                     <Button 

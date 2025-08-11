@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -63,7 +64,7 @@ export default function ResetPasswordPage() {
                     type="tel" 
                     placeholder="Masukkan nomor telepon terdaftar" 
                     required 
-                    className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg"
+                    className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                   />
@@ -95,7 +96,7 @@ export default function ResetPasswordPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="reset-code">Kode Reset</Label>
-                  <Input id="reset-code" type="text" placeholder="Masukkan kode reset" required className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg"/>
+                  <Input id="reset-code" type="text" placeholder="Masukkan kode reset" required className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg"/>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
@@ -124,7 +125,7 @@ export default function ResetPasswordPage() {
                         type={showPassword ? "text" : "password"} 
                         placeholder="Masukkan password baru" 
                         required
-                        className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
+                        className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
                       />
                       <Button 
                         type="button"
@@ -145,7 +146,7 @@ export default function ResetPasswordPage() {
                         type={showConfirmPassword ? "text" : "password"} 
                         placeholder="Ulangi password baru" 
                         required
-                        className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
+                        className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
                       />
                       <Button 
                         type="button"

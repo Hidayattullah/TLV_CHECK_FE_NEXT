@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -37,7 +38,7 @@ export default function LoginPage() {
                 id="telephone"
                 type="tel"
                 placeholder="Masukkan nomor telepon Anda" 
-                className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg" 
+                className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" 
               />
             </div>
             <div className="space-y-2">
@@ -47,7 +48,7 @@ export default function LoginPage() {
                   id="password"
                   type={showPassword ? "text" : "password"} 
                   placeholder="Masukkan password Anda" 
-                  className="bg-accent/50 border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
+                  className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg pr-12" 
                 />
                 <Button 
                   type="button"

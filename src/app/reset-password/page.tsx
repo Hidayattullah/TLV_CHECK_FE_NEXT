@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Kirim Kode Reset</Button>
+                <Button type="submit" className="w-full">Kirim Kode Reset</Button>
                 <p className="text-sm text-center text-muted-foreground">
                   Kembali ke halaman{" "}
                   <Link href="/login" prefetch={false} className="underline text-primary/80 hover:text-primary">
@@ -100,7 +100,7 @@ export default function ResetPasswordPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Verifikasi Kode</Button>
+                <Button type="submit" className="w-full">Verifikasi Kode</Button>
                  <Button variant="link" onClick={() => setView('request')} className="text-primary/80 hover:text-primary">
                   Salah nomor? Minta kode baru
                 </Button>
@@ -161,7 +161,7 @@ export default function ResetPasswordPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Simpan Password Baru</Button>
+                <Button type="submit" className="w-full">Simpan Password Baru</Button>
               </CardFooter>
             </form>
           </Card>

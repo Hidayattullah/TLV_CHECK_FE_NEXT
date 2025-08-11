@@ -223,7 +223,7 @@ export default function RegisterPage() {
           </div>
           
           <div className="pb-16">
-            <Button type="submit" className="w-full h-12 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-lg font-semibold">
+            <Button type="submit" className="w-full h-12 rounded-lg text-lg font-semibold">
               Submit
             </Button>
           </div>

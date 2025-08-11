@@ -64,7 +64,7 @@ export default function LoginPage() {
           </div>
           <div className="mt-8">
              <Link href="/" passHref className="w-full">
-              <Button className="w-full h-12 rounded-full bg-primary text-primary-foreground text-lg font-semibold hover:bg-primary/90">
+              <Button className="w-full h-12 rounded-full text-lg font-semibold">
                   Login
               </Button>
             </Link>

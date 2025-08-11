@@ -264,41 +264,41 @@ function MemberDetailDialog({
           </div>
         </div>
         <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
-          <div className="flex gap-2">
-            {isEditMode ? (
-              <>
-                <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>
-                  Batal
-                </Button>
-                <Button type="button" onClick={handleSave} disabled={isSaving}>
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Button>
+          {isEditMode ? (
+            <div className="flex w-full justify-end gap-2">
+              <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>
+                Batal
+              </Button>
+              <Button type="button" onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div>
                 <Button type="button" variant="destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Hapus
                 </Button>
-              </>
-            )}
-          </div>
-          {!isEditMode && (
-            <PermissionsDialog 
-              member={member} 
-              onSave={onPermissionsSave}
-              onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
-            >
-              <Button type="button" variant="secondary">
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                Hak Akses
-              </Button>
-            </PermissionsDialog>
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+                 <PermissionsDialog 
+                    member={member} 
+                    onSave={onPermissionsSave}
+                    onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
+                  >
+                  <Button type="button" variant="secondary">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Hak Akses
+                  </Button>
+                </PermissionsDialog>
+              </div>
+            </>
           )}
         </DialogFooter>
       </DialogContent>

@@ -23,9 +23,16 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
@@ -94,10 +101,9 @@ const permissionLabels: Record<Permission, string> = {
   delete: "Hapus",
 };
 
-function PermissionsDialog({ member, onSave }: { member: Member; onSave: (id: string, permissions: Record<Module, Permission[]>) => void; }) {
+function PermissionsDialog({ member, onSave, onOpenChange, children }: { member: Member; onSave: (id: string, permissions: Record<Module, Permission[]>) => void; onOpenChange: (open: boolean) => void; children: React.ReactNode; }) {
   const [currentPermissions, setCurrentPermissions] = useState(member.permissions);
-  const [isOpen, setIsOpen] = useState(false);
-
+  
   const handlePermissionChange = (module: Module, permission: Permission, checked: boolean) => {
     setCurrentPermissions(prev => {
       const newPermissions = new Set(prev[module]);
@@ -112,24 +118,21 @@ function PermissionsDialog({ member, onSave }: { member: Member; onSave: (id: st
 
   const handleSave = () => {
     onSave(member.id, currentPermissions);
-    setIsOpen(false);
+    onOpenChange(false);
   };
   
-  const handleOpenChange = (open: boolean) => {
+  const handleDialogStateChange = (open: boolean) => {
     if(!open) {
       // Reset permissions to original if dialog is closed without saving
       setCurrentPermissions(member.permissions);
     }
-    setIsOpen(open);
+    onOpenChange(open);
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog onOpenChange={handleDialogStateChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <ShieldCheck className="mr-2 h-4 w-4" />
-          Kelola Akses
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
@@ -166,7 +169,7 @@ function PermissionsDialog({ member, onSave }: { member: Member; onSave: (id: st
           })}
         </div>
         <DialogFooter>
-           <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>Batal</Button>
+           <Button type="button" variant="secondary" onClick={() => handleDialogStateChange(false)}>Batal</Button>
           <Button type="button" onClick={handleSave}>Simpan Perubahan</Button>
         </DialogFooter>
       </DialogContent>
@@ -178,6 +181,7 @@ function PermissionsDialog({ member, onSave }: { member: Member; onSave: (id: st
 export default function MembersManagementPage() {
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [searchTerm, setSearchTerm] = useState("");
+  const [openDialogs, setOpenDialogs] = useState<Record<string, boolean>>({});
 
   const handleStatusChange = (id: string, isActive: boolean) => {
     setMembers(prevMembers =>
@@ -193,6 +197,10 @@ export default function MembersManagementPage() {
         member.id === id ? { ...member, permissions } : member
       )
     );
+  };
+
+  const handleDialogOpener = (id: string, open: boolean) => {
+    setOpenDialogs(prev => ({ ...prev, [id]: open }));
   };
   
   const filteredMembers = members.filter(member => 
@@ -251,14 +259,36 @@ export default function MembersManagementPage() {
                     </Badge>
                   </div>
                 </TableCell>
-                <TableCell className="text-right space-x-1">
-                  <PermissionsDialog member={member} onSave={handlePermissionsSave} />
-                  <Button variant="ghost" size="icon">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Menu Aksi</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                       <PermissionsDialog 
+                          member={member} 
+                          onSave={handlePermissionsSave}
+                          onOpenChange={(open) => handleDialogOpener(member.id, open)}
+                        >
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <ShieldCheck className="mr-2 h-4 w-4" />
+                            <span>Kelola Akses</span>
+                          </DropdownMenuItem>
+                        </PermissionsDialog>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <Edit className="mr-2 h-4 w-4" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive focus:text-destructive">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        <span>Hapus</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

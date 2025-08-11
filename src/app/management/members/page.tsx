@@ -20,10 +20,11 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, MoreHorizontal } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, MoreHorizontal, User, Mail, CalendarDays, KeyRound, Loader2, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
@@ -183,13 +184,109 @@ function PermissionsDialog({ member, onSave, onOpenChange, children }: { member:
   );
 }
 
+function MemberDetailDialog({ member, open, onOpenChange, onSave }: { member: Member | null; open: boolean; onOpenChange: (open: boolean) => void; onSave: (updatedMember: Member) => void; }) {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState(member);
+
+  React.useEffect(() => {
+    setFormData(member);
+    if (!open) {
+      setIsEditMode(false);
+    }
+  }, [member, open]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (formData) {
+      setFormData({ ...formData, [e.target.id]: e.target.value });
+    }
+  };
+
+  const handleSave = () => {
+    if (formData) {
+      setIsSaving(true);
+      // Simulate API call
+      setTimeout(() => {
+        onSave(formData);
+        setIsSaving(false);
+        setIsEditMode(false);
+        onOpenChange(false);
+      }, 1500);
+    }
+  };
+
+  if (!member) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Detail Jemaat</DialogTitle>
+          <DialogDescription>
+            Lihat atau perbarui informasi jemaat di bawah ini.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nama</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="name" value={formData?.name} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="email" type="email" value={formData?.email} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
+            <div className="relative">
+              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="joinedDate" type="date" value={formData?.joinedDate} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          {isEditMode ? (
+            <>
+              <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>
+                Batal
+              </Button>
+              <Button type="button" onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">Tutup</Button>
+              </DialogClose>
+              <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+               <Button type="button" variant="destructive">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Hapus
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 export default function MembersManagementPage() {
   const [members, setMembers] = useState<Member[]>(initialMembers);
   const [searchTerm, setSearchTerm] = useState("");
-  const [openDialogs, setOpenDialogs] = useState<Record<string, boolean>>({});
-  const [viewingAvatar, setViewingAvatar] = useState<{name: string, url: string} | null>(null);
-
+  const [openPermissionDialogs, setOpenPermissionDialogs] = useState<Record<string, boolean>>({});
+  const [viewingMember, setViewingMember] = useState<Member | null>(null);
 
   const handleStatusChange = (id: string, isActive: boolean) => {
     setMembers(prevMembers =>
@@ -206,9 +303,21 @@ export default function MembersManagementPage() {
       )
     );
   };
+  
+  const handleMemberSave = (updatedMember: Member) => {
+    setMembers(prevMembers =>
+      prevMembers.map(member =>
+        member.id === updatedMember.id ? updatedMember : member
+      )
+    );
+  };
 
-  const handleDialogOpener = (id: string, open: boolean) => {
-    setOpenDialogs(prev => ({ ...prev, [id]: open }));
+  const handlePermissionDialogOpener = (id: string, open: boolean) => {
+    setOpenPermissionDialogs(prev => ({ ...prev, [id]: open }));
+  };
+
+  const handleViewMember = (member: Member) => {
+    setViewingMember(member);
   };
   
   const filteredMembers = members.filter(member => 
@@ -217,6 +326,7 @@ export default function MembersManagementPage() {
   );
 
   return (
+    <>
     <div className="p-4 sm:p-6 lg:p-8">
       <header className="mb-8">
         <h1 className="font-headline text-4xl mb-2 text-primary">Manajemen Jemaat</h1>
@@ -271,7 +381,11 @@ export default function MembersManagementPage() {
                     </DialogContent>
                   </Dialog>
                 </TableCell>
-                <TableCell className="font-medium">{member.name}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="cursor-pointer hover:underline" onClick={() => handleViewMember(member)}>
+                    {member.name}
+                  </span>
+                </TableCell>
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.joinedDate}</TableCell>
                 <TableCell className="text-center">
@@ -298,7 +412,7 @@ export default function MembersManagementPage() {
                        <PermissionsDialog 
                           member={member} 
                           onSave={handlePermissionsSave}
-                          onOpenChange={(open) => handleDialogOpener(member.id, open)}
+                          onOpenChange={(open) => handlePermissionDialogOpener(member.id, open)}
                         >
                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                             <ShieldCheck className="mr-2 h-4 w-4" />
@@ -306,7 +420,7 @@ export default function MembersManagementPage() {
                           </DropdownMenuItem>
                         </PermissionsDialog>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => handleViewMember(member)}>
                         <Edit className="mr-2 h-4 w-4" />
                         <span>Edit</span>
                       </DropdownMenuItem>
@@ -323,6 +437,13 @@ export default function MembersManagementPage() {
         </Table>
       </div>
     </div>
+    <MemberDetailDialog 
+      member={viewingMember}
+      open={!!viewingMember}
+      onOpenChange={(open) => !open && setViewingMember(null)}
+      onSave={handleMemberSave}
+    />
+    </>
   );
 }
 

@@ -38,6 +38,7 @@ export function BottomNav() {
                     className={cn(
                         "relative w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-200",
                         "hover:bg-card hover:text-primary",
+                        "focus-visible:bg-card focus-visible:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                         "active:bg-primary/90 active:scale-95"
                     )}
                  >

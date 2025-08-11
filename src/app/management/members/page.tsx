@@ -184,7 +184,21 @@ function PermissionsDialog({ member, onSave, onOpenChange, children }: { member:
   );
 }
 
-function MemberDetailDialog({ member, open, onOpenChange, onSave }: { member: Member | null; open: boolean; onOpenChange: (open: boolean) => void; onSave: (updatedMember: Member) => void; }) {
+function MemberDetailDialog({ 
+  member, 
+  open, 
+  onOpenChange, 
+  onSave, 
+  onPermissionsSave,
+  onPermissionDialogOpen,
+}: { 
+  member: Member | null; 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void; 
+  onSave: (updatedMember: Member) => void; 
+  onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
+  onPermissionDialogOpen: (id: string, open: boolean) => void;
+}) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState(member);
@@ -249,31 +263,42 @@ function MemberDetailDialog({ member, open, onOpenChange, onSave }: { member: Me
             </div>
           </div>
         </div>
-        <DialogFooter>
-          {isEditMode ? (
-            <>
-              <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>
-                Batal
+        <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
+          <div className="flex gap-2">
+            {isEditMode ? (
+              <>
+                <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>
+                  Batal
+                </Button>
+                <Button type="button" onClick={handleSave} disabled={isSaving}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+                <Button type="button" variant="destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Hapus
+                </Button>
+              </>
+            )}
+          </div>
+          {!isEditMode && (
+            <PermissionsDialog 
+              member={member} 
+              onSave={onPermissionsSave}
+              onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
+            >
+              <Button type="button" variant="secondary">
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Hak Akses
               </Button>
-              <Button type="button" onClick={handleSave} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-              </Button>
-            </>
-          ) : (
-            <>
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">Tutup</Button>
-              </DialogClose>
-              <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Button>
-               <Button type="button" variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Hapus
-              </Button>
-            </>
+            </PermissionsDialog>
           )}
         </DialogFooter>
       </DialogContent>
@@ -442,6 +467,8 @@ export default function MembersManagementPage() {
       open={!!viewingMember}
       onOpenChange={(open) => !open && setViewingMember(null)}
       onSave={handleMemberSave}
+      onPermissionsSave={handlePermissionsSave}
+      onPermissionDialogOpen={handlePermissionDialogOpener}
     />
     </>
   );

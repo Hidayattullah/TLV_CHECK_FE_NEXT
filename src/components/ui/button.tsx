@@ -10,15 +10,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80 focus:bg-primary/80 active:bg-primary/80 active:scale-95 disabled:bg-primary/50",
+        default: "bg-primary text-primary-foreground hover:bg-primary/80 active:scale-95 disabled:bg-primary/50",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:bg-destructive/80 active:bg-destructive/80 active:scale-95 disabled:bg-destructive/50",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-95 disabled:bg-destructive/50",
         outline:
           "btn-outline-contrast active:scale-95 disabled:border-input/50 disabled:bg-background/50",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:bg-secondary/70 active:bg-secondary/70 active:scale-95 disabled:bg-secondary/50",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-95 disabled:bg-secondary/50",
         ghost: "btn-ghost-contrast active:scale-95",
-        link: "text-primary underline-offset-4 hover:underline focus:underline active:text-primary/80 disabled:text-primary/50 disabled:no-underline",
+        link: "text-primary underline-offset-4 hover:underline active:text-primary/80 disabled:text-primary/50 disabled:no-underline",
         management:
           "btn-management-contrast",
         accent: 
@@ -50,33 +50,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, loading = false, pressed = false, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     
-    // Menangani state loading dan pressed
     const isDisabled = disabled || loading
     const buttonClasses = cn(
       buttonVariants({ variant, size, className }),
       {
         "cursor-not-allowed": isDisabled,
         "cursor-wait": loading,
-        // PERBAIKAN: Pressed state dengan kontras yang benar - text ungu pada background putih
         "[&[data-pressed='true']]:!scale-95": pressed,
-        // Management variant - background putih, text ungu saat pressed
-        "[&[data-pressed='true']]:!bg-white": pressed && (variant === "management"),
-        "[&[data-pressed='true']]:!text-primary": pressed && (variant === "management"),
-        "[&[data-pressed='true']]:!border-primary": pressed && (variant === "management"),
-        // Default variant tetap menggunakan primary background
-        "[&[data-pressed='true']]:!bg-primary": pressed && (variant === "default"),
-        "[&[data-pressed='true']]:!text-primary-foreground": pressed && (variant === "default"),
-        // Destructive variant
-        "[&[data-pressed='true']]:!bg-destructive": pressed && variant === "destructive", 
-        "[&[data-pressed='true']]:!text-destructive-foreground": pressed && variant === "destructive",
-        // Secondary variant
-        "[&[data-pressed='true']]:!bg-secondary": pressed && variant === "secondary",
-        "[&[data-pressed='true']]:!text-secondary-foreground": pressed && variant === "secondary",
       }
     )
 
-    // Jika menggunakan asChild, kita tidak bisa menambahkan loading spinner
-    // karena Slot hanya menerima satu child element
     if (asChild) {
       return (
         <Comp
@@ -91,7 +74,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       )
     }
 
-    // Untuk button biasa, kita bisa menambahkan loading spinner
     return (
       <Comp
         className={buttonClasses}

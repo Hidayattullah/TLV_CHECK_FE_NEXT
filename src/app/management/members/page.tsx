@@ -37,7 +37,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -222,7 +221,6 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
   }
 
   return (
-     <>
       <Dialog onOpenChange={handleDialogClose}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -330,7 +328,6 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
   );
 }
 
@@ -378,10 +375,6 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
   const handleSaveClick = () => {
     const detectedChanges = checkForChanges();
     if (detectedChanges.length === 0) {
-      toast({
-        title: "Tidak Ada Perubahan",
-        description: "Anda tidak mengubah hak akses apapun.",
-      });
       onOpenChange(false);
       return;
     }
@@ -508,9 +501,9 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
             <AlertDialogTitle className="flex items-center gap-2">
               <ListChecks className="text-primary"/> Konfirmasi Perubahan Hak Akses
             </AlertDialogTitle>
-             <div>
-              <p className="text-sm text-muted-foreground">Anda akan mengubah hak akses untuk modul berikut:</p>
-               <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
+            <div className="text-sm text-muted-foreground">
+              <p>Anda akan mengubah hak akses untuk modul berikut:</p>
+               <ul className="mt-2 list-disc list-inside text-foreground/80 bg-secondary/50 p-3 rounded-md">
                 {changesSummary.map(change => <li key={change}>{change}</li>)}
               </ul>
             </div>
@@ -539,6 +532,7 @@ function MemberDetailDialog({
   onPermissionsSave,
   onPermissionDialogOpen,
   onDelete,
+  openPermissionDialogs = {}
 }: { 
   member: Member | null; 
   open: boolean; 
@@ -549,6 +543,7 @@ function MemberDetailDialog({
   onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
   onPermissionDialogOpen: (id: string, open: boolean) => void;
   onDelete: (id: string) => void;
+  openPermissionDialogs?: Record<string, boolean>;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -683,7 +678,7 @@ function MemberDetailDialog({
           onSave(formData);
           setIsSaving(false);
           setIsEditMode(false);
-          onOpenChange(false); // This will trigger the useEffect to clean up state
+          onOpenChange(false);
           toast({
             title: "Berhasil!",
             description: `Perubahan pada ${formData.name} berhasil dilakukan.`,
@@ -725,12 +720,10 @@ function MemberDetailDialog({
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
-    // Only trigger cancel logic if dialog is being closed while in edit mode
     if (!isOpen && isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
       handleCancelClick();
-      return; // Prevent immediate close, let the cancel logic handle it
+      return;
     }
-    // Allow closing otherwise
     onOpenChange(isOpen);
   };
 
@@ -1050,9 +1043,9 @@ function MemberDetailDialog({
             <AlertDialogTitle className="flex items-center gap-2">
               <ListChecks className="text-primary"/> Konfirmasi Perubahan
             </AlertDialogTitle>
-            <div>
-              <p className="text-sm text-muted-foreground">Apakah Anda yakin ingin menyimpan perubahan berikut?</p>
-               <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
+            <div className="text-sm text-muted-foreground">
+              <p>Apakah Anda yakin ingin menyimpan perubahan berikut?</p>
+               <ul className="mt-2 list-disc list-inside text-foreground/80 bg-secondary/50 p-3 rounded-md">
                 {changesSummary.map(change => <li key={change}>{change}</li>)}
               </ul>
             </div>
@@ -1239,6 +1232,7 @@ export default function MembersManagementPage() {
         onPermissionsSave={handlePermissionsSave}
         onPermissionDialogOpen={handlePermissionDialogOpen}
         onDelete={handleDeleteMember}
+        openPermissionDialogs={openPermissionDialogs}
       />
     )}
     </>

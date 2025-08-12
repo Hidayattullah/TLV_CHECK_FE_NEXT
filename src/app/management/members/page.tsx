@@ -11,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -20,20 +19,12 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, MoreHorizontal, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2 } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 
@@ -420,10 +411,7 @@ export default function MembersManagementPage() {
             <TableRow>
               <TableHead>Avatar</TableHead>
               <TableHead>Nama</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Tgl Bergabung</TableHead>
               <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -452,50 +440,10 @@ export default function MembersManagementPage() {
                     {member.name}
                   </span>
                 </TableCell>
-                <TableCell>{member.email}</TableCell>
-                <TableCell>{member.joinedDate}</TableCell>
                 <TableCell className="text-center">
-                   <div className="flex flex-col items-center">
-                    <Switch
-                      checked={member.isActive}
-                      onCheckedChange={(checked) => handleStatusChange(member.id, checked)}
-                      aria-label="User status"
-                    />
-                    <Badge variant={member.isActive ? "default" : "secondary"} className="mt-1 w-[60px] justify-center">
+                    <Badge variant={member.isActive ? "default" : "secondary"} className="w-[60px] justify-center">
                       {member.isActive ? 'Aktif' : 'Nonaktif'}
                     </Badge>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Menu Aksi</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                       <PermissionsDialog 
-                          member={member} 
-                          onSave={handlePermissionsSave}
-                          onOpenChange={(open) => handlePermissionDialogOpener(member.id, open)}
-                        >
-                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            <ShieldCheck className="mr-2 h-4 w-4" />
-                            <span>Kelola Akses</span>
-                          </DropdownMenuItem>
-                        </PermissionsDialog>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onSelect={() => handleViewMember(member)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        <span>Edit</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive focus:text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Hapus</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

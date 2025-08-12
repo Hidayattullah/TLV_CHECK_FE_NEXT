@@ -20,14 +20,26 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2 } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
 
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
@@ -202,6 +214,7 @@ function MemberDetailDialog({
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState(member);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     setFormData(member);
@@ -231,14 +244,26 @@ function MemberDetailDialog({
         setIsSaving(false);
         setIsEditMode(false);
         onOpenChange(false);
+        toast({
+          title: "Berhasil!",
+          description: "Perubahan data jemaat telah berhasil disimpan.",
+        });
       }, 1500);
     }
   };
 
+  const handleCancel = () => {
+    setIsEditMode(false);
+    setFormData(member);
+  };
+  
   if (!member) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (isEditMode) return; // Prevent closing via overlay when editing
+      onOpenChange(isOpen);
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Detail Jemaat</DialogTitle>
@@ -308,9 +333,27 @@ function MemberDetailDialog({
               {/* This space is now empty */}
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>
-                Batal
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" variant="secondary" disabled={isSaving}>
+                    Batal
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Apakah Anda yakin ingin membatalkan perubahan? Semua yang belum disimpan akan hilang.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Kembali</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCancel}>Lanjutkan</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <Button type="button" onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}

@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -55,6 +55,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
@@ -141,6 +142,10 @@ const initialMembers: Member[] = [
     },
     rfid: { id: '987654321', type: 'Tag' },
   },
+  { id: "4", name: "Sarah Connor", email: "sarah@skynet.com", avatarUrl: "", joinedDate: "2023-03-10", isActive: true, phoneNumber: "+6281234567893", isVerified: true, address: "Jl. Diponegoro No. 4, Yogyakarta", dateOfBirth: "1988-08-15", gender: "Perempuan", permissions: { members: ["read"], attendance: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
+  { id: "5", name: "John Smith", email: "john@matrix.com", avatarUrl: "", joinedDate: "2023-04-05", isActive: false, phoneNumber: "+6281234567894", isVerified: false, address: "Jl. Imam Bonjol No. 5, Semarang", dateOfBirth: "1995-03-25", gender: "Laki-laki", permissions: { members: [], attendance: [], prayers: [], questions: [] }, rfid: { id: null, type: null } },
+  { id: "6", name: "Michael Bay", email: "michael@explosions.com", avatarUrl: "", joinedDate: "2023-05-12", isActive: true, phoneNumber: "+6281234567895", isVerified: true, address: "Jl. Asia Afrika No. 6, Bandung", dateOfBirth: "1970-02-17", gender: "Laki-laki", permissions: { members: ["read", "edit"], attendance: ["read", "edit"], prayers: [], questions: [] }, rfid: { id: '112233445', type: 'Card' } },
+  { id: "7", name: "Ellen Ripley", email: "ellen@weyland.com", avatarUrl: "", joinedDate: "2023-06-18", isActive: true, phoneNumber: "+6281234567896", isVerified: false, address: "Jl. Pahlawan No. 7, Medan", dateOfBirth: "1980-04-30", gender: "Perempuan", permissions: { members: ["read"], attendance: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
 ];
 
 const moduleLabels: Record<Module, string> = {
@@ -1325,6 +1330,7 @@ function MemberDetailDialog({
   );
 }
 
+const ITEMS_PER_PAGE = 5;
 
 export default function MembersManagementPage() {
   const [members, setMembers] = useState<Member[]>(initialMembers);
@@ -1334,6 +1340,9 @@ export default function MembersManagementPage() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handlePermissionsSave = (id: string, permissions: Record<Module, Permission[]>) => {
      setMembers(prevMembers =>
@@ -1397,10 +1406,30 @@ export default function MembersManagementPage() {
     setMembers(prev => [newMember, ...prev]);
   };
 
-  const filteredMembers = members.filter(member => 
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMembers = useMemo(() => {
+    return members.filter(member => 
+      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [members, searchTerm]);
+  
+  const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
+
+  const paginatedMembers = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredMembers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredMembers, currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setIsLoading(true);
+    setTimeout(() => {
+      startTransition(() => {
+        setCurrentPage(newPage);
+        setIsLoading(false);
+      });
+    }, 300); // Simulate network delay
+  };
 
   return (
     <>
@@ -1416,7 +1445,10 @@ export default function MembersManagementPage() {
         <Input 
           placeholder="Cari jemaat..."
           value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          onChange={e => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1); // Reset to first page on search
+          }}
           className="max-w-sm bg-card"
         />
         <AddMemberDialog 
@@ -1436,7 +1468,16 @@ export default function MembersManagementPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredMembers.map(member => (
+            {isLoading ? (
+              Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                <TableRow key={`skeleton-${index}`}>
+                  <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                  <TableCell className="text-center"><Skeleton className="h-6 w-24 mx-auto" /></TableCell>
+                </TableRow>
+              ))
+            ) : paginatedMembers.length > 0 ? (
+              paginatedMembers.map(member => (
               <TableRow key={member.id} className="h-16">
                  <TableCell>
                   <Dialog>
@@ -1479,10 +1520,43 @@ export default function MembersManagementPage() {
                     </Badge>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center h-24 text-muted-foreground">
+                  Tidak ada jemaat yang cocok dengan pencarian Anda.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <span className="text-sm text-muted-foreground">
+            Halaman {currentPage} dari {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading || isPending}
+            >
+              Sebelumnya
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isLoading || isPending}
+            >
+              Berikutnya
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
     
     <MemberDetailDialog 

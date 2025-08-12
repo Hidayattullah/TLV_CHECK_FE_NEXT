@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -224,6 +223,7 @@ function MemberDetailDialog({
   const { toast } = useToast();
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
   const [isSaveAlertOpen, setIsSaveAlertOpen] = useState(false);
+  const [isInSaveProcess, setIsInSaveProcess] = useState(false); // New state to track save process
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
   const [avatarPreview, setAvatarPreview] = useState(member?.avatarUrl);
   const [isUploading, setIsUploading] = useState(false);
@@ -236,6 +236,7 @@ function MemberDetailDialog({
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
       setIsCancelAlertOpen(false);
+      setIsInSaveProcess(false); // Reset save process state
     }
   }, [member, open]);
   
@@ -320,6 +321,7 @@ function MemberDetailDialog({
     }
 
     setChangesSummary(detectedChanges);
+    setIsInSaveProcess(true); // Mark that we're in save process
     setIsSaveAlertOpen(true);
   };
 
@@ -336,6 +338,7 @@ function MemberDetailDialog({
           onSave(updatedMember);
           setIsSaving(false);
           setIsEditMode(false);
+          setIsInSaveProcess(false); // Reset save process state
           onOpenChange(false);
           toast({
             title: "Berhasil!",
@@ -343,6 +346,7 @@ function MemberDetailDialog({
           });
         } catch(error) {
            setIsSaving(false);
+           setIsInSaveProcess(false); // Reset save process state on error
            toast({
             variant: "destructive",
             title: "Gagal!",
@@ -356,6 +360,9 @@ function MemberDetailDialog({
   };
   
   const handleCancelClick = () => {
+    // Don't show cancel dialog if we're in the middle of save process
+    if (isInSaveProcess) return;
+    
     const changes = checkForChanges();
     if (changes.length > 0) {
       setIsCancelAlertOpen(true);
@@ -371,14 +378,24 @@ function MemberDetailDialog({
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
     setIsCancelAlertOpen(false);
+    setIsInSaveProcess(false); // Reset save process state
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
-    if (!isOpen && isEditMode) {
+    if (!isOpen && isEditMode && !isInSaveProcess) {
         handleCancelClick();
         return; // Prevent dialog from closing immediately
     }
+    // If we're in save process, allow normal dialog behavior
     onOpenChange(isOpen);
+  };
+
+  // Handle save alert dialog state change
+  const handleSaveAlertChange = (open: boolean) => {
+    setIsSaveAlertOpen(open);
+    if (!open) {
+      setIsInSaveProcess(false); // Reset save process state when save dialog closes
+    }
   };
   
   if (!member) return null;
@@ -392,13 +409,13 @@ function MemberDetailDialog({
       <DialogContent 
         className="sm:max-w-md"
         onInteractOutside={(e) => {
-           if(isEditMode) {
+           if(isEditMode && !isInSaveProcess) {
              e.preventDefault();
              handleCancelClick();
            }
         }}
         onEscapeKeyDown={(e) => {
-          if(isEditMode) {
+          if(isEditMode && !isInSaveProcess) {
              e.preventDefault();
              handleCancelClick();
            }
@@ -618,7 +635,7 @@ function MemberDetailDialog({
       </AlertDialogContent>
     </AlertDialog>
     
-    <AlertDialog open={isSaveAlertOpen} onOpenChange={setIsSaveAlertOpen}>
+    <AlertDialog open={isSaveAlertOpen} onOpenChange={handleSaveAlertChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
@@ -800,9 +817,3 @@ export default function MembersManagementPage() {
     </>
   );
 }
-
-
-
-    
-
-    

@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, Nfc, RotateCcw, Settings } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, Nfc, RotateCcw, Settings, HomeIcon, VenetianMask } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -54,6 +54,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
 type RfidType = "Card" | "Tag" | "Stiker";
+type Gender = "Laki-laki" | "Perempuan";
 
 type Member = {
   id: string;
@@ -64,6 +65,9 @@ type Member = {
   isActive: boolean;
   phoneNumber: string;
   isVerified: boolean;
+  address: string;
+  dateOfBirth: string;
+  gender: Gender;
   permissions: Record<Module, Permission[]>;
   rfid: {
     id: string | null;
@@ -81,6 +85,9 @@ const initialMembers: Member[] = [
     isActive: true,
     phoneNumber: "+6281234567890",
     isVerified: true,
+    address: "Jl. Jenderal Sudirman No. 1, Jakarta",
+    dateOfBirth: "1990-01-01",
+    gender: "Laki-laki",
     permissions: {
       members: ["read", "edit", "delete"],
       attendance: ["read", "edit"],
@@ -98,6 +105,9 @@ const initialMembers: Member[] = [
     isActive: false,
     phoneNumber: "+6281234567891",
     isVerified: false,
+    address: "Jl. Gatot Subroto No. 2, Bandung",
+    dateOfBirth: "1992-05-20",
+    gender: "Perempuan",
     permissions: {
       members: ["read"],
       attendance: [],
@@ -115,6 +125,9 @@ const initialMembers: Member[] = [
     isActive: true,
     phoneNumber: "+6281234567892",
     isVerified: true,
+    address: "Jl. MH Thamrin No. 3, Surabaya",
+    dateOfBirth: "1985-11-10",
+    gender: "Laki-laki",
     permissions: {
       members: ["read", "edit", "delete"],
       attendance: ["read", "edit", "delete"],
@@ -440,12 +453,18 @@ function MemberDetailDialog({
   }, [member]);
   
   useEffect(() => {
+    // Only set original data when entering edit mode
     if (isEditMode && member && !originalDataOnEdit) {
       setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
+    }
+    // Reset original data when exiting edit mode
+    if (!isEditMode) {
+      setOriginalDataOnEdit(null);
     }
   }, [isEditMode, member, originalDataOnEdit]);
   
   useEffect(() => {
+    // Reset edit mode and other states when dialog is closed
     if (!open) {
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
@@ -457,6 +476,12 @@ function MemberDetailDialog({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (formData) {
       setFormData({ ...formData, [e.target.id]: e.target.value });
+    }
+  };
+
+  const handleGenderChange = (value: Gender) => {
+    if (formData) {
+      setFormData({ ...formData, gender: value });
     }
   };
   
@@ -508,6 +533,9 @@ function MemberDetailDialog({
     if (formData.name !== originalDataOnEdit.name) changes.push("Nama");
     if (formData.email !== originalDataOnEdit.email) changes.push("Email");
     if (formData.phoneNumber !== originalDataOnEdit.phoneNumber) changes.push("No. Telepon");
+    if (formData.address !== originalDataOnEdit.address) changes.push("Alamat");
+    if (formData.dateOfBirth !== originalDataOnEdit.dateOfBirth) changes.push("Tanggal Lahir");
+    if (formData.gender !== originalDataOnEdit.gender) changes.push("Jenis Kelamin");
     if (formData.joinedDate !== originalDataOnEdit.joinedDate) changes.push("Tanggal Bergabung");
     if (formData.isActive !== originalDataOnEdit.isActive) changes.push("Status Keaktifan");
     if (formData.avatarUrl !== originalDataOnEdit.avatarUrl) changes.push("Foto Avatar");
@@ -583,10 +611,12 @@ function MemberDetailDialog({
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
+    // Only trigger cancel logic if dialog is being closed while in edit mode
     if (!isOpen && isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
       handleCancelClick();
-      return;
+      return; // Prevent immediate close
     }
+    // Allow closing otherwise
     onOpenChange(isOpen);
   };
 
@@ -706,6 +736,47 @@ function MemberDetailDialog({
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input id="phoneNumber" type="tel" value={formData?.phoneNumber || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Alamat</Label>
+                  <div className="relative">
+                    <HomeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="address" value={formData?.address || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth">Tanggal Lahir</Label>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="dateOfBirth" type="date" value={formData?.dateOfBirth || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                   <Label>Jenis Kelamin</Label>
+                   {isEditMode ? (
+                      <RadioGroup 
+                        value={formData?.gender} 
+                        onValueChange={(value) => handleGenderChange(value as Gender)} 
+                        className="flex gap-4 pt-1"
+                        disabled={isSaving}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Laki-laki" id="gender-male" />
+                          <Label htmlFor="gender-male" className="font-normal">Laki-laki</Label>
+                        </div>
+                         <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Perempuan" id="gender-female" />
+                          <Label htmlFor="gender-female" className="font-normal">Perempuan</Label>
+                        </div>
+                      </RadioGroup>
+                   ) : (
+                    <div className="flex items-center pt-1">
+                      <div className="flex items-center gap-2 text-sm text-foreground">
+                        <VenetianMask className="h-4 w-4 text-muted-foreground"/>
+                        <span>{formData?.gender}</span>
+                      </div>
+                    </div>
+                   )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
@@ -830,6 +901,9 @@ function MemberDetailDialog({
                        </DropdownMenuContent>
                      </DropdownMenu>
                     </div>
+                     <DialogClose asChild>
+                      <Button type="button" variant="secondary">Close</Button>
+                    </DialogClose>
                   </>
                 )}
               </DialogFooter>
@@ -1054,3 +1128,4 @@ export default function MembersManagementPage() {
     
 
     
+

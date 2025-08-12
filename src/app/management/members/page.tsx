@@ -19,6 +19,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
+  DialogClose
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -219,6 +220,7 @@ function MemberDetailDialog({
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState(member);
   const { toast } = useToast();
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
 
   React.useEffect(() => {
     setFormData(member);
@@ -271,19 +273,44 @@ function MemberDetailDialog({
     }
   };
 
-  const handleCancel = () => {
+  const handleCancelConfirm = () => {
     setIsEditMode(false);
     setFormData(member);
+    setIsCancelAlertOpen(false);
+  };
+  
+  const handleCancelClick = () => {
+    setIsCancelAlertOpen(true);
+  };
+
+  const handleDialogCloseAttempt = (isOpen: boolean) => {
+    if (!isOpen && isEditMode) {
+      handleCancelClick();
+      return;
+    }
+    onOpenChange(isOpen);
   };
   
   if (!member) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (isEditMode) return; // Prevent closing via overlay when editing
-      onOpenChange(isOpen);
-    }}>
-      <DialogContent className="sm:max-w-md">
+    <>
+    <Dialog open={open} onOpenChange={handleDialogCloseAttempt}>
+      <DialogContent 
+        className="sm:max-w-md"
+        onInteractOutside={(e) => {
+           if(isEditMode) {
+             e.preventDefault();
+             handleCancelClick();
+           }
+        }}
+        onEscapeKeyDown={(e) => {
+          if(isEditMode) {
+             e.preventDefault();
+             handleCancelClick();
+           }
+        }}
+      >
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-4 py-12">
             <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -328,7 +355,7 @@ function MemberDetailDialog({
               </div>
               <div className="space-y-2">
                 <Label>Status Verifikasi</Label>
-                 <div className="flex items-center">
+                 <div className="flex items-center pt-1">
                   <Badge variant={formData?.isVerified ? "default" : "secondary"}>
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                     {formData?.isVerified ? 'Terverifikasi OTP' : 'Belum Verifikasi'}
@@ -371,27 +398,9 @@ function MemberDetailDialog({
                   {/* This space is now empty */}
                 </div>
                 <div className="flex justify-end gap-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button type="button" variant="secondary" disabled={isSaving}>
-                        Batal
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2">
-                          <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Apakah Anda yakin ingin membatalkan perubahan? Semua yang belum disimpan akan hilang.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Kembali</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleCancel}>Lanjutkan</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button type="button" variant="secondary" disabled={isSaving} onClick={handleCancelClick}>
+                    Batal
+                  </Button>
                   <Button type="button" onClick={handleSave} disabled={isSaving}>
                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -445,6 +454,24 @@ function MemberDetailDialog({
         )}
       </DialogContent>
     </Dialog>
+    
+    <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin membatalkan perubahan? Semua yang belum disimpan akan hilang.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Kembali</AlertDialogCancel>
+          <AlertDialogAction onClick={handleCancelConfirm}>Lanjutkan</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 
@@ -592,5 +619,7 @@ export default function MembersManagementPage() {
     </>
   );
 }
+
+    
 
     

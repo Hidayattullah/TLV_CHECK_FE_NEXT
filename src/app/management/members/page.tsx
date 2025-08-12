@@ -165,12 +165,16 @@ const addMemberFormSchema = z.object({
   password: z.string().min(1, { message: "Password tidak boleh kosong." }),
 });
 
+type AddMemberFormValues = z.infer<typeof addMemberFormSchema>;
+
 function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; onOpenChange: (open: boolean) => void; onAddMember: (newMember: Member) => void; }) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [formData, setFormData] = useState<AddMemberFormValues | null>(null);
 
-  const form = useForm<z.infer<typeof addMemberFormSchema>>({
+  const form = useForm<AddMemberFormValues>({
     resolver: zodResolver(addMemberFormSchema),
     defaultValues: {
       name: "",
@@ -182,13 +186,15 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
     },
   });
 
-  function onSubmit(values: z.infer<typeof addMemberFormSchema>) {
+  function onConfirmSubmit() {
+    if (!formData) return;
+
     setIsSaving(true);
     setTimeout(() => {
       const newMember: Member = {
         id: (initialMembers.length + Math.random()).toString(),
-        ...values,
-        email: values.email || `${values.name.toLowerCase().replace(/\s/g, '.')}@generated.com`,
+        ...formData,
+        email: formData.email || `${formData.name.toLowerCase().replace(/\s/g, '.')}@generated.com`,
         joinedDate: new Date().toISOString().split('T')[0],
         isActive: true,
         isVerified: true, // Admin-created users are auto-verified
@@ -205,23 +211,32 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
       onAddMember(newMember);
       toast({
         title: "Berhasil Ditambahkan!",
-        description: `Jemaat baru dengan nama ${values.name} telah ditambahkan.`,
+        description: `Jemaat baru dengan nama ${formData.name} telah ditambahkan.`,
       });
       setIsSaving(false);
       onOpenChange(false);
       form.reset();
+      setIsConfirmOpen(false);
+      setFormData(null);
     }, 1500);
   }
   
+  function onFormSubmit(values: AddMemberFormValues) {
+    setFormData(values);
+    setIsConfirmOpen(true);
+  }
+
   const handleDialogStateChange = (isOpen: boolean) => {
     if (isSaving) return;
     if (!isOpen) {
       form.reset();
+      setFormData(null);
     }
     onOpenChange(isOpen);
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleDialogStateChange}>
       <DialogTrigger asChild>
         <Button>
@@ -237,7 +252,7 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
+          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
             <FormField
               control={form.control}
               name="name"
@@ -368,14 +383,35 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
                   <Button type="button" variant="secondary" disabled={isSaving}>Batal</Button>
                 </DialogClose>
                 <Button type="submit" disabled={isSaving}>
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isSaving ? "Menambahkan..." : "Tambah Jemaat"}
+                  Tambah Jemaat
                 </Button>
              </DialogFooter>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
+    <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Penambahan Jemaat</AlertDialogTitle>
+            <AlertDialogDescription>
+                <p>Apakah Anda yakin ingin menambahkan jemaat baru dengan detail berikut?</p>
+                <div className="mt-4 space-y-2 text-sm text-foreground bg-secondary/50 p-3 rounded-md">
+                    <p><strong>Nama:</strong> {formData?.name}</p>
+                    <p><strong>No. Telepon:</strong> {formData?.phoneNumber}</p>
+                </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving} onClick={() => setFormData(null)}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={onConfirmSubmit} disabled={isSaving}>
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {isSaving ? "Menambahkan..." : "Lanjutkan & Tambah"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 
@@ -804,10 +840,10 @@ function MemberDetailDialog({
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
       setOriginalDataOnEdit(null);
-    } else {
+    } else if (!isSaveAlertOpen) {
       setIsCancelAlertOpen(false);
     }
-  }, [open]);
+  }, [open, isSaveAlertOpen]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (formData) {
@@ -947,17 +983,11 @@ function MemberDetailDialog({
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
-    if (!isOpen && isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
+     if (!isOpen && isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
       handleCancelClick();
       return;
     }
     onOpenChange(isOpen);
-  };
-
-  const handleSaveAlertChange = (open: boolean) => {
-    if (!isSaving) {
-      setIsSaveAlertOpen(open);
-    }
   };
   
   if (!member) return null;
@@ -970,7 +1000,7 @@ function MemberDetailDialog({
       <Dialog open={open} onOpenChange={handleDialogCloseAttempt}>
         <DialogContent 
           className="sm:max-w-md"
-          onInteractOutside={(e) => {
+           onInteractOutside={(e) => {
              if(isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
                e.preventDefault();
                handleCancelClick();
@@ -1266,7 +1296,7 @@ function MemberDetailDialog({
         </AlertDialogContent>
       </AlertDialog>
       
-      <AlertDialog open={isSaveAlertOpen} onOpenChange={handleSaveAlertChange}>
+      <AlertDialog open={isSaveAlertOpen} onOpenChange={setIsSaveAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">

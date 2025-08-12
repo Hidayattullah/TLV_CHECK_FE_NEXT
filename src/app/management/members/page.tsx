@@ -37,6 +37,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -275,7 +276,7 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
                 </Button>
               )}
                {isEditingRfid && member.rfid.id && (
-                <AlertDialog>
+                <AlertDialog open={isResetAlertOpen} onOpenChange={setResetAlertOpen}>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive">
                       <Trash2 className="mr-2 h-4 w-4" />
@@ -305,7 +306,7 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
             <DialogClose asChild>
               <Button type="button" variant="secondary">Batal</Button>
             </DialogClose>
-             <AlertDialog>
+             <AlertDialog open={isSaveAlertOpen} onOpenChange={setSaveAlertOpen}>
                <AlertDialogTrigger asChild>
                 <Button type="button" disabled={!isEditingRfid || isSaving}>Simpan</Button>
                </AlertDialogTrigger>
@@ -556,7 +557,6 @@ function MemberDetailDialog({
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isRfidDialogOpen, setIsRfidDialogOpen] = useState(false);
 
   useEffect(() => {
     if (member) {
@@ -577,8 +577,10 @@ function MemberDetailDialog({
     if (!open) {
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
-      setIsCancelAlertOpen(false);
       setOriginalDataOnEdit(null); // Clear original data
+    } else {
+       // Reset cancel alert when dialog re-opens
+      setIsCancelAlertOpen(false);
     }
   }, [open]);
 
@@ -965,7 +967,7 @@ function MemberDetailDialog({
                           <RfidManagementDialog
                             member={member}
                             onSave={onRfidSave}
-                            onOpenChange={setIsRfidDialogOpen}
+                            onOpenChange={()=>{}}
                           >
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                <Nfc className="mr-2 h-4 w-4" />
@@ -1238,3 +1240,5 @@ export default function MembersManagementPage() {
     </>
   );
 }
+
+    

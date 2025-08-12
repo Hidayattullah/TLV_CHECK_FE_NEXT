@@ -375,8 +375,12 @@ function MemberDetailDialog({
                       <DialogHeader>
                         <DialogTitle>{member.name}</DialogTitle>
                       </DialogHeader>
-                      <div className="flex justify-center items-center p-4">
-                        <Image src={currentAvatar || ''} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                      <div className="flex justify-center items-center p-4 min-h-[100px]">
+                        {currentAvatar ? (
+                          <Image src={currentAvatar} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                        ) : (
+                          <p className="text-muted-foreground">{member.name} belum mengunggah foto.</p>
+                        )}
                       </div>
                     </DialogContent>
                 </Dialog>
@@ -663,8 +667,12 @@ export default function MembersManagementPage() {
                       <DialogHeader>
                         <DialogTitle>{member.name}</DialogTitle>
                       </DialogHeader>
-                      <div className="flex justify-center items-center p-4">
-                        <Image src={member.avatarUrl} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                      <div className="flex justify-center items-center p-4 min-h-[100px]">
+                        {member.avatarUrl ? (
+                          <Image src={member.avatarUrl} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                        ) : (
+                          <p className="text-muted-foreground">{member.name} belum mengunggah foto.</p>
+                        )}
                       </div>
                     </DialogContent>
                   </Dialog>

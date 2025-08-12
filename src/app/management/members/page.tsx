@@ -199,6 +199,7 @@ function PermissionsDialog({ member, onSave, onOpenChange, children }: { member:
 function MemberDetailDialog({ 
   member, 
   open, 
+  isLoading,
   onOpenChange, 
   onSave, 
   onPermissionsSave,
@@ -206,6 +207,7 @@ function MemberDetailDialog({
 }: { 
   member: Member | null; 
   open: boolean; 
+  isLoading: boolean;
   onOpenChange: (open: boolean) => void; 
   onSave: (updatedMember: Member) => void; 
   onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
@@ -280,133 +282,142 @@ function MemberDetailDialog({
       onOpenChange(isOpen);
     }}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Detail Jemaat</DialogTitle>
-          <DialogDescription>
-            Lihat atau perbarui informasi jemaat di bawah ini.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nama</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="name" value={formData?.name} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-            </div>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center gap-4 py-12">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <p className="text-muted-foreground">Memuat data...</p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="email" type="email" value={formData?.email} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-            </div>
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="phoneNumber">No. Telepon</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="phoneNumber" type="tel" value={formData?.phoneNumber} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
-            <div className="relative">
-              <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="joinedDate" type="date" value={formData?.joinedDate} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Status Verifikasi</Label>
-             <div className="flex items-center">
-              <Badge variant={formData?.isVerified ? "default" : "secondary"}>
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                {formData?.isVerified ? 'Terverifikasi OTP' : 'Belum Verifikasi'}
-              </Badge>
-            </div>
-          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Detail Jemaat</DialogTitle>
+              <DialogDescription>
+                Lihat atau perbarui informasi jemaat di bawah ini.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nama</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="name" value={formData?.name} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="email" type="email" value={formData?.email} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                </div>
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="phoneNumber">No. Telepon</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="phoneNumber" type="tel" value={formData?.phoneNumber} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
+                <div className="relative">
+                  <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="joinedDate" type="date" value={formData?.joinedDate} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Status Verifikasi</Label>
+                 <div className="flex items-center">
+                  <Badge variant={formData?.isVerified ? "default" : "secondary"}>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    {formData?.isVerified ? 'Terverifikasi OTP' : 'Belum Verifikasi'}
+                  </Badge>
+                </div>
+              </div>
 
-          <div className="space-y-2">
-             <Label>Status Keaktifan</Label>
-            {isEditMode ? (
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="status-toggle"
-                  checked={formData?.isActive}
-                  onCheckedChange={handleStatusToggle}
-                  disabled={isSaving}
-                />
-                <Label htmlFor="status-toggle" className="font-normal">
-                  {formData?.isActive ? "Aktif" : "Nonaktif"}
-                </Label>
+              <div className="space-y-2">
+                 <Label>Status Keaktifan</Label>
+                {isEditMode ? (
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="status-toggle"
+                      checked={formData?.isActive}
+                      onCheckedChange={handleStatusToggle}
+                      disabled={isSaving}
+                    />
+                    <Label htmlFor="status-toggle" className="font-normal">
+                      {formData?.isActive ? "Aktif" : "Nonaktif"}
+                    </Label>
+                  </div>
+                ) : (
+                   <Badge variant={formData?.isActive ? "default" : "secondary"}>
+                      {formData?.isActive ? "Aktif" : "Nonaktif"}
+                    </Badge>
+                )}
               </div>
-            ) : (
-               <Badge variant={formData?.isActive ? "default" : "secondary"}>
-                  {formData?.isActive ? "Aktif" : "Nonaktif"}
-                </Badge>
-            )}
-          </div>
-        </div>
-        <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
-          {isEditMode ? (
-            <>
-            <div>
-              {/* This space is now empty */}
             </div>
-            <div className="flex justify-end gap-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button type="button" variant="secondary" disabled={isSaving}>
-                    Batal
+            <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
+              {isEditMode ? (
+                <>
+                <div>
+                  {/* This space is now empty */}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button type="button" variant="secondary" disabled={isSaving}>
+                        Batal
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Apakah Anda yakin ingin membatalkan perubahan? Semua yang belum disimpan akan hilang.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Kembali</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleCancel}>Lanjutkan</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <Button type="button" onClick={handleSave} disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                      <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Apakah Anda yakin ingin membatalkan perubahan? Semua yang belum disimpan akan hilang.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Kembali</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleCancel}>Lanjutkan</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <Button type="button" onClick={handleSave} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-              </Button>
-            </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <Button type="button" variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Hapus
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
-                </Button>
-                 <PermissionsDialog 
-                    member={member} 
-                    onSave={onPermissionsSave}
-                    onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
-                  >
-                  <Button type="button" variant="secondary">
-                    <ShieldCheck className="mr-2 h-4 w-4" />
-                    Hak Akses
-                  </Button>
-                </PermissionsDialog>
-              </div>
-            </>
-          )}
-        </DialogFooter>
+                </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Button type="button" variant="destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Hapus
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </Button>
+                     <PermissionsDialog 
+                        member={member} 
+                        onSave={onPermissionsSave}
+                        onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
+                      >
+                      <Button type="button" variant="secondary">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        Hak Akses
+                      </Button>
+                    </PermissionsDialog>
+                  </div>
+                </>
+              )}
+            </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -418,6 +429,7 @@ export default function MembersManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [openPermissionDialogs, setOpenPermissionDialogs] = useState<Record<string, boolean>>({});
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const handlePermissionsSave = (id: string, permissions: Record<Module, Permission[]>) => {
      setMembers(prevMembers =>
@@ -440,7 +452,12 @@ export default function MembersManagementPage() {
   };
 
   const handleViewMember = (member: Member) => {
+    setIsDetailLoading(true);
     setViewingMember(member);
+    // Simulate fetching data
+    setTimeout(() => {
+      setIsDetailLoading(false);
+    }, 1000); // 1 second delay
   };
   
   const filteredMembers = members.filter(member => 
@@ -520,6 +537,7 @@ export default function MembersManagementPage() {
     <MemberDetailDialog 
       member={viewingMember}
       open={!!viewingMember}
+      isLoading={isDetailLoading}
       onOpenChange={(open) => !open && setViewingMember(null)}
       onSave={handleMemberSave}
       onPermissionsSave={handlePermissionsSave}

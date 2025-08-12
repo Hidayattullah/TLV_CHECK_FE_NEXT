@@ -240,14 +240,29 @@ function MemberDetailDialog({
       setIsSaving(true);
       // Simulate API call
       setTimeout(() => {
-        onSave(formData);
-        setIsSaving(false);
-        setIsEditMode(false);
-        onOpenChange(false);
-        toast({
-          title: "Berhasil!",
-          description: "Perubahan data jemaat telah berhasil disimpan.",
-        });
+        try {
+          // Simulate potential failure
+          if (Math.random() < 0.2) { // 20% chance to fail
+             throw new Error("Simulated network error");
+          }
+          
+          onSave(formData);
+          setIsSaving(false);
+          setIsEditMode(false);
+          onOpenChange(false);
+          toast({
+            title: "Berhasil!",
+            description: `Perubahan pada ${formData.name} berhasil dilakukan.`,
+          });
+        } catch(error) {
+           setIsSaving(false);
+           toast({
+            variant: "destructive",
+            title: "Gagal!",
+            description: `Gagal menyimpan perubahan untuk ${formData.name}, periksa koneksi Anda.`,
+          });
+        }
+
       }, 1500);
     }
   };

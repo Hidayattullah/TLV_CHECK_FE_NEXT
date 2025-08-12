@@ -335,9 +335,22 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
 }
 
 
-function PermissionsDialog({ member, onSave, onOpenChange, children }: { member: Member; onSave: (id: string, permissions: Record<Module, Permission[]>) => void; onOpenChange: (open: boolean) => void; children: React.ReactNode; }) {
+function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { open: boolean; member: Member; onSave: (id: string, permissions: Record<Module, Permission[]>) => void; onOpenChange: (open: boolean) => void; children: React.ReactNode; }) {
   const [currentPermissions, setCurrentPermissions] = useState(member.permissions);
-  
+  const [originalPermissions, setOriginalPermissions] = useState(member.permissions);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [isSaveAlertOpen, setIsSaveAlertOpen] = useState(false);
+  const [changesSummary, setChangesSummary] = useState<string[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (open) {
+      setCurrentPermissions(member.permissions);
+      setOriginalPermissions(member.permissions);
+    }
+  }, [open, member.permissions]);
+
   const handlePermissionChange = (module: Module, permission: Permission, checked: boolean) => {
     setCurrentPermissions(prev => {
       const newPermissions = new Set(prev[module]);
@@ -350,66 +363,171 @@ function PermissionsDialog({ member, onSave, onOpenChange, children }: { member:
     });
   };
 
-  const handleSave = () => {
-    onSave(member.id, currentPermissions);
-    onOpenChange(false);
+  const checkForChanges = () => {
+    const changes: string[] = [];
+    (Object.keys(moduleLabels) as Module[]).forEach(module => {
+      const original = new Set(originalPermissions[module]);
+      const current = new Set(currentPermissions[module]);
+      if (original.size !== current.size || ![...original].every(p => current.has(p))) {
+        changes.push(moduleLabels[module]);
+      }
+    });
+    return changes;
+  };
+
+  const handleSaveClick = () => {
+    const detectedChanges = checkForChanges();
+    if (detectedChanges.length === 0) {
+      toast({
+        title: "Tidak Ada Perubahan",
+        description: "Anda tidak mengubah hak akses apapun.",
+      });
+      onOpenChange(false);
+      return;
+    }
+    setChangesSummary(detectedChanges);
+    setIsSaveAlertOpen(true);
+  };
+
+  const executeSave = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      onSave(member.id, currentPermissions);
+      toast({
+        title: "Berhasil!",
+        description: `Hak akses untuk ${member.name} berhasil diperbarui.`,
+      });
+      setIsSaving(false);
+      setIsSaveAlertOpen(false);
+      onOpenChange(false);
+    }, 1500);
+  };
+
+  const handleCancelClick = () => {
+    if (checkForChanges().length > 0) {
+      setIsCancelAlertOpen(true);
+    } else {
+      onOpenChange(false);
+    }
   };
   
-  const handleDialogStateChange = (open: boolean) => {
-    if(!open) {
-      // Reset permissions to original if dialog is closed without saving
-      setCurrentPermissions(member.permissions);
+  const handleCancelConfirm = () => {
+    setIsCancelAlertOpen(false);
+    onOpenChange(false);
+  };
+
+  const handleDialogStateChange = (isOpen: boolean) => {
+    if (!isOpen && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
+      handleCancelClick();
+      return;
     }
-    onOpenChange(open);
-  }
+    if (!isOpen) {
+      onOpenChange(false);
+    }
+  };
 
   return (
-    <Dialog onOpenChange={handleDialogStateChange}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Kelola Hak Akses untuk {member.name}</DialogTitle>
-          <DialogDescription>
-            Atur izin untuk setiap modul yang dapat diakses oleh pengguna.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-          {Object.keys(moduleLabels).map((moduleKey) => {
-            const module = moduleKey as Module;
-            return (
+    <>
+      <Dialog open={open} onOpenChange={handleDialogStateChange}>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        <DialogContent 
+          className="sm:max-w-[600px]"
+          onInteractOutside={(e) => {
+             if(checkForChanges().length > 0 && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
+               e.preventDefault();
+               handleCancelClick();
+             }
+          }}
+          onEscapeKeyDown={(e) => {
+            if(checkForChanges().length > 0 && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
+               e.preventDefault();
+               handleCancelClick();
+             }
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Kelola Hak Akses untuk {member.name}</DialogTitle>
+            <DialogDescription>
+              Atur izin untuk setiap modul yang dapat diakses oleh pengguna.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+            {(Object.keys(moduleLabels) as Module[]).map((module) => (
               <div key={module} className="p-4 border rounded-lg">
                 <h4 className="font-semibold mb-3">{moduleLabels[module]}</h4>
                 <div className="flex items-center space-x-6">
-                  {Object.keys(permissionLabels).map((permissionKey) => {
-                    const permission = permissionKey as Permission;
-                    return (
-                      <div key={permission} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`${member.id}-${module}-${permission}`}
-                          checked={currentPermissions[module].includes(permission)}
-                          onCheckedChange={(checked) => handlePermissionChange(module, permission, !!checked)}
-                        />
-                        <Label htmlFor={`${member.id}-${module}-${permission}`} className="font-normal">
-                          {permissionLabels[permission]}
-                        </Label>
-                      </div>
-                    );
-                  })}
+                  {(Object.keys(permissionLabels) as Permission[]).map((permission) => (
+                    <div key={permission} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`${member.id}-${module}-${permission}`}
+                        checked={currentPermissions[module].includes(permission)}
+                        onCheckedChange={(checked) => handlePermissionChange(module, permission, !!checked)}
+                        disabled={isSaving}
+                      />
+                      <Label htmlFor={`${member.id}-${module}-${permission}`} className="font-normal">
+                        {permissionLabels[permission]}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </div>
-            );
-          })}
-        </div>
-        <DialogFooter>
-           <Button type="button" variant="secondary" onClick={() => handleDialogStateChange(false)}>Batal</Button>
-          <Button type="button" onClick={handleSave}>Simpan Perubahan</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={handleCancelClick} disabled={isSaving}>Batal</Button>
+            <Button type="button" onClick={handleSaveClick} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan Perubahan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin membatalkan?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Kembali</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelConfirm}>Lanjutkan & Batalkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <AlertDialog open={isSaveAlertOpen} onOpenChange={setIsSaveAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ListChecks className="text-primary"/> Konfirmasi Perubahan Hak Akses
+            </AlertDialogTitle>
+             <div>
+              <p className="text-sm text-muted-foreground">Anda akan mengubah hak akses untuk modul berikut:</p>
+               <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
+                {changesSummary.map(change => <li key={change}>{change}</li>)}
+              </ul>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={executeSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
 
 function MemberDetailDialog({ 
   member, 
@@ -453,23 +571,19 @@ function MemberDetailDialog({
   }, [member]);
   
   useEffect(() => {
-    // Only set original data when entering edit mode
+    // Only set original data when entering edit mode from a non-edit state
     if (isEditMode && member && !originalDataOnEdit) {
       setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
-    }
-    // Reset original data when exiting edit mode
-    if (!isEditMode) {
-      setOriginalDataOnEdit(null);
     }
   }, [isEditMode, member, originalDataOnEdit]);
   
   useEffect(() => {
-    // Reset edit mode and other states when dialog is closed
+    // Reset edit mode and other states when dialog is fully closed
     if (!open) {
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
       setIsCancelAlertOpen(false);
-      setOriginalDataOnEdit(null);
+      setOriginalDataOnEdit(null); // Clear original data
     }
   }, [open]);
 
@@ -569,7 +683,7 @@ function MemberDetailDialog({
           onSave(formData);
           setIsSaving(false);
           setIsEditMode(false);
-          onOpenChange(false);
+          onOpenChange(false); // This will trigger the useEffect to clean up state
           toast({
             title: "Berhasil!",
             description: `Perubahan pada ${formData.name} berhasil dilakukan.`,
@@ -598,7 +712,7 @@ function MemberDetailDialog({
       setIsEditMode(false);
       setFormData(member);
       setAvatarPreview(member?.avatarUrl);
-      setOriginalDataOnEdit(null);
+      setOriginalDataOnEdit(null); // Clean up original data state
     }
   };
   
@@ -607,14 +721,14 @@ function MemberDetailDialog({
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
     setIsCancelAlertOpen(false);
-    setOriginalDataOnEdit(null);
+    setOriginalDataOnEdit(null); // Clean up original data state
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
     // Only trigger cancel logic if dialog is being closed while in edit mode
     if (!isOpen && isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
       handleCancelClick();
-      return; // Prevent immediate close
+      return; // Prevent immediate close, let the cancel logic handle it
     }
     // Allow closing otherwise
     onOpenChange(isOpen);
@@ -827,7 +941,7 @@ function MemberDetailDialog({
                 {isEditMode ? (
                   <>
                   <div>
-                    {/* This space is intentionally left blank */}
+                    {/* This space is intentionally left blank to push the other buttons to the right */}
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="secondary" disabled={isSaving} onClick={handleCancelClick}>
@@ -869,9 +983,10 @@ function MemberDetailDialog({
                           <PermissionsDialog 
                             member={member} 
                             onSave={onPermissionsSave}
+                            open={openPermissionDialogs[member.id] || false}
                             onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
                           >
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onPermissionDialogOpen(member.id, true); }}>
                               <ShieldCheck className="mr-2 h-4 w-4" />
                               <span>Hak Akses</span>
                             </DropdownMenuItem>
@@ -894,7 +1009,7 @@ function MemberDetailDialog({
                              </AlertDialogHeader>
                              <AlertDialogFooter>
                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                               <AlertDialogAction onClick={() => onDelete(member.id)}>Lanjutkan Hapus</AlertDialogAction>
+                               <AlertDialogAction onClick={() => onDelete(member.id)} className="bg-destructive hover:bg-destructive/90">Lanjutkan Hapus</AlertDialogAction>
                              </AlertDialogFooter>
                            </AlertDialogContent>
                          </AlertDialog>
@@ -935,8 +1050,8 @@ function MemberDetailDialog({
             <AlertDialogTitle className="flex items-center gap-2">
               <ListChecks className="text-primary"/> Konfirmasi Perubahan
             </AlertDialogTitle>
-             <div className="text-sm text-muted-foreground">
-              <p>Apakah Anda yakin ingin menyimpan perubahan berikut?</p>
+            <div>
+              <p className="text-sm text-muted-foreground">Apakah Anda yakin ingin menyimpan perubahan berikut?</p>
                <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
                 {changesSummary.map(change => <li key={change}>{change}</li>)}
               </ul>
@@ -970,6 +1085,9 @@ export default function MembersManagementPage() {
         member.id === id ? { ...member, permissions } : member
       )
     );
+     if (viewingMember && viewingMember.id === id) {
+      setViewingMember(prev => prev ? { ...prev, permissions } : null);
+    }
   };
   
   const handleMemberSave = (updatedMember: Member) => {
@@ -993,7 +1111,7 @@ export default function MembersManagementPage() {
   };
 
 
-  const handlePermissionDialogOpener = (id: string, open: boolean) => {
+  const handlePermissionDialogOpen = (id: string, open: boolean) => {
     setOpenPermissionDialogs(prev => ({ ...prev, [id]: open }));
   };
 
@@ -1106,26 +1224,23 @@ export default function MembersManagementPage() {
         </Table>
       </div>
     </div>
-    <MemberDetailDialog 
-      member={viewingMember}
-      open={!!viewingMember}
-      isLoading={isDetailLoading}
-      onOpenChange={(open) => {
-          if (!open) {
-              setViewingMember(null);
-          }
-      }}
-      onSave={handleMemberSave}
-      onRfidSave={handleRfidSave}
-      onPermissionsSave={handlePermissionsSave}
-      onPermissionDialogOpen={handlePermissionDialogOpener}
-      onDelete={handleDeleteMember}
-    />
+    {viewingMember && (
+      <MemberDetailDialog 
+        member={viewingMember}
+        open={!!viewingMember}
+        isLoading={isDetailLoading}
+        onOpenChange={(open) => {
+            if (!open) {
+                setViewingMember(null);
+            }
+        }}
+        onSave={handleMemberSave}
+        onRfidSave={handleRfidSave}
+        onPermissionsSave={handlePermissionsSave}
+        onPermissionDialogOpen={handlePermissionDialogOpen}
+        onDelete={handleDeleteMember}
+      />
+    )}
     </>
   );
 }
-
-    
-
-    
-

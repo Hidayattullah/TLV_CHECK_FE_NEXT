@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
+import { Switch } from "@/components/ui/switch";
 
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
@@ -217,11 +218,10 @@ function MemberDetailDialog({
     }
   };
   
-  const handleStatusToggle = () => {
+  const handleStatusToggle = (checked: boolean) => {
     if (formData) {
-       const newStatus = !formData.isActive;
-       setFormData({ ...formData, isActive: newStatus });
-       onStatusChange(formData.id, newStatus);
+       setFormData({ ...formData, isActive: checked });
+       onStatusChange(formData.id, checked);
     }
   };
 
@@ -287,14 +287,28 @@ function MemberDetailDialog({
               </Badge>
             </div>
           </div>
+          {isEditMode && (
+            <div className="space-y-2">
+              <Label>Status Keaktifan</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="status-toggle"
+                  checked={formData?.isActive}
+                  onCheckedChange={handleStatusToggle}
+                  disabled={isSaving}
+                />
+                <Label htmlFor="status-toggle" className="font-normal">
+                  {formData?.isActive ? "Aktif" : "Nonaktif"}
+                </Label>
+              </div>
+            </div>
+          )}
         </div>
         <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
           {isEditMode ? (
             <>
             <div>
-              <Button type="button" variant={formData?.isActive ? "destructive" : "default"} onClick={handleStatusToggle} disabled={isSaving}>
-                {formData?.isActive ? 'Nonaktifkan' : 'Aktifkan'} User
-              </Button>
+              {/* This space is now empty */}
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>

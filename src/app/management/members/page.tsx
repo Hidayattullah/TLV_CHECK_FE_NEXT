@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -204,6 +204,7 @@ function MemberDetailDialog({
   onSave, 
   onPermissionsSave,
   onPermissionDialogOpen,
+  onDelete,
 }: { 
   member: Member | null; 
   open: boolean; 
@@ -212,6 +213,7 @@ function MemberDetailDialog({
   onSave: (updatedMember: Member) => void; 
   onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
   onPermissionDialogOpen: (id: string, open: boolean) => void;
+  onDelete: (id: string) => void;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -300,28 +302,28 @@ function MemberDetailDialog({
                 <Label htmlFor="name">Nama</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="name" value={formData?.name} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  <Input id="name" value={formData?.name || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="email" type="email" value={formData?.email} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  <Input id="email" type="email" value={formData?.email || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
                 </div>
               </div>
                <div className="space-y-2">
                 <Label htmlFor="phoneNumber">No. Telepon</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="phoneNumber" type="tel" value={formData?.phoneNumber} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  <Input id="phoneNumber" type="tel" value={formData?.phoneNumber || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
                 <div className="relative">
                   <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="joinedDate" type="date" value={formData?.joinedDate} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  <Input id="joinedDate" type="date" value={formData?.joinedDate || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -335,9 +337,9 @@ function MemberDetailDialog({
               </div>
 
               <div className="space-y-2">
-                 <Label>Status Keaktifan</Label>
+                <Label>Status Keaktifan</Label>
                 {isEditMode ? (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 pt-1">
                     <Switch
                       id="status-toggle"
                       checked={formData?.isActive}
@@ -349,9 +351,16 @@ function MemberDetailDialog({
                     </Label>
                   </div>
                 ) : (
-                   <Badge variant={formData?.isActive ? "default" : "secondary"}>
+                  <div className="flex items-center pt-1">
+                    <Badge variant={formData?.isActive ? "default" : "destructive"}>
+                      {formData?.isActive ? (
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                      ) : (
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                      )}
                       {formData?.isActive ? "Aktif" : "Nonaktif"}
                     </Badge>
+                  </div>
                 )}
               </div>
             </div>
@@ -392,10 +401,26 @@ function MemberDetailDialog({
               ) : (
                 <>
                   <div>
-                    <Button type="button" variant="destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Hapus
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button type="button" variant="destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Hapus
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                           <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(member.id)}>Lanjutkan Hapus</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
@@ -430,6 +455,7 @@ export default function MembersManagementPage() {
   const [openPermissionDialogs, setOpenPermissionDialogs] = useState<Record<string, boolean>>({});
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const { toast } = useToast();
 
   const handlePermissionsSave = (id: string, permissions: Record<Module, Permission[]>) => {
      setMembers(prevMembers =>
@@ -460,6 +486,20 @@ export default function MembersManagementPage() {
     }, 1000); // 1 second delay
   };
   
+  const handleDeleteMember = (id: string) => {
+    const memberToDelete = members.find(m => m.id === id);
+    if (!memberToDelete) return;
+    
+    setMembers(prev => prev.filter(member => member.id !== id));
+    setViewingMember(null); // Close the dialog after deletion
+    
+    toast({
+      title: "Berhasil Dihapus",
+      description: `Jemaat dengan nama ${memberToDelete.name} telah dihapus.`,
+      variant: "destructive"
+    });
+  };
+
   const filteredMembers = members.filter(member => 
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -524,7 +564,12 @@ export default function MembersManagementPage() {
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                    <Badge variant={member.isActive ? "default" : "secondary"} className="w-[60px] justify-center">
+                    <Badge variant={member.isActive ? "default" : "destructive"} className="w-[100px] justify-center">
+                       {member.isActive ? (
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                        ) : (
+                          <AlertTriangle className="mr-2 h-4 w-4" />
+                        )}
                       {member.isActive ? 'Aktif' : 'Nonaktif'}
                     </Badge>
                 </TableCell>
@@ -542,7 +587,10 @@ export default function MembersManagementPage() {
       onSave={handleMemberSave}
       onPermissionsSave={handlePermissionsSave}
       onPermissionDialogOpen={handlePermissionDialogOpener}
+      onDelete={handleDeleteMember}
     />
     </>
   );
 }
+
+    

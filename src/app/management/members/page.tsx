@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -219,20 +219,35 @@ function MemberDetailDialog({
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState(member);
+  const [formData, setFormData] = useState<Member | null>(member);
+  const [originalDataOnEdit, setOriginalDataOnEdit] = useState<Member | null>(null);
   const { toast } = useToast();
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [isSaveAlertOpen, setIsSaveAlertOpen] = useState(false);
+  const [changesSummary, setChangesSummary] = useState<string[]>([]);
   const [avatarPreview, setAvatarPreview] = useState(member?.avatarUrl);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
+    if (open && isEditMode) {
+      setOriginalDataOnEdit(member);
+    }
     if (!open) {
       setIsEditMode(false);
     }
   }, [member, open]);
+
+  useEffect(() => {
+    if (isEditMode && member) {
+      setOriginalDataOnEdit(member);
+      setFormData(member);
+      setAvatarPreview(member.avatarUrl);
+    }
+  }, [isEditMode, member]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (formData) {
@@ -267,6 +282,9 @@ function MemberDetailDialog({
       reader.onloadend = () => {
          setTimeout(() => {
           setAvatarPreview(reader.result as string);
+          if (formData) {
+            setFormData({ ...formData, avatarUrl: reader.result as string });
+          }
           setIsUploading(false);
           clearInterval(progressInterval);
         }, 500); 
@@ -276,7 +294,36 @@ function MemberDetailDialog({
     }
   };
 
-  const handleSave = () => {
+  const checkForChanges = () => {
+    if (!formData || !originalDataOnEdit) return [];
+    
+    const changes: string[] = [];
+
+    if (formData.name !== originalDataOnEdit.name) changes.push("Nama");
+    if (formData.email !== originalDataOnEdit.email) changes.push("Email");
+    if (formData.phoneNumber !== originalDataOnEdit.phoneNumber) changes.push("No. Telepon");
+    if (formData.joinedDate !== originalDataOnEdit.joinedDate) changes.push("Tanggal Bergabung");
+    if (formData.isActive !== originalDataOnEdit.isActive) changes.push("Status Keaktifan");
+    if (avatarPreview !== originalDataOnEdit.avatarUrl) changes.push("Foto Avatar");
+    
+    return changes;
+  };
+
+  const handleSaveClick = () => {
+    const detectedChanges = checkForChanges();
+    if (detectedChanges.length === 0) {
+      toast({
+        title: "Tidak Ada Perubahan",
+        description: "Anda tidak membuat perubahan apapun.",
+      });
+      return;
+    }
+
+    setChangesSummary(detectedChanges);
+    setIsSaveAlertOpen(true);
+  };
+
+  const executeSave = () => {
     if (formData) {
       setIsSaving(true);
       setTimeout(() => {
@@ -301,8 +348,9 @@ function MemberDetailDialog({
             title: "Gagal!",
             description: `Gagal menyimpan perubahan untuk ${formData.name}, periksa koneksi Anda.`,
           });
+        } finally {
+           setIsSaveAlertOpen(false);
         }
-
       }, 1500);
     }
   };
@@ -489,7 +537,7 @@ function MemberDetailDialog({
                   <Button type="button" variant="secondary" disabled={isSaving} onClick={handleCancelClick}>
                     Batal
                   </Button>
-                  <Button type="button" onClick={handleSave} disabled={isSaving}>
+                  <Button type="button" onClick={handleSaveClick} disabled={isSaving}>
                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
                   </Button>
@@ -559,6 +607,30 @@ function MemberDetailDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    
+    <AlertDialog open={isSaveAlertOpen} onOpenChange={setIsSaveAlertOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <ListChecks className="text-primary"/> Konfirmasi Perubahan
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin menyimpan perubahan berikut?
+             <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
+              {changesSummary.map(change => <li key={change}>{change}</li>)}
+            </ul>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
+          <AlertDialogAction onClick={executeSave} disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
     </>
   );
 }
@@ -711,3 +783,4 @@ export default function MembersManagementPage() {
     </>
   );
 }
+

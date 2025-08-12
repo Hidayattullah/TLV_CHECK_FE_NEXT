@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, ContactlessPayment, RotateCcw } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, Nfc, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -134,12 +134,12 @@ const permissionLabels: Record<Permission, string> = {
 function RfidManagementDialog({ member, onSave, onOpenChange, children }: { member: Member; onSave: (id: string, rfid: Member['rfid']) => void; onOpenChange: (open: boolean) => void; children: React.ReactNode; }) {
   const [rfidId, setRfidId] = useState(member.rfid.id || '');
   const [rfidType, setRfidType] = useState<RfidType | null>(member.rfid.type);
+  const [isEditingRfid, setIsEditingRfid] = useState(!member.rfid.id);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
   const [isSaveAlertOpen, setSaveAlertOpen] = useState(false);
   const [isResetAlertOpen, setResetAlertOpen] = useState(false);
-  const [isCancelAlertOpen, setCancelAlertOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -172,8 +172,8 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
     setTimeout(() => {
        onSave(member.id, { id: null, type: null });
        toast({
-          title: "Berhasil Direset",
-          description: `RFID untuk ${member.name} telah direset.`,
+          title: "Berhasil Dihapus",
+          description: `RFID untuk ${member.name} telah dihapus.`,
           variant: "destructive"
         });
       setIsResetting(false);
@@ -182,14 +182,28 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
     }, 1500);
   };
 
-  const handleCancel = () => {
-    onOpenChange(false);
-    setCancelAlertOpen(false);
-  };
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      // Reset state when closing dialog
+      setRfidId(member.rfid.id || '');
+      setRfidType(member.rfid.type);
+      setIsEditingRfid(!member.rfid.id);
+    }
+    onOpenChange(open);
+  }
+
+  const handleToggleEdit = () => {
+    if(isEditingRfid) {
+      // If cancelling edit, revert to original state
+      setRfidId(member.rfid.id || '');
+      setRfidType(member.rfid.type);
+    }
+    setIsEditingRfid(!isEditingRfid);
+  }
 
   return (
      <>
-      <Dialog onOpenChange={onOpenChange}>
+      <Dialog onOpenChange={handleDialogClose}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -203,12 +217,24 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
               <Label htmlFor="rfid-id">ID RFID</Label>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="rfid-id" value={rfidId} onChange={(e) => setRfidId(e.target.value)} placeholder="Scan atau masukkan ID RFID" className="pl-9" />
+                <Input 
+                  id="rfid-id" 
+                  value={rfidId} 
+                  onChange={(e) => setRfidId(e.target.value)} 
+                  placeholder="Scan atau masukkan ID RFID" 
+                  className="pl-9" 
+                  disabled={!isEditingRfid || isSaving}
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Tipe RFID</Label>
-              <RadioGroup value={rfidType || ''} onValueChange={(value) => setRfidType(value as RfidType)} className="flex gap-4 pt-1">
+              <RadioGroup 
+                value={rfidType || ''} 
+                onValueChange={(value) => setRfidType(value as RfidType)} 
+                className="flex gap-4 pt-1"
+                disabled={!isEditingRfid || isSaving}
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="Card" id="rfid-card" />
                   <Label htmlFor="rfid-card" className="font-normal">Card</Label>
@@ -223,18 +249,28 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
                 </div>
               </RadioGroup>
             </div>
-            {member.rfid.id && (
-            <div>
-              <Button variant="destructive" className="w-full" onClick={() => setResetAlertOpen(true)}>
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Reset RFID
-              </Button>
+
+            <div className="flex gap-2 justify-between">
+              {member.rfid.id && (
+                <Button variant="outline" onClick={handleToggleEdit}>
+                  {isEditingRfid ? 'Batal Ubah' : 'Ubah/Reset RFID'}
+                </Button>
+              )}
+               {isEditingRfid && member.rfid.id && (
+                <Button variant="destructive" onClick={() => setResetAlertOpen(true)}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Hapus RFID
+                </Button>
+              )}
             </div>
-            )}
           </div>
           <DialogFooter className="gap-2 sm:justify-end">
-            <Button type="button" variant="secondary" onClick={() => setCancelAlertOpen(true)}>Batal</Button>
-            <Button type="button" onClick={() => setSaveAlertOpen(true)}>Simpan</Button>
+            <DialogClose asChild>
+              <Button type="button" variant="secondary">Batal</Button>
+            </DialogClose>
+            <Button type="button" onClick={() => setSaveAlertOpen(true)} disabled={!isEditingRfid || isSaving}>
+              Simpan
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -262,7 +298,7 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
       <AlertDialog open={isResetAlertOpen} onOpenChange={setResetAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Reset</AlertDialogTitle>
+            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
             <AlertDialogDescription>
               Tindakan ini akan menghapus data RFID yang terhubung dengan {member.name}. Apakah Anda yakin?
             </AlertDialogDescription>
@@ -271,24 +307,8 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
             <AlertDialogCancel disabled={isResetting}>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleReset} disabled={isResetting} className="bg-destructive hover:bg-destructive/90">
               {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isResetting ? "Mereset..." : "Lanjutkan & Reset"}
+              {isResetting ? "Menghapus..." : "Lanjutkan & Hapus"}
             </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Cancel Alert */}
-      <AlertDialog open={isCancelAlertOpen} onOpenChange={setCancelAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Batalkan Perubahan?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Perubahan yang belum disimpan akan hilang. Apakah Anda yakin ingin keluar?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Kembali</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCancel}>Keluar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -408,25 +428,31 @@ function MemberDetailDialog({
   const [isRfidDialogOpen, setIsRfidDialogOpen] = useState(false);
 
   useEffect(() => {
+    // This effect runs when the 'member' prop changes.
+    // It updates the form data and avatar preview to reflect the new member.
     if (member) {
       setFormData(member);
       setAvatarPreview(member.avatarUrl);
     }
+  }, [member]);
+
+  useEffect(() => {
+    // This effect handles setting the original data when entering edit mode.
+    if (isEditMode && member && !originalDataOnEdit) {
+      setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
+    } else if (!isEditMode) {
+      setOriginalDataOnEdit(null);
+    }
+  }, [isEditMode, member, originalDataOnEdit]);
+
+  useEffect(() => {
+    // This effect handles resetting state when the dialog is closed.
     if (!open) {
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
       setIsCancelAlertOpen(false);
     }
-  }, [member, open]);
-  
-  useEffect(() => {
-    if (isEditMode && member && !originalDataOnEdit) {
-      setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
-    }
-    if (!isEditMode) {
-      setOriginalDataOnEdit(null);
-    }
-  }, [isEditMode, member, originalDataOnEdit]);
+  }, [open]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -556,15 +582,17 @@ function MemberDetailDialog({
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
-    if (!isOpen && isEditMode && !isSaving) {
-        handleCancelClick();
-        return;
+    if (!isOpen && isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
+      handleCancelClick();
+      return;
     }
     onOpenChange(isOpen);
   };
 
   const handleSaveAlertChange = (open: boolean) => {
-    setIsSaveAlertOpen(open);
+    if (!isSaving) {
+      setIsSaveAlertOpen(open);
+    }
   };
   
   if (!member) return null;
@@ -574,268 +602,268 @@ function MemberDetailDialog({
 
   return (
     <>
-    <Dialog open={open} onOpenChange={handleDialogCloseAttempt}>
-      <DialogContent 
-        className="sm:max-w-md"
-        onInteractOutside={(e) => {
-           if(isEditMode && !isSaving) {
-             e.preventDefault();
-             handleCancelClick();
-           }
-        }}
-        onEscapeKeyDown={(e) => {
-          if(isEditMode && !isSaving) {
-             e.preventDefault();
-             handleCancelClick();
-           }
-        }}
-      >
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-12">
-            <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            <p className="text-muted-foreground">Memuat data...</p>
-          </div>
-        ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle>Detail Jemaat</DialogTitle>
-              <DialogDescription>
-                Lihat atau perbarui informasi jemaat di bawah ini.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-              <div className="flex flex-col items-center gap-4">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Avatar className="w-24 h-24 mb-2 border-2 border-primary cursor-pointer">
-                      {currentAvatar ? (
-                        <AvatarImage src={currentAvatar} alt={member.name} />
-                      ) : (
-                         <AvatarFallback>{userInitials}</AvatarFallback>
-                      )}
-                    </Avatar>
-                  </DialogTrigger>
-                   <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>{member.name}</DialogTitle>
-                      </DialogHeader>
-                      <div className="flex justify-center items-center p-4 min-h-[100px]">
+      <Dialog open={open} onOpenChange={handleDialogCloseAttempt}>
+        <DialogContent 
+          className="sm:max-w-md"
+          onInteractOutside={(e) => {
+             if(isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
+               e.preventDefault();
+               handleCancelClick();
+             }
+          }}
+          onEscapeKeyDown={(e) => {
+            if(isEditMode && !isSaving && !isSaveAlertOpen && !isCancelAlertOpen) {
+               e.preventDefault();
+               handleCancelClick();
+             }
+          }}
+        >
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <Loader2 className="w-12 h-12 animate-spin text-primary" />
+              <p className="text-muted-foreground">Memuat data...</p>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Detail Jemaat</DialogTitle>
+                <DialogDescription>
+                  Lihat atau perbarui informasi jemaat di bawah ini.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                <div className="flex flex-col items-center gap-4">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Avatar className="w-24 h-24 mb-2 border-2 border-primary cursor-pointer">
                         {currentAvatar ? (
-                          <Image src={currentAvatar} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                          <AvatarImage src={currentAvatar} alt={member.name} />
                         ) : (
-                          <p className="text-muted-foreground">{member.name} belum mengunggah foto.</p>
+                           <AvatarFallback>{userInitials}</AvatarFallback>
                         )}
-                      </div>
-                    </DialogContent>
-                </Dialog>
-                
-                {isEditMode && (
-                  <>
-                    {isUploading && (
-                      <div className="w-full px-4">
-                        <Progress value={uploadProgress} className="w-full" />
-                        <p className="text-xs text-center text-muted-foreground mt-1">{uploadProgress}%</p>
-                      </div>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isUploading || isSaving}
-                      onClick={() => document.getElementById("photo-upload")?.click()}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      {isUploading ? "Mengunggah..." : "Ganti Foto"}
-                    </Button>
-                    <Input 
-                      id="photo-upload" 
-                      type="file" 
-                      className="sr-only" 
-                      accept="image/*" 
-                      onChange={handleImageChange} 
-                      disabled={isUploading || isSaving} 
-                    />
-                  </>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">Nama</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="name" value={formData?.name || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="email" type="email" value={formData?.email || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-                </div>
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">No. Telepon</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="phoneNumber" type="tel" value={formData?.phoneNumber || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
-                <div className="relative">
-                  <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input id="joinedDate" type="date" value={formData?.joinedDate || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Status Verifikasi</Label>
-                 <div className="flex items-center pt-1">
-                  <Badge variant={formData?.isVerified ? "default" : "secondary"}>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    {formData?.isVerified ? 'Terverifikasi OTP' : 'Belum Verifikasi'}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Status Keaktifan</Label>
-                {isEditMode ? (
-                  <div className="flex items-center space-x-2 pt-1">
-                    <Switch
-                      id="status-toggle"
-                      checked={formData?.isActive}
-                      onCheckedChange={handleStatusToggle}
-                      disabled={isSaving}
-                    />
-                    <Label htmlFor="status-toggle" className="font-normal">
-                      {formData?.isActive ? "Aktif" : "Nonaktif"}
-                    </Label>
-                  </div>
-                ) : (
-                  <div className="flex items-center pt-1">
-                    <Badge variant={formData?.isActive ? "default" : "destructive"}>
-                      {formData?.isActive ? (
-                        <CheckCircle2 className="mr-2 h-4 w-4" />
-                      ) : (
-                        <AlertTriangle className="mr-2 h-4 w-4" />
+                      </Avatar>
+                    </DialogTrigger>
+                     <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>{member.name}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex justify-center items-center p-4 min-h-[100px]">
+                          {currentAvatar ? (
+                            <Image src={currentAvatar} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                          ) : (
+                            <p className="text-muted-foreground">{member.name} belum mengunggah foto.</p>
+                          )}
+                        </div>
+                      </DialogContent>
+                  </Dialog>
+                  
+                  {isEditMode && (
+                    <>
+                      {isUploading && (
+                        <div className="w-full px-4">
+                          <Progress value={uploadProgress} className="w-full" />
+                          <p className="text-xs text-center text-muted-foreground mt-1">{uploadProgress}%</p>
+                        </div>
                       )}
-                      {formData?.isActive ? "Aktif" : "Nonaktif"}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isUploading || isSaving}
+                        onClick={() => document.getElementById("photo-upload")?.click()}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {isUploading ? "Mengunggah..." : "Ganti Foto"}
+                      </Button>
+                      <Input 
+                        id="photo-upload" 
+                        type="file" 
+                        className="sr-only" 
+                        accept="image/*" 
+                        onChange={handleImageChange} 
+                        disabled={isUploading || isSaving} 
+                      />
+                    </>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nama</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="name" value={formData?.name || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="email" type="email" value={formData?.email || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  </div>
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">No. Telepon</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="phoneNumber" type="tel" value={formData?.phoneNumber || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input id="joinedDate" type="date" value={formData?.joinedDate || ''} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status Verifikasi</Label>
+                   <div className="flex items-center pt-1">
+                    <Badge variant={formData?.isVerified ? "default" : "secondary"}>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      {formData?.isVerified ? 'Terverifikasi OTP' : 'Belum Verifikasi'}
                     </Badge>
                   </div>
-                )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Status Keaktifan</Label>
+                  {isEditMode ? (
+                    <div className="flex items-center space-x-2 pt-1">
+                      <Switch
+                        id="status-toggle"
+                        checked={formData?.isActive}
+                        onCheckedChange={handleStatusToggle}
+                        disabled={isSaving}
+                      />
+                      <Label htmlFor="status-toggle" className="font-normal">
+                        {formData?.isActive ? "Aktif" : "Nonaktif"}
+                      </Label>
+                    </div>
+                  ) : (
+                    <div className="flex items-center pt-1">
+                      <Badge variant={formData?.isActive ? "default" : "destructive"}>
+                        {formData?.isActive ? (
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                        ) : (
+                          <AlertTriangle className="mr-2 h-4 w-4" />
+                        )}
+                        {formData?.isActive ? "Aktif" : "Nonaktif"}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-            <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
-              {isEditMode ? (
-                <>
-                <div>
-                  {/* This space is now empty */}
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="secondary" disabled={isSaving} onClick={handleCancelClick}>
-                    Batal
-                  </Button>
-                  <Button type="button" onClick={handleSaveClick} disabled={isSaving}>
-                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
-                  </Button>
-                </div>
-                </>
-              ) : (
-                <>
+              <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
+                {isEditMode ? (
+                  <>
                   <div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button type="button" variant="destructive">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Hapus
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                           <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
-                           <AlertDialogDescription>
-                            Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Batal</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => onDelete(member.id)}>Lanjutkan Hapus</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {/* This space is now empty */}
                   </div>
-                  <div className="flex gap-2">
-                    <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="secondary" disabled={isSaving} onClick={handleCancelClick}>
+                      Batal
                     </Button>
-                    <RfidManagementDialog
-                      member={member}
-                      onSave={onRfidSave}
-                      onOpenChange={setIsRfidDialogOpen}
-                    >
-                      <Button type="button" variant="outline">
-                        <ContactlessPayment className="mr-2 h-4 w-4" />
-                        Kelola RFID
-                      </Button>
-                    </RfidManagementDialog>
-                     <PermissionsDialog 
-                        member={member} 
-                        onSave={onPermissionsSave}
-                        onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
-                      >
-                      <Button type="button" variant="secondary">
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        Hak Akses
-                      </Button>
-                    </PermissionsDialog>
+                    <Button type="button" onClick={handleSaveClick} disabled={isSaving}>
+                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                    </Button>
                   </div>
-                </>
-              )}
-            </DialogFooter>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
-    
-    <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            Apakah Anda yakin ingin membatalkan perubahan? Semua yang belum disimpan akan hilang.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Kembali</AlertDialogCancel>
-          <AlertDialogAction onClick={handleCancelConfirm}>Lanjutkan</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-    
-    <AlertDialog open={isSaveAlertOpen} onOpenChange={handleSaveAlertChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <ListChecks className="text-primary"/> Konfirmasi Perubahan
-          </AlertDialogTitle>
-          <div className="text-sm text-muted-foreground">
-            Apakah Anda yakin ingin menyimpan perubahan berikut?
-             <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
-              {changesSummary.map(change => <li key={change}>{change}</li>)}
-            </ul>
-          </div>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={executeSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button type="button" variant="destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Hapus
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                             <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                             <AlertDialogDescription>
+                              Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Batal</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(member.id)}>Lanjutkan Hapus</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <RfidManagementDialog
+                        member={member}
+                        onSave={onRfidSave}
+                        onOpenChange={setIsRfidDialogOpen}
+                      >
+                        <Button type="button" variant="outline">
+                          <Nfc className="mr-2 h-4 w-4" />
+                          Kelola RFID
+                        </Button>
+                      </RfidManagementDialog>
+                       <PermissionsDialog 
+                          member={member} 
+                          onSave={onPermissionsSave}
+                          onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
+                        >
+                        <Button type="button" variant="secondary">
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          Hak Akses
+                        </Button>
+                      </PermissionsDialog>
+                    </div>
+                  </>
+                )}
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="text-destructive"/> Konfirmasi Pembatalan
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin membatalkan perubahan? Semua yang belum disimpan akan hilang.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Kembali</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelConfirm}>Lanjutkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <AlertDialog open={isSaveAlertOpen} onOpenChange={handleSaveAlertChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ListChecks className="text-primary"/> Konfirmasi Perubahan
+            </AlertDialogTitle>
+            <div className="text-sm text-muted-foreground">
+              <p>Apakah Anda yakin ingin menyimpan perubahan berikut?</p>
+               <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
+                {changesSummary.map(change => <li key={change}>{change}</li>)}
+              </ul>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={executeSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
@@ -1009,5 +1037,7 @@ export default function MembersManagementPage() {
     </>
   );
 }
+
+    
 
     

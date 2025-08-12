@@ -14,6 +14,7 @@ import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { BottomNav } from "@/components/common/bottom-nav";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -128,10 +129,27 @@ export default function ProfilePage() {
       <main className="flex-grow p-4 sm:p-6 lg:p-8">
         <Card className="max-w-2xl mx-auto">
           <CardHeader className="flex flex-col items-center text-center">
-            <Avatar className="w-24 h-24 mb-4 border-2 border-primary">
-              {profileImage && <AvatarImage src={profileImage} alt="User" data-ai-hint="person portrait" />}
-              <AvatarFallback>{userInitials}</AvatarFallback>
-            </Avatar>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Avatar className="w-24 h-24 mb-4 border-2 border-primary cursor-pointer">
+                  {profileImage && <AvatarImage src={profileImage} alt="User" data-ai-hint="person portrait" />}
+                  <AvatarFallback>{userInitials}</AvatarFallback>
+                </Avatar>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{userName}</DialogTitle>
+                </DialogHeader>
+                <div className="flex justify-center items-center p-4 min-h-[100px]">
+                  {profileImage ? (
+                    <Image src={profileImage} alt={`Avatar of ${userName}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                  ) : (
+                    <p className="text-muted-foreground">{userName} belum mengunggah foto.</p>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <CardTitle className="font-headline text-3xl text-primary">{userName}</CardTitle>
             <p className="text-muted-foreground">Member</p>
           </CardHeader>
@@ -207,10 +225,26 @@ export default function ProfilePage() {
                   </DialogHeader>
                   <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
                      <div className="flex flex-col items-center gap-4">
-                      <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
-                        {profileImagePreview && <AvatarImage src={profileImagePreview} alt="User" />}
-                        <AvatarFallback>{userInitials}</AvatarFallback>
-                      </Avatar>
+                       <Dialog>
+                        <DialogTrigger asChild>
+                          <Avatar className="w-24 h-24 mb-2 border-2 border-primary cursor-pointer">
+                            {profileImagePreview && <AvatarImage src={profileImagePreview} alt="User" />}
+                            <AvatarFallback>{userInitials}</AvatarFallback>
+                          </Avatar>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>{userName}</DialogTitle>
+                          </DialogHeader>
+                          <div className="flex justify-center items-center p-4 min-h-[100px]">
+                            {profileImagePreview ? (
+                              <Image src={profileImagePreview} alt={`Avatar of ${userName}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                            ) : (
+                              <p className="text-muted-foreground">{userName} belum mengunggah foto.</p>
+                            )}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       {isUploading && (
                         <div className="w-full px-4">
                           <Progress value={uploadProgress} className="w-full" />
@@ -220,8 +254,7 @@ export default function ProfilePage() {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        loading={isUploading}
-                        disabled={isSaving}
+                        disabled={isUploading || isSaving}
                         pressed={pressedButtons['upload-button']}
                         onClick={() => {
                           handleButtonPress('upload-button');
@@ -290,10 +323,10 @@ export default function ProfilePage() {
                     <Button 
                       type="submit" 
                       onClick={handleSaveChanges}
-                      loading={isSaving}
+                      disabled={isSaving}
                       pressed={pressedButtons['save-button']}
-                      className="btn-default-focus-override"
                     >
+                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
                     </Button>
                   </DialogFooter>

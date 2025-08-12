@@ -2,6 +2,9 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Table,
   TableBody,
@@ -39,9 +42,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, Nfc, RotateCcw, Settings, HomeIcon, VenetianMask } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, Nfc, RotateCcw, Settings, HomeIcon, VenetianMask, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -151,7 +155,232 @@ const permissionLabels: Record<Permission, string> = {
   delete: "Hapus",
 };
 
-function RfidManagementDialog({ member, onSave, onOpenChange, children }: { member: Member; onSave: (id: string, rfid: Member['rfid']) => void; onOpenChange: (open: boolean) => void; children: React.ReactNode; }) {
+const addMemberFormSchema = z.object({
+  name: z.string().min(1, { message: "Nama tidak boleh kosong." }),
+  email: z.string().email({ message: "Format email tidak valid." }).optional().or(z.literal('')),
+  phoneNumber: z.string().min(1, { message: "Nomor telepon tidak boleh kosong." }),
+  address: z.string().min(1, { message: "Alamat tidak boleh kosong." }),
+  dateOfBirth: z.string().min(1, { message: "Tanggal lahir tidak boleh kosong." }),
+  gender: z.enum(["Laki-laki", "Perempuan"], { required_error: "Jenis kelamin harus dipilih." }),
+  password: z.string().min(1, { message: "Password tidak boleh kosong." }),
+});
+
+function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; onOpenChange: (open: boolean) => void; onAddMember: (newMember: Member) => void; }) {
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+
+  const form = useForm<z.infer<typeof addMemberFormSchema>>({
+    resolver: zodResolver(addMemberFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
+      dateOfBirth: "",
+      password: "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof addMemberFormSchema>) {
+    setIsSaving(true);
+    setTimeout(() => {
+      const newMember: Member = {
+        id: (initialMembers.length + Math.random()).toString(),
+        ...values,
+        email: values.email || `${values.name.toLowerCase().replace(/\s/g, '.')}@generated.com`,
+        joinedDate: new Date().toISOString().split('T')[0],
+        isActive: true,
+        isVerified: true, // Admin-created users are auto-verified
+        avatarUrl: "",
+        rfid: { id: null, type: null },
+        permissions: {
+          members: [],
+          attendance: [],
+          prayers: [],
+          questions: [],
+        }
+      };
+      
+      onAddMember(newMember);
+      toast({
+        title: "Berhasil Ditambahkan!",
+        description: `Jemaat baru dengan nama ${values.name} telah ditambahkan.`,
+      });
+      setIsSaving(false);
+      onOpenChange(false);
+      form.reset();
+    }, 1500);
+  }
+  
+  const handleDialogStateChange = (isOpen: boolean) => {
+    if (isSaving) return;
+    if (!isOpen) {
+      form.reset();
+    }
+    onOpenChange(isOpen);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleDialogStateChange}>
+      <DialogTrigger asChild>
+        <Button>
+          <UserPlus className="mr-2 h-4 w-4"/>
+          Tambah Jemaat
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Tambah Jemaat Baru</DialogTitle>
+          <DialogDescription>
+            Isi formulir di bawah untuk mendaftarkan anggota jemaat baru.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nama</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Masukkan nama lengkap" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email (Opsional)</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="contoh@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nomor Telepon</FormLabel>
+                  <FormControl>
+                    <Input type="tel" placeholder="+62..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Alamat</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Masukkan alamat lengkap" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tanggal Lahir</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem className="space-y-2 pt-2">
+                  <FormLabel>Jenis Kelamin</FormLabel>
+                   <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex gap-6 pt-2"
+                        disabled={isSaving}
+                      >
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <RadioGroupItem value="Laki-laki" id="laki-laki" />
+                          </FormControl>
+                          <FormLabel htmlFor="laki-laki" className="font-normal">Laki-laki</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2">
+                           <FormControl>
+                            <RadioGroupItem value="Perempuan" id="perempuan" />
+                           </FormControl>
+                          <FormLabel htmlFor="perempuan" className="font-normal">Perempuan</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password Sementara</FormLabel>
+                  <div className="relative">
+                    <FormControl>
+                      <Input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Buat password untuk jemaat" 
+                        {...field}
+                      />
+                    </FormControl>
+                    <Button 
+                      type="button"
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8 text-foreground/60 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                    </Button>
+                  </div>
+                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+             <DialogFooter className="pt-4 pr-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary" disabled={isSaving}>Batal</Button>
+                </DialogClose>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSaving ? "Menambahkan..." : "Tambah Jemaat"}
+                </Button>
+             </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+
+function RfidManagementDialog({ member, onSave, children }: { member: Member; onSave: (id: string, rfid: Member['rfid']) => void; children: React.ReactNode; }) {
   const [rfidId, setRfidId] = useState(member.rfid.id || '');
   const [rfidType, setRfidType] = useState<RfidType | null>(member.rfid.type);
   const [isEditingRfid, setIsEditingRfid] = useState(!member.rfid.id);
@@ -162,6 +391,15 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
   const [isResetAlertOpen, setResetAlertOpen] = useState(false);
   
   const { toast } = useToast();
+  
+  const onOpenChange = (open: boolean) => {
+    if (!open) {
+      // Reset state when closing dialog
+      setRfidId(member.rfid.id || '');
+      setRfidType(member.rfid.type);
+      setIsEditingRfid(!member.rfid.id);
+    }
+  }
 
   const handleSave = () => {
     if (!rfidId || !rfidType) {
@@ -202,16 +440,6 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
     }, 1500);
   };
 
-  const handleDialogClose = (open: boolean) => {
-    if (!open) {
-      // Reset state when closing dialog
-      setRfidId(member.rfid.id || '');
-      setRfidType(member.rfid.type);
-      setIsEditingRfid(!member.rfid.id);
-    }
-    onOpenChange(open);
-  }
-
   const handleToggleEdit = () => {
     if(isEditingRfid) {
       // If cancelling edit, revert to original state
@@ -222,7 +450,7 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
   }
 
   return (
-      <Dialog onOpenChange={handleDialogClose}>
+      <Dialog onOpenChange={onOpenChange}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -566,20 +794,17 @@ function MemberDetailDialog({
   }, [member]);
   
   useEffect(() => {
-    // Only set original data when entering edit mode from a non-edit state
     if (isEditMode && member && !originalDataOnEdit) {
       setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
     }
   }, [isEditMode, member, originalDataOnEdit]);
   
   useEffect(() => {
-    // Reset edit mode and other states when dialog is fully closed
     if (!open) {
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
-      setOriginalDataOnEdit(null); // Clear original data
+      setOriginalDataOnEdit(null);
     } else {
-       // Reset cancel alert when dialog re-opens
       setIsCancelAlertOpen(false);
     }
   }, [open]);
@@ -709,7 +934,7 @@ function MemberDetailDialog({
       setIsEditMode(false);
       setFormData(member);
       setAvatarPreview(member?.avatarUrl);
-      setOriginalDataOnEdit(null); // Clean up original data state
+      setOriginalDataOnEdit(null);
     }
   };
   
@@ -718,7 +943,7 @@ function MemberDetailDialog({
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
     setIsCancelAlertOpen(false);
-    setOriginalDataOnEdit(null); // Clean up original data state
+    setOriginalDataOnEdit(null);
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
@@ -898,7 +1123,11 @@ function MemberDetailDialog({
                   <Label>Status Verifikasi</Label>
                    <div className="flex items-center pt-1">
                     <Badge variant={formData?.isVerified ? "default" : "secondary"}>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      {formData?.isVerified ? (
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                      ) : (
+                        <XCircle className="mr-2 h-4 w-4" />
+                      )}
                       {formData?.isVerified ? 'Terverifikasi OTP' : 'Belum Verifikasi'}
                     </Badge>
                   </div>
@@ -936,7 +1165,6 @@ function MemberDetailDialog({
                 {isEditMode ? (
                   <>
                   <div>
-                    {/* This space is intentionally left blank to push the other buttons to the right */}
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="secondary" disabled={isSaving} onClick={handleCancelClick}>
@@ -967,7 +1195,6 @@ function MemberDetailDialog({
                           <RfidManagementDialog
                             member={member}
                             onSave={onRfidSave}
-                            onOpenChange={()=>{}}
                           >
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                <Nfc className="mr-2 h-4 w-4" />
@@ -1072,6 +1299,7 @@ export default function MembersManagementPage() {
   const [openPermissionDialogs, setOpenPermissionDialogs] = useState<Record<string, boolean>>({});
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handlePermissionsSave = (id: string, permissions: Record<Module, Permission[]>) => {
@@ -1099,7 +1327,6 @@ export default function MembersManagementPage() {
         member.id === id ? { ...member, rfid } : member
       )
     );
-     // Also update viewingMember if it's the one being edited
     if (viewingMember && viewingMember.id === id) {
       setViewingMember(prev => prev ? { ...prev, rfid } : null);
     }
@@ -1112,7 +1339,6 @@ export default function MembersManagementPage() {
 
   const handleViewMember = (member: Member) => {
     setIsDetailLoading(true);
-    // Directly set member to show dialog, loading state will cover it
     setViewingMember(member); 
     setTimeout(() => {
       setIsDetailLoading(false);
@@ -1124,13 +1350,17 @@ export default function MembersManagementPage() {
     if (!memberToDelete) return;
     
     setMembers(prev => prev.filter(member => member.id !== id));
-    setViewingMember(null); // Close the dialog after deletion
+    setViewingMember(null);
     
     toast({
       title: "Berhasil Dihapus",
       description: `Jemaat dengan nama ${memberToDelete.name} telah dihapus.`,
       variant: "destructive"
     });
+  };
+
+  const handleAddNewMember = (newMember: Member) => {
+    setMembers(prev => [newMember, ...prev]);
   };
 
   const filteredMembers = members.filter(member => 
@@ -1155,10 +1385,11 @@ export default function MembersManagementPage() {
           onChange={e => setSearchTerm(e.target.value)}
           className="max-w-sm bg-card"
         />
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4"/>
-          Tambah Jemaat
-        </Button>
+        <AddMemberDialog 
+          open={isAddMemberDialogOpen}
+          onOpenChange={setIsAddMemberDialogOpen}
+          onAddMember={handleAddNewMember}
+        />
       </div>
 
       <div className="border rounded-lg">
@@ -1241,4 +1472,4 @@ export default function MembersManagementPage() {
   );
 }
 
-    
+      

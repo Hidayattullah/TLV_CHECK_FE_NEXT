@@ -34,13 +34,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
@@ -62,7 +63,7 @@ const initialMembers: Member[] = [
     id: "1",
     name: "Tubagus Rifan",
     email: "tubagus@example.com",
-    avatarUrl: "https://placehold.co/40x40.png",
+    avatarUrl: "https://placehold.co/400x400.png",
     joinedDate: "2023-01-15",
     isActive: true,
     phoneNumber: "+6281234567890",
@@ -78,7 +79,7 @@ const initialMembers: Member[] = [
     id: "2",
     name: "Jane Doe",
     email: "jane@example.com",
-    avatarUrl: "https://placehold.co/40x40.png",
+    avatarUrl: "https://placehold.co/400x400.png",
     joinedDate: "2023-02-20",
     isActive: false,
     phoneNumber: "+6281234567891",
@@ -94,7 +95,7 @@ const initialMembers: Member[] = [
     id: "3",
     name: "Admin Gereja",
     email: "admin@thelordsvineyard.org",
-    avatarUrl: "https://placehold.co/40x40.png",
+    avatarUrl: "https://placehold.co/400x400.png",
     joinedDate: "2022-11-10",
     isActive: true,
     phoneNumber: "+6281234567892",
@@ -221,9 +222,13 @@ function MemberDetailDialog({
   const [formData, setFormData] = useState(member);
   const { toast } = useToast();
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(member?.avatarUrl);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   React.useEffect(() => {
     setFormData(member);
+    setAvatarPreview(member?.avatarUrl);
     if (!open) {
       setIsEditMode(false);
     }
@@ -241,18 +246,47 @@ function MemberDetailDialog({
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 95) {
+            clearInterval(progressInterval);
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 100);
+
+      reader.onloadend = () => {
+         setTimeout(() => {
+          setAvatarPreview(reader.result as string);
+          setIsUploading(false);
+          clearInterval(progressInterval);
+        }, 500); 
+      };
+
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = () => {
     if (formData) {
       setIsSaving(true);
-      // Simulate API call
       setTimeout(() => {
         try {
-          // Simulate potential failure
-          if (Math.random() < 0.2) { // 20% chance to fail
+          if (Math.random() < 0.2) { 
              throw new Error("Simulated network error");
           }
           
-          onSave(formData);
+          const updatedMember = { ...formData, avatarUrl: avatarPreview || formData.avatarUrl };
+          onSave(updatedMember);
           setIsSaving(false);
           setIsEditMode(false);
           onOpenChange(false);
@@ -276,6 +310,7 @@ function MemberDetailDialog({
   const handleCancelConfirm = () => {
     setIsEditMode(false);
     setFormData(member);
+    setAvatarPreview(member?.avatarUrl);
     setIsCancelAlertOpen(false);
   };
   
@@ -292,6 +327,8 @@ function MemberDetailDialog({
   };
   
   if (!member) return null;
+
+  const userInitials = member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <>
@@ -325,6 +362,37 @@ function MemberDetailDialog({
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+              {isEditMode && (
+                <div className="flex flex-col items-center gap-4">
+                  <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
+                    {avatarPreview && <AvatarImage src={avatarPreview} alt={member.name} />}
+                    <AvatarFallback>{userInitials}</AvatarFallback>
+                  </Avatar>
+                  {isUploading && (
+                    <div className="w-full px-4">
+                      <Progress value={uploadProgress} className="w-full" />
+                      <p className="text-xs text-center text-muted-foreground mt-1">{uploadProgress}%</p>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isUploading || isSaving}
+                    onClick={() => document.getElementById("photo-upload")?.click()}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {isUploading ? "Mengunggah..." : "Ganti Foto"}
+                  </Button>
+                  <Input 
+                    id="photo-upload" 
+                    type="file" 
+                    className="sr-only" 
+                    accept="image/*" 
+                    onChange={handleImageChange} 
+                    disabled={isUploading || isSaving} 
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="name">Nama</Label>
                 <div className="relative">
@@ -580,7 +648,7 @@ export default function MembersManagementPage() {
                         <DialogTitle>{member.name}</DialogTitle>
                       </DialogHeader>
                       <div className="flex justify-center items-center p-4">
-                        <Image src={member.avatarUrl.replace('40x40', '400x400')} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                        <Image src={member.avatarUrl} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -619,7 +687,3 @@ export default function MembersManagementPage() {
     </>
   );
 }
-
-    
-
-    

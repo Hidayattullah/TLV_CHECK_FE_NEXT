@@ -239,9 +239,9 @@ function MemberDetailDialog({
 
   useEffect(() => {
     if (open && isEditMode) {
-      setOriginalDataOnEdit(member);
+      setOriginalDataOnEdit(formData);
     }
-  }, [open, isEditMode, member]);
+  }, [open, isEditMode, formData]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -410,8 +410,11 @@ function MemberDetailDialog({
                 <Dialog>
                   <DialogTrigger asChild>
                     <Avatar className="w-24 h-24 mb-2 border-2 border-primary cursor-pointer">
-                      {currentAvatar && <AvatarImage src={currentAvatar} alt={member.name} />}
-                      <AvatarFallback>{userInitials}</AvatarFallback>
+                      {currentAvatar ? (
+                        <AvatarImage src={currentAvatar} alt={member.name} />
+                      ) : (
+                         <AvatarFallback>{userInitials}</AvatarFallback>
+                      )}
                     </Avatar>
                   </DialogTrigger>
                   <DialogContent className="max-w-md">
@@ -609,12 +612,12 @@ function MemberDetailDialog({
           <AlertDialogTitle className="flex items-center gap-2">
             <ListChecks className="text-primary"/> Konfirmasi Perubahan
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <div className="text-sm text-muted-foreground">
             Apakah Anda yakin ingin menyimpan perubahan berikut?
              <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
               {changesSummary.map(change => <li key={change}>{change}</li>)}
             </ul>
-          </AlertDialogDescription>
+          </div>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
@@ -726,8 +729,11 @@ export default function MembersManagementPage() {
                   <Dialog>
                     <DialogTrigger asChild>
                       <Avatar className="cursor-pointer">
-                        <AvatarImage src={member.avatarUrl} alt={member.name} data-ai-hint="person portrait" />
-                        <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+                        {member.avatarUrl ? (
+                           <AvatarImage src={member.avatarUrl} alt={member.name} data-ai-hint="person portrait" />
+                        ) : (
+                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+                        )}
                       </Avatar>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
@@ -779,3 +785,6 @@ export default function MembersManagementPage() {
   );
 }
 
+
+
+    

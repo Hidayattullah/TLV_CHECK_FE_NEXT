@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, ContactlessPayment, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,9 +42,11 @@ import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 type Permission = "read" | "edit" | "delete";
 type Module = "members" | "attendance" | "prayers" | "questions";
+type RfidType = "Card" | "Tag" | "Stiker";
 
 type Member = {
   id: string;
@@ -55,6 +58,10 @@ type Member = {
   phoneNumber: string;
   isVerified: boolean;
   permissions: Record<Module, Permission[]>;
+  rfid: {
+    id: string | null;
+    type: RfidType | null;
+  }
 };
 
 const initialMembers: Member[] = [
@@ -73,6 +80,7 @@ const initialMembers: Member[] = [
       prayers: ["read"],
       questions: ["read", "edit"],
     },
+    rfid: { id: '123456789', type: 'Card' },
   },
   {
     id: "2",
@@ -89,6 +97,7 @@ const initialMembers: Member[] = [
       prayers: [],
       questions: ["read"],
     },
+    rfid: { id: null, type: null },
   },
   {
     id: "3",
@@ -105,6 +114,7 @@ const initialMembers: Member[] = [
       prayers: ["read", "edit", "delete"],
       questions: ["read", "edit", "delete"],
     },
+    rfid: { id: '987654321', type: 'Tag' },
   },
 ];
 
@@ -120,6 +130,172 @@ const permissionLabels: Record<Permission, string> = {
   edit: "Edit",
   delete: "Hapus",
 };
+
+function RfidManagementDialog({ member, onSave, onOpenChange, children }: { member: Member; onSave: (id: string, rfid: Member['rfid']) => void; onOpenChange: (open: boolean) => void; children: React.ReactNode; }) {
+  const [rfidId, setRfidId] = useState(member.rfid.id || '');
+  const [rfidType, setRfidType] = useState<RfidType | null>(member.rfid.type);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const [isSaveAlertOpen, setSaveAlertOpen] = useState(false);
+  const [isResetAlertOpen, setResetAlertOpen] = useState(false);
+  const [isCancelAlertOpen, setCancelAlertOpen] = useState(false);
+  
+  const { toast } = useToast();
+
+  const handleSave = () => {
+    if (!rfidId || !rfidType) {
+       toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Harap isi ID RFID dan pilih tipe RFID.",
+      });
+      setSaveAlertOpen(false);
+      return;
+    }
+
+    setIsSaving(true);
+    setTimeout(() => {
+      onSave(member.id, { id: rfidId, type: rfidType });
+      toast({
+        title: "Berhasil!",
+        description: `RFID untuk ${member.name} berhasil disimpan.`,
+      });
+      setIsSaving(false);
+      setSaveAlertOpen(false);
+      onOpenChange(false);
+    }, 1500);
+  };
+  
+  const handleReset = () => {
+    setIsResetting(true);
+    setTimeout(() => {
+       onSave(member.id, { id: null, type: null });
+       toast({
+          title: "Berhasil Direset",
+          description: `RFID untuk ${member.name} telah direset.`,
+          variant: "destructive"
+        });
+      setIsResetting(false);
+      setResetAlertOpen(false);
+      onOpenChange(false);
+    }, 1500);
+  };
+
+  const handleCancel = () => {
+    onOpenChange(false);
+    setCancelAlertOpen(false);
+  };
+
+  return (
+     <>
+      <Dialog onOpenChange={onOpenChange}>
+        <DialogTrigger asChild>{children}</DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kelola RFID untuk {member.name}</DialogTitle>
+            <DialogDescription>
+              Instal atau reset data RFID untuk anggota jemaat ini.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+             <div className="space-y-2">
+              <Label htmlFor="rfid-id">ID RFID</Label>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input id="rfid-id" value={rfidId} onChange={(e) => setRfidId(e.target.value)} placeholder="Scan atau masukkan ID RFID" className="pl-9" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Tipe RFID</Label>
+              <RadioGroup value={rfidType || ''} onValueChange={(value) => setRfidType(value as RfidType)} className="flex gap-4 pt-1">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Card" id="rfid-card" />
+                  <Label htmlFor="rfid-card" className="font-normal">Card</Label>
+                </div>
+                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Tag" id="rfid-tag" />
+                  <Label htmlFor="rfid-tag" className="font-normal">Tag</Label>
+                </div>
+                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Stiker" id="rfid-stiker" />
+                  <Label htmlFor="rfid-stiker" className="font-normal">Stiker</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            {member.rfid.id && (
+            <div>
+              <Button variant="destructive" className="w-full" onClick={() => setResetAlertOpen(true)}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset RFID
+              </Button>
+            </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button type="button" variant="secondary" onClick={() => setCancelAlertOpen(true)}>Batal</Button>
+            <Button type="button" onClick={() => setSaveAlertOpen(true)}>Simpan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Save Alert */}
+      <AlertDialog open={isSaveAlertOpen} onOpenChange={setSaveAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Penyimpanan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menyimpan perubahan RFID untuk {member.name}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Alert */}
+      <AlertDialog open={isResetAlertOpen} onOpenChange={setResetAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Reset</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini akan menghapus data RFID yang terhubung dengan {member.name}. Apakah Anda yakin?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isResetting}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReset} disabled={isResetting} className="bg-destructive hover:bg-destructive/90">
+              {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isResetting ? "Mereset..." : "Lanjutkan & Reset"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Alert */}
+      <AlertDialog open={isCancelAlertOpen} onOpenChange={setCancelAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Batalkan Perubahan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Perubahan yang belum disimpan akan hilang. Apakah Anda yakin ingin keluar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Kembali</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancel}>Keluar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 
 function PermissionsDialog({ member, onSave, onOpenChange, children }: { member: Member; onSave: (id: string, permissions: Record<Module, Permission[]>) => void; onOpenChange: (open: boolean) => void; children: React.ReactNode; }) {
   const [currentPermissions, setCurrentPermissions] = useState(member.permissions);
@@ -203,6 +379,7 @@ function MemberDetailDialog({
   isLoading,
   onOpenChange, 
   onSave, 
+  onRfidSave,
   onPermissionsSave,
   onPermissionDialogOpen,
   onDelete,
@@ -212,37 +389,39 @@ function MemberDetailDialog({
   isLoading: boolean;
   onOpenChange: (open: boolean) => void; 
   onSave: (updatedMember: Member) => void; 
+  onRfidSave: (id: string, rfid: Member['rfid']) => void;
   onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
   onPermissionDialogOpen: (id: string, open: boolean) => void;
   onDelete: (id: string) => void;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<Member | null>(member);
+  const [formData, setFormData] = useState<Member | null>(null);
   const [originalDataOnEdit, setOriginalDataOnEdit] = useState<Member | null>(null);
   const { toast } = useToast();
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
   const [isSaveAlertOpen, setIsSaveAlertOpen] = useState(false);
-  const [isInSaveProcess, setIsInSaveProcess] = useState(false); // New state to track save process
   const [changesSummary, setChangesSummary] = useState<string[]>([]);
-  const [avatarPreview, setAvatarPreview] = useState(member?.avatarUrl);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isRfidDialogOpen, setIsRfidDialogOpen] = useState(false);
 
   useEffect(() => {
-    setFormData(member);
-    setAvatarPreview(member?.avatarUrl);
-     if (!open) {
+    if (member) {
+      setFormData(member);
+      setAvatarPreview(member.avatarUrl);
+    }
+    if (!open) {
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
       setIsCancelAlertOpen(false);
-      setIsInSaveProcess(false); // Reset save process state
     }
   }, [member, open]);
   
   useEffect(() => {
     if (isEditMode && member && !originalDataOnEdit) {
-      setOriginalDataOnEdit(member);
+      setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
     }
     if (!isEditMode) {
       setOriginalDataOnEdit(null);
@@ -282,9 +461,10 @@ function MemberDetailDialog({
 
       reader.onloadend = () => {
          setTimeout(() => {
-          setAvatarPreview(reader.result as string);
           if (formData) {
-            setFormData({ ...formData, avatarUrl: reader.result as string });
+            const newAvatarUrl = reader.result as string;
+            setAvatarPreview(newAvatarUrl);
+            setFormData({ ...formData, avatarUrl: newAvatarUrl });
           }
           setIsUploading(false);
           clearInterval(progressInterval);
@@ -305,7 +485,7 @@ function MemberDetailDialog({
     if (formData.phoneNumber !== originalDataOnEdit.phoneNumber) changes.push("No. Telepon");
     if (formData.joinedDate !== originalDataOnEdit.joinedDate) changes.push("Tanggal Bergabung");
     if (formData.isActive !== originalDataOnEdit.isActive) changes.push("Status Keaktifan");
-    if (avatarPreview !== originalDataOnEdit.avatarUrl) changes.push("Foto Avatar");
+    if (formData.avatarUrl !== originalDataOnEdit.avatarUrl) changes.push("Foto Avatar");
     
     return changes;
   };
@@ -321,7 +501,6 @@ function MemberDetailDialog({
     }
 
     setChangesSummary(detectedChanges);
-    setIsInSaveProcess(true); // Mark that we're in save process
     setIsSaveAlertOpen(true);
   };
 
@@ -334,11 +513,9 @@ function MemberDetailDialog({
              throw new Error("Simulated network error");
           }
           
-          const updatedMember = { ...formData, avatarUrl: avatarPreview || formData.avatarUrl };
-          onSave(updatedMember);
+          onSave(formData);
           setIsSaving(false);
           setIsEditMode(false);
-          setIsInSaveProcess(false); // Reset save process state
           onOpenChange(false);
           toast({
             title: "Berhasil!",
@@ -346,7 +523,6 @@ function MemberDetailDialog({
           });
         } catch(error) {
            setIsSaving(false);
-           setIsInSaveProcess(false); // Reset save process state on error
            toast({
             variant: "destructive",
             title: "Gagal!",
@@ -360,8 +536,7 @@ function MemberDetailDialog({
   };
   
   const handleCancelClick = () => {
-    // Don't show cancel dialog if we're in the middle of save process
-    if (isInSaveProcess) return;
+    if (isSaving) return;
     
     const changes = checkForChanges();
     if (changes.length > 0) {
@@ -378,24 +553,18 @@ function MemberDetailDialog({
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
     setIsCancelAlertOpen(false);
-    setIsInSaveProcess(false); // Reset save process state
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
-    if (!isOpen && isEditMode && !isInSaveProcess) {
+    if (!isOpen && isEditMode && !isSaving) {
         handleCancelClick();
-        return; // Prevent dialog from closing immediately
+        return;
     }
-    // If we're in save process, allow normal dialog behavior
     onOpenChange(isOpen);
   };
 
-  // Handle save alert dialog state change
   const handleSaveAlertChange = (open: boolean) => {
     setIsSaveAlertOpen(open);
-    if (!open) {
-      setIsInSaveProcess(false); // Reset save process state when save dialog closes
-    }
   };
   
   if (!member) return null;
@@ -409,13 +578,13 @@ function MemberDetailDialog({
       <DialogContent 
         className="sm:max-w-md"
         onInteractOutside={(e) => {
-           if(isEditMode && !isInSaveProcess) {
+           if(isEditMode && !isSaving) {
              e.preventDefault();
              handleCancelClick();
            }
         }}
         onEscapeKeyDown={(e) => {
-          if(isEditMode && !isInSaveProcess) {
+          if(isEditMode && !isSaving) {
              e.preventDefault();
              handleCancelClick();
            }
@@ -583,7 +752,7 @@ function MemberDetailDialog({
                       <AlertDialogContent>
                         <AlertDialogHeader>
                            <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
-                          <AlertDialogDescription>
+                           <AlertDialogDescription>
                             Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
@@ -599,6 +768,16 @@ function MemberDetailDialog({
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </Button>
+                    <RfidManagementDialog
+                      member={member}
+                      onSave={onRfidSave}
+                      onOpenChange={setIsRfidDialogOpen}
+                    >
+                      <Button type="button" variant="outline">
+                        <ContactlessPayment className="mr-2 h-4 w-4" />
+                        Kelola RFID
+                      </Button>
+                    </RfidManagementDialog>
                      <PermissionsDialog 
                         member={member} 
                         onSave={onPermissionsSave}
@@ -657,7 +836,6 @@ function MemberDetailDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-
     </>
   );
 }
@@ -686,6 +864,19 @@ export default function MembersManagementPage() {
       )
     );
   };
+  
+  const handleRfidSave = (id: string, rfid: Member['rfid']) => {
+    setMembers(prevMembers =>
+      prevMembers.map(member =>
+        member.id === id ? { ...member, rfid } : member
+      )
+    );
+     // Also update viewingMember if it's the one being edited
+    if (viewingMember && viewingMember.id === id) {
+      setViewingMember(prev => prev ? { ...prev, rfid } : null);
+    }
+  };
+
 
   const handlePermissionDialogOpener = (id: string, open: boolean) => {
     setOpenPermissionDialogs(prev => ({ ...prev, [id]: open }));
@@ -810,6 +1001,7 @@ export default function MembersManagementPage() {
           }
       }}
       onSave={handleMemberSave}
+      onRfidSave={handleRfidSave}
       onPermissionsSave={handlePermissionsSave}
       onPermissionDialogOpen={handlePermissionDialogOpener}
       onDelete={handleDeleteMember}
@@ -817,3 +1009,5 @@ export default function MembersManagementPage() {
     </>
   );
 }
+
+    

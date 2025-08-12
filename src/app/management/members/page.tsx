@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, MoreHorizontal, User, Mail, CalendarDays, KeyRound, Loader2, Save } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, MoreHorizontal, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
@@ -47,6 +47,8 @@ type Member = {
   avatarUrl: string;
   joinedDate: string;
   isActive: boolean;
+  phoneNumber: string;
+  isVerified: boolean;
   permissions: Record<Module, Permission[]>;
 };
 
@@ -58,6 +60,8 @@ const initialMembers: Member[] = [
     avatarUrl: "https://placehold.co/40x40.png",
     joinedDate: "2023-01-15",
     isActive: true,
+    phoneNumber: "+6281234567890",
+    isVerified: true,
     permissions: {
       members: ["read", "edit", "delete"],
       attendance: ["read", "edit"],
@@ -72,6 +76,8 @@ const initialMembers: Member[] = [
     avatarUrl: "https://placehold.co/40x40.png",
     joinedDate: "2023-02-20",
     isActive: false,
+    phoneNumber: "+6281234567891",
+    isVerified: false,
     permissions: {
       members: ["read"],
       attendance: [],
@@ -86,6 +92,8 @@ const initialMembers: Member[] = [
     avatarUrl: "https://placehold.co/40x40.png",
     joinedDate: "2022-11-10",
     isActive: true,
+    phoneNumber: "+6281234567892",
+    isVerified: true,
     permissions: {
       members: ["read", "edit", "delete"],
       attendance: ["read", "edit", "delete"],
@@ -191,6 +199,7 @@ function MemberDetailDialog({
   onSave, 
   onPermissionsSave,
   onPermissionDialogOpen,
+  onStatusChange,
 }: { 
   member: Member | null; 
   open: boolean; 
@@ -198,6 +207,7 @@ function MemberDetailDialog({
   onSave: (updatedMember: Member) => void; 
   onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
   onPermissionDialogOpen: (id: string, open: boolean) => void;
+  onStatusChange: (id: string, isActive: boolean) => void;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -213,6 +223,14 @@ function MemberDetailDialog({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (formData) {
       setFormData({ ...formData, [e.target.id]: e.target.value });
+    }
+  };
+  
+  const handleStatusToggle = () => {
+    if (formData) {
+       const newStatus = !formData.isActive;
+       setFormData({ ...formData, isActive: newStatus });
+       onStatusChange(formData.id, newStatus);
     }
   };
 
@@ -255,6 +273,13 @@ function MemberDetailDialog({
               <Input id="email" type="email" value={formData?.email} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
             </div>
           </div>
+           <div className="space-y-2">
+            <Label htmlFor="phoneNumber">No. Telepon</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="phoneNumber" type="tel" value={formData?.phoneNumber} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="joinedDate">Tanggal Bergabung</Label>
             <div className="relative">
@@ -262,10 +287,25 @@ function MemberDetailDialog({
               <Input id="joinedDate" type="date" value={formData?.joinedDate} onChange={handleInputChange} disabled={!isEditMode || isSaving} className="pl-9" />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label>Status Verifikasi</Label>
+             <div className="flex items-center">
+              <Badge variant={formData?.isVerified ? "default" : "secondary"}>
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                {formData?.isVerified ? 'Terverifikasi OTP' : 'Belum Verifikasi'}
+              </Badge>
+            </div>
+          </div>
         </div>
         <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
           {isEditMode ? (
-            <div className="flex w-full justify-end gap-2">
+            <>
+            <div>
+              <Button type="button" variant={formData?.isActive ? "destructive" : "default"} onClick={handleStatusToggle} disabled={isSaving}>
+                {formData?.isActive ? 'Nonaktifkan' : 'Aktifkan'} User
+              </Button>
+            </div>
+            <div className="flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setIsEditMode(false)} disabled={isSaving}>
                 Batal
               </Button>
@@ -274,6 +314,7 @@ function MemberDetailDialog({
                 {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </Button>
             </div>
+            </>
           ) : (
             <>
               <div>
@@ -469,6 +510,7 @@ export default function MembersManagementPage() {
       onSave={handleMemberSave}
       onPermissionsSave={handlePermissionsSave}
       onPermissionDialogOpen={handlePermissionDialogOpener}
+      onStatusChange={handleStatusChange}
     />
     </>
   );

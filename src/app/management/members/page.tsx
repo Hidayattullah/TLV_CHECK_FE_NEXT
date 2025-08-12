@@ -22,6 +22,13 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -34,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, Nfc, RotateCcw } from "lucide-react";
+import { Edit, Trash2, ShieldCheck, UserPlus, User, Mail, CalendarDays, KeyRound, Loader2, Save, Phone, CheckCircle2, AlertTriangle, XCircle, Upload, ListChecks, Nfc, RotateCcw, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -257,10 +264,29 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
                 </Button>
               )}
                {isEditingRfid && member.rfid.id && (
-                <Button variant="destructive" onClick={() => setResetAlertOpen(true)}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Hapus RFID
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Hapus RFID
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tindakan ini akan menghapus data RFID yang terhubung dengan {member.name}. Apakah Anda yakin?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={isResetting}>Batal</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleReset} disabled={isResetting} className="bg-destructive hover:bg-destructive/90">
+                        {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isResetting ? "Menghapus..." : "Lanjutkan & Hapus"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </div>
@@ -268,50 +294,29 @@ function RfidManagementDialog({ member, onSave, onOpenChange, children }: { memb
             <DialogClose asChild>
               <Button type="button" variant="secondary">Batal</Button>
             </DialogClose>
-            <Button type="button" onClick={() => setSaveAlertOpen(true)} disabled={!isEditingRfid || isSaving}>
-              Simpan
-            </Button>
+             <AlertDialog>
+               <AlertDialogTrigger asChild>
+                <Button type="button" disabled={!isEditingRfid || isSaving}>Simpan</Button>
+               </AlertDialogTrigger>
+               <AlertDialogContent>
+                 <AlertDialogHeader>
+                   <AlertDialogTitle>Konfirmasi Penyimpanan</AlertDialogTitle>
+                   <AlertDialogDescription>
+                     Apakah Anda yakin ingin menyimpan perubahan RFID untuk {member.name}?
+                   </AlertDialogDescription>
+                 </AlertDialogHeader>
+                 <AlertDialogFooter>
+                   <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
+                   <AlertDialogAction onClick={handleSave} disabled={isSaving}>
+                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                     {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
+                   </AlertDialogAction>
+                 </AlertDialogFooter>
+               </AlertDialogContent>
+             </AlertDialog>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Save Alert */}
-      <AlertDialog open={isSaveAlertOpen} onOpenChange={setSaveAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Penyimpanan</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menyimpan perubahan RFID untuk {member.name}?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Reset Alert */}
-      <AlertDialog open={isResetAlertOpen} onOpenChange={setResetAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tindakan ini akan menghapus data RFID yang terhubung dengan {member.name}. Apakah Anda yakin?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleReset} disabled={isResetting} className="bg-destructive hover:bg-destructive/90">
-              {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isResetting ? "Menghapus..." : "Lanjutkan & Hapus"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
@@ -428,32 +433,26 @@ function MemberDetailDialog({
   const [isRfidDialogOpen, setIsRfidDialogOpen] = useState(false);
 
   useEffect(() => {
-    // This effect runs when the 'member' prop changes.
-    // It updates the form data and avatar preview to reflect the new member.
     if (member) {
       setFormData(member);
       setAvatarPreview(member.avatarUrl);
     }
   }, [member]);
-
+  
   useEffect(() => {
-    // This effect handles setting the original data when entering edit mode.
     if (isEditMode && member && !originalDataOnEdit) {
       setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
-    } else if (!isEditMode) {
-      setOriginalDataOnEdit(null);
     }
   }, [isEditMode, member, originalDataOnEdit]);
-
+  
   useEffect(() => {
-    // This effect handles resetting state when the dialog is closed.
     if (!open) {
       setIsEditMode(false);
       setIsSaveAlertOpen(false);
       setIsCancelAlertOpen(false);
+      setOriginalDataOnEdit(null);
     }
   }, [open]);
-
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (formData) {
@@ -571,6 +570,7 @@ function MemberDetailDialog({
       setIsEditMode(false);
       setFormData(member);
       setAvatarPreview(member?.avatarUrl);
+      setOriginalDataOnEdit(null);
     }
   };
   
@@ -579,6 +579,7 @@ function MemberDetailDialog({
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
     setIsCancelAlertOpen(false);
+    setOriginalDataOnEdit(null);
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
@@ -755,7 +756,7 @@ function MemberDetailDialog({
                 {isEditMode ? (
                   <>
                   <div>
-                    {/* This space is now empty */}
+                    {/* This space is intentionally left blank */}
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="secondary" disabled={isSaving} onClick={handleCancelClick}>
@@ -770,52 +771,64 @@ function MemberDetailDialog({
                 ) : (
                   <>
                     <div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button type="button" variant="destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                             <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
-                             <AlertDialogDescription>
-                              Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDelete(member.id)}>Lanjutkan Hapus</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button type="button" variant="outline" onClick={() => setIsEditMode(true)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </Button>
-                      <RfidManagementDialog
-                        member={member}
-                        onSave={onRfidSave}
-                        onOpenChange={setIsRfidDialogOpen}
-                      >
-                        <Button type="button" variant="outline">
-                          <Nfc className="mr-2 h-4 w-4" />
-                          Kelola RFID
-                        </Button>
-                      </RfidManagementDialog>
-                       <PermissionsDialog 
-                          member={member} 
-                          onSave={onPermissionsSave}
-                          onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
-                        >
-                        <Button type="button" variant="secondary">
-                          <ShieldCheck className="mr-2 h-4 w-4" />
-                          Hak Akses
-                        </Button>
-                      </PermissionsDialog>
+                     <DropdownMenu>
+                       <DropdownMenuTrigger asChild>
+                         <Button variant="outline">
+                           <Settings className="mr-2 h-4 w-4" />
+                           Kelola
+                         </Button>
+                       </DropdownMenuTrigger>
+                       <DropdownMenuContent align="start">
+                          <DropdownMenuItem onSelect={() => setIsEditMode(true)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit Profil</span>
+                          </DropdownMenuItem>
+
+                          <RfidManagementDialog
+                            member={member}
+                            onSave={onRfidSave}
+                            onOpenChange={setIsRfidDialogOpen}
+                          >
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                               <Nfc className="mr-2 h-4 w-4" />
+                               <span>Kelola RFID</span>
+                            </DropdownMenuItem>
+                          </RfidManagementDialog>
+                          
+                          <PermissionsDialog 
+                            member={member} 
+                            onSave={onPermissionsSave}
+                            onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
+                          >
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <ShieldCheck className="mr-2 h-4 w-4" />
+                              <span>Hak Akses</span>
+                            </DropdownMenuItem>
+                          </PermissionsDialog>
+
+                         <DropdownMenuSeparator />
+                         <AlertDialog>
+                           <AlertDialogTrigger asChild>
+                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                               <Trash2 className="mr-2 h-4 w-4" />
+                               <span>Hapus Jemaat</span>
+                             </DropdownMenuItem>
+                           </AlertDialogTrigger>
+                           <AlertDialogContent>
+                             <AlertDialogHeader>
+                               <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                               <AlertDialogDescription>
+                                 Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
+                               </AlertDialogDescription>
+                             </AlertDialogHeader>
+                             <AlertDialogFooter>
+                               <AlertDialogCancel>Batal</AlertDialogCancel>
+                               <AlertDialogAction onClick={() => onDelete(member.id)}>Lanjutkan Hapus</AlertDialogAction>
+                             </AlertDialogFooter>
+                           </AlertDialogContent>
+                         </AlertDialog>
+                       </DropdownMenuContent>
+                     </DropdownMenu>
                     </div>
                   </>
                 )}
@@ -848,7 +861,7 @@ function MemberDetailDialog({
             <AlertDialogTitle className="flex items-center gap-2">
               <ListChecks className="text-primary"/> Konfirmasi Perubahan
             </AlertDialogTitle>
-            <div className="text-sm text-muted-foreground">
+             <div className="text-sm text-muted-foreground">
               <p>Apakah Anda yakin ingin menyimpan perubahan berikut?</p>
                <ul className="mt-2 list-disc list-inside text-sm text-foreground/80 bg-secondary/50 p-3 rounded-md">
                 {changesSummary.map(change => <li key={change}>{change}</li>)}

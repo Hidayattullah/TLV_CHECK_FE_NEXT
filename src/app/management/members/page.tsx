@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -22,7 +23,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTrigger,
-  DialogClose
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -1210,10 +1211,10 @@ function MemberDetailDialog({
                   </>
                 ) : (
                   <>
-                    <div>
+                    <div className="w-full flex gap-2">
                      <DropdownMenu>
                        <DropdownMenuTrigger asChild>
-                         <Button variant="outline">
+                         <Button variant="outline" className="w-full">
                            <Settings className="mr-2 h-4 w-4" />
                            Kelola
                          </Button>
@@ -1269,10 +1270,10 @@ function MemberDetailDialog({
                          </AlertDialog>
                        </DropdownMenuContent>
                      </DropdownMenu>
-                    </div>
                      <DialogClose asChild>
-                      <Button type="button" variant="secondary">Close</Button>
+                      <Button type="button" variant="secondary" className="w-full">Close</Button>
                     </DialogClose>
+                    </div>
                   </>
                 )}
               </DialogFooter>

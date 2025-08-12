@@ -363,14 +363,27 @@ function MemberDetailDialog({
             </DialogHeader>
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
               <div className="flex flex-col items-center gap-4">
-                <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
-                  {isEditMode ? (
-                     avatarPreview && <AvatarImage src={avatarPreview} alt={member.name} />
-                  ): (
-                    member.avatarUrl && <AvatarImage src={member.avatarUrl} alt={member.name} />
-                  )}
-                  <AvatarFallback>{userInitials}</AvatarFallback>
-                </Avatar>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Avatar className="w-24 h-24 mb-2 border-2 border-primary cursor-pointer">
+                      {isEditMode ? (
+                        avatarPreview && <AvatarImage src={avatarPreview} alt={member.name} />
+                      ): (
+                        member.avatarUrl && <AvatarImage src={member.avatarUrl} alt={member.name} />
+                      )}
+                      <AvatarFallback>{userInitials}</AvatarFallback>
+                    </Avatar>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{member.name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="flex justify-center items-center p-4">
+                        <Image src={isEditMode ? avatarPreview || member.avatarUrl : member.avatarUrl} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                      </div>
+                    </DialogContent>
+                </Dialog>
+                
                 {isEditMode && (
                   <>
                     {isUploading && (

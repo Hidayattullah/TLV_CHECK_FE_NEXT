@@ -232,21 +232,21 @@ function MemberDetailDialog({
   useEffect(() => {
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
-    if (!open) {
+     if (!open) {
       setIsEditMode(false);
-      setIsSaveAlertOpen(false); // Close save alert if main dialog closes
-      setIsCancelAlertOpen(false); // Close cancel alert
+      setIsSaveAlertOpen(false);
+      setIsCancelAlertOpen(false);
     }
   }, [member, open]);
   
   useEffect(() => {
-    if (open && isEditMode && !originalDataOnEdit) {
-      setOriginalDataOnEdit(formData);
+    if (isEditMode && member && !originalDataOnEdit) {
+      setOriginalDataOnEdit(member);
     }
     if (!isEditMode) {
       setOriginalDataOnEdit(null);
     }
-  }, [open, isEditMode, formData, originalDataOnEdit]);
+  }, [isEditMode, member, originalDataOnEdit]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -356,7 +356,14 @@ function MemberDetailDialog({
   };
   
   const handleCancelClick = () => {
-    setIsCancelAlertOpen(true);
+    const changes = checkForChanges();
+    if (changes.length > 0) {
+      setIsCancelAlertOpen(true);
+    } else {
+      setIsEditMode(false);
+      setFormData(member);
+      setAvatarPreview(member?.avatarUrl);
+    }
   };
   
   const handleCancelConfirm = () => {
@@ -367,15 +374,11 @@ function MemberDetailDialog({
   };
   
   const handleDialogCloseAttempt = (isOpen: boolean) => {
-    if (!isOpen) {
-      if (isEditMode) {
+    if (!isOpen && isEditMode) {
         handleCancelClick();
-        return; 
-      }
-      onOpenChange(false);
-    } else {
-       onOpenChange(true);
+        return; // Prevent dialog from closing immediately
     }
+    onOpenChange(isOpen);
   };
   
   if (!member) return null;
@@ -426,7 +429,7 @@ function MemberDetailDialog({
                       )}
                     </Avatar>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                   <DialogContent className="max-w-md">
                       <DialogHeader>
                         <DialogTitle>{member.name}</DialogTitle>
                       </DialogHeader>
@@ -673,11 +676,11 @@ export default function MembersManagementPage() {
 
   const handleViewMember = (member: Member) => {
     setIsDetailLoading(true);
-    setViewingMember(member);
-    // Simulate fetching data
+    // Directly set member to show dialog, loading state will cover it
+    setViewingMember(member); 
     setTimeout(() => {
       setIsDetailLoading(false);
-    }, 1000); // 1 second delay
+    }, 1000);
   };
   
   const handleDeleteMember = (id: string) => {
@@ -746,14 +749,14 @@ export default function MembersManagementPage() {
                       </Avatar>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
-                      <DialogHeader>
+                       <DialogHeader>
                         <DialogTitle>{member.name}</DialogTitle>
                       </DialogHeader>
                       <div className="flex justify-center items-center p-4 min-h-[100px]">
                         {member.avatarUrl ? (
                           <Image src={member.avatarUrl} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
                         ) : (
-                          <p className="text-muted-foreground">{member.name} belum mengunggah foto.</p>
+                           <p className="text-muted-foreground">{member.name} belum mengunggah foto.</p>
                         )}
                       </div>
                     </DialogContent>
@@ -784,7 +787,11 @@ export default function MembersManagementPage() {
       member={viewingMember}
       open={!!viewingMember}
       isLoading={isDetailLoading}
-      onOpenChange={(open) => !open && setViewingMember(null)}
+      onOpenChange={(open) => {
+          if (!open) {
+              setViewingMember(null);
+          }
+      }}
       onSave={handleMemberSave}
       onPermissionsSave={handlePermissionsSave}
       onPermissionDialogOpen={handlePermissionDialogOpener}
@@ -795,5 +802,7 @@ export default function MembersManagementPage() {
 }
 
 
+
+    
 
     

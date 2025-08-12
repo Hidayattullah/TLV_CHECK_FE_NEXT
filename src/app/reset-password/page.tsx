@@ -8,18 +8,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const registeredPhoneNumbers = ["+6281234567890", "+6281234567891", "+6281234567892"];
 
 export default function ResetPasswordPage() {
   const [view, setView] = useState<'request' | 'verify' | 'reset'>('request');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { toast } = useToast();
 
   const handleRequestCode = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic to send reset code will go here.
-    // For now, we'll just switch the view.
-    setView('verify');
+    
+    if (registeredPhoneNumbers.includes(phoneNumber)) {
+      toast({
+        title: "Nomor Terdaftar",
+        description: "Kode reset akan segera dikirim ke nomor Anda.",
+      });
+      setView('verify');
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Nomor Tidak Ditemukan",
+        description: "Nomor telepon ini belum terdaftar. Silakan registrasi terlebih dahulu.",
+      });
+    }
   }
 
   const handleVerifyCode = (e: React.FormEvent) => {
@@ -32,9 +47,11 @@ export default function ResetPasswordPage() {
   const handleResetPassword = (e: React.FormEvent) => {
     e.preventDefault();
     // Logic to save new password will go here.
-    // For now, we'll just log it.
-    console.log("Password reset successfully!");
-    // Ideally, redirect to login page after a delay/toast message.
+    toast({
+        title: "Berhasil!",
+        description: "Password Anda telah berhasil direset.",
+    });
+    // Ideally, redirect to login page after a delay.
   }
 
   return (

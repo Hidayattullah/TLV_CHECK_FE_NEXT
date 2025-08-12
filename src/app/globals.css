@@ -25,7 +25,7 @@
     --muted-foreground: 0 0% 40%;     /* Teks non-fokus */
 
     --accent: 324 69% 34%;            /* 🌸 Magenta gelap (#931c58) */
-    --accent-foreground: 0 0% 10%;   /* Teks putih di atas accent */
+    --accent-foreground: 0 0% 100%;   /* Teks putih di atas accent */
 
     --destructive: 0 84.2% 60.2%;     /* Warna merah untuk hapus */
     --destructive-foreground: 210 40% 98%;

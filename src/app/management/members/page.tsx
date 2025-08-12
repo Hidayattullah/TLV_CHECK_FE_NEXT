@@ -191,7 +191,6 @@ function MemberDetailDialog({
   onSave, 
   onPermissionsSave,
   onPermissionDialogOpen,
-  onStatusChange,
 }: { 
   member: Member | null; 
   open: boolean; 
@@ -199,7 +198,6 @@ function MemberDetailDialog({
   onSave: (updatedMember: Member) => void; 
   onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
   onPermissionDialogOpen: (id: string, open: boolean) => void;
-  onStatusChange: (id: string, isActive: boolean) => void;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -221,7 +219,6 @@ function MemberDetailDialog({
   const handleStatusToggle = (checked: boolean) => {
     if (formData) {
        setFormData({ ...formData, isActive: checked });
-       onStatusChange(formData.id, checked);
     }
   };
 
@@ -359,14 +356,6 @@ export default function MembersManagementPage() {
   const [openPermissionDialogs, setOpenPermissionDialogs] = useState<Record<string, boolean>>({});
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
 
-  const handleStatusChange = (id: string, isActive: boolean) => {
-    setMembers(prevMembers =>
-      prevMembers.map(member =>
-        member.id === id ? { ...member, isActive } : member
-      )
-    );
-  };
-
   const handlePermissionsSave = (id: string, permissions: Record<Module, Permission[]>) => {
      setMembers(prevMembers =>
       prevMembers.map(member =>
@@ -472,7 +461,6 @@ export default function MembersManagementPage() {
       onSave={handleMemberSave}
       onPermissionsSave={handlePermissionsSave}
       onPermissionDialogOpen={handlePermissionDialogOpener}
-      onStatusChange={handleStatusChange}
     />
     </>
   );

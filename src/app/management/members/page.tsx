@@ -63,7 +63,7 @@ const initialMembers: Member[] = [
     id: "1",
     name: "Tubagus Rifan",
     email: "tubagus@example.com",
-    avatarUrl: "https://placehold.co/400x400.png",
+    avatarUrl: "",
     joinedDate: "2023-01-15",
     isActive: true,
     phoneNumber: "+6281234567890",
@@ -79,7 +79,7 @@ const initialMembers: Member[] = [
     id: "2",
     name: "Jane Doe",
     email: "jane@example.com",
-    avatarUrl: "https://placehold.co/400x400.png",
+    avatarUrl: "",
     joinedDate: "2023-02-20",
     isActive: false,
     phoneNumber: "+6281234567891",
@@ -95,7 +95,7 @@ const initialMembers: Member[] = [
     id: "3",
     name: "Admin Gereja",
     email: "admin@thelordsvineyard.org",
-    avatarUrl: "https://placehold.co/400x400.png",
+    avatarUrl: "",
     joinedDate: "2022-11-10",
     isActive: true,
     phoneNumber: "+6281234567892",
@@ -329,6 +329,7 @@ function MemberDetailDialog({
   if (!member) return null;
 
   const userInitials = member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const currentAvatar = isEditMode ? avatarPreview : member.avatarUrl;
 
   return (
     <>
@@ -366,11 +367,7 @@ function MemberDetailDialog({
                 <Dialog>
                   <DialogTrigger asChild>
                     <Avatar className="w-24 h-24 mb-2 border-2 border-primary cursor-pointer">
-                      {isEditMode ? (
-                        avatarPreview && <AvatarImage src={avatarPreview} alt={member.name} />
-                      ): (
-                        member.avatarUrl && <AvatarImage src={member.avatarUrl} alt={member.name} />
-                      )}
+                      {currentAvatar && <AvatarImage src={currentAvatar} alt={member.name} />}
                       <AvatarFallback>{userInitials}</AvatarFallback>
                     </Avatar>
                   </DialogTrigger>
@@ -379,7 +376,7 @@ function MemberDetailDialog({
                         <DialogTitle>{member.name}</DialogTitle>
                       </DialogHeader>
                       <div className="flex justify-center items-center p-4">
-                        <Image src={isEditMode ? avatarPreview || member.avatarUrl : member.avatarUrl} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                        <Image src={currentAvatar || ''} alt={`Avatar of ${member.name}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
                       </div>
                     </DialogContent>
                 </Dialog>
@@ -659,7 +656,7 @@ export default function MembersManagementPage() {
                     <DialogTrigger asChild>
                       <Avatar className="cursor-pointer">
                         <AvatarImage src={member.avatarUrl} alt={member.name} data-ai-hint="person portrait" />
-                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">

@@ -838,9 +838,9 @@ function MemberDetailDialog({
   useEffect(() => {
     if (!open) {
       setIsEditMode(false);
-      setIsSaveAlertOpen(false);
       setOriginalDataOnEdit(null);
-    } else if (!isSaveAlertOpen) {
+    }
+    if (!open && !isSaveAlertOpen) {
       setIsCancelAlertOpen(false);
     }
   }, [open, isSaveAlertOpen]);
@@ -922,6 +922,7 @@ function MemberDetailDialog({
         title: "Tidak Ada Perubahan",
         description: "Anda tidak membuat perubahan apapun.",
       });
+      setIsEditMode(false);
       return;
     }
 
@@ -941,6 +942,7 @@ function MemberDetailDialog({
           onSave(formData);
           setIsSaving(false);
           setIsEditMode(false);
+          setOriginalDataOnEdit(null);
           onOpenChange(false);
           toast({
             title: "Berhasil!",
@@ -1369,10 +1371,11 @@ export default function MembersManagementPage() {
 
   const handleViewMember = (member: Member) => {
     setIsDetailLoading(true);
-    setViewingMember(member); 
+    setViewingMember(null);
     setTimeout(() => {
+      setViewingMember(member); 
       setIsDetailLoading(false);
-    }, 1000);
+    }, 500);
   };
   
   const handleDeleteMember = (id: string) => {
@@ -1433,7 +1436,7 @@ export default function MembersManagementPage() {
           </TableHeader>
           <TableBody>
             {filteredMembers.map(member => (
-              <TableRow key={member.id}>
+              <TableRow key={member.id} className="h-16">
                  <TableCell>
                   <Dialog>
                     <DialogTrigger asChild>
@@ -1480,26 +1483,25 @@ export default function MembersManagementPage() {
         </Table>
       </div>
     </div>
-    {viewingMember && (
-      <MemberDetailDialog 
-        member={viewingMember}
-        open={!!viewingMember}
-        isLoading={isDetailLoading}
-        onOpenChange={(open) => {
-            if (!open) {
-                setViewingMember(null);
-            }
-        }}
-        onSave={handleMemberSave}
-        onRfidSave={handleRfidSave}
-        onPermissionsSave={handlePermissionsSave}
-        onPermissionDialogOpen={handlePermissionDialogOpen}
-        onDelete={handleDeleteMember}
-        openPermissionDialogs={openPermissionDialogs}
-      />
-    )}
+    
+    <MemberDetailDialog 
+      member={viewingMember}
+      open={!!viewingMember}
+      isLoading={isDetailLoading}
+      onOpenChange={(open) => {
+          if (!open) {
+              setViewingMember(null);
+          }
+      }}
+      onSave={handleMemberSave}
+      onRfidSave={handleRfidSave}
+      onPermissionsSave={handlePermissionsSave}
+      onPermissionDialogOpen={handlePermissionDialogOpen}
+      onDelete={handleDeleteMember}
+      openPermissionDialogs={openPermissionDialogs}
+    />
     </>
   );
 }
 
-      
+    

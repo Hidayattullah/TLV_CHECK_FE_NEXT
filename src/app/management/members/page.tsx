@@ -324,9 +324,10 @@ function MemberDetailDialog({
               </Badge>
             </div>
           </div>
-          {isEditMode && (
-            <div className="space-y-2">
-              <Label>Status Keaktifan</Label>
+
+          <div className="space-y-2">
+             <Label>Status Keaktifan</Label>
+            {isEditMode ? (
               <div className="flex items-center space-x-2">
                 <Switch
                   id="status-toggle"
@@ -338,8 +339,12 @@ function MemberDetailDialog({
                   {formData?.isActive ? "Aktif" : "Nonaktif"}
                 </Label>
               </div>
-            </div>
-          )}
+            ) : (
+               <Badge variant={formData?.isActive ? "default" : "secondary"}>
+                  {formData?.isActive ? "Aktif" : "Nonaktif"}
+                </Badge>
+            )}
+          </div>
         </div>
         <DialogFooter className="gap-2 sm:justify-between sm:gap-0">
           {isEditMode ? (

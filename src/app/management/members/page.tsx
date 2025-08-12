@@ -234,14 +234,19 @@ function MemberDetailDialog({
     setAvatarPreview(member?.avatarUrl);
     if (!open) {
       setIsEditMode(false);
+      setIsSaveAlertOpen(false); // Close save alert if main dialog closes
+      setIsCancelAlertOpen(false); // Close cancel alert
     }
   }, [member, open]);
-
+  
   useEffect(() => {
-    if (open && isEditMode) {
+    if (open && isEditMode && !originalDataOnEdit) {
       setOriginalDataOnEdit(formData);
     }
-  }, [open, isEditMode, formData]);
+    if (!isEditMode) {
+      setOriginalDataOnEdit(null);
+    }
+  }, [open, isEditMode, formData, originalDataOnEdit]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -349,7 +354,11 @@ function MemberDetailDialog({
       }, 1500);
     }
   };
-
+  
+  const handleCancelClick = () => {
+    setIsCancelAlertOpen(true);
+  };
+  
   const handleCancelConfirm = () => {
     setIsEditMode(false);
     setFormData(member);
@@ -357,16 +366,16 @@ function MemberDetailDialog({
     setIsCancelAlertOpen(false);
   };
   
-  const handleCancelClick = () => {
-    setIsCancelAlertOpen(true);
-  };
-
   const handleDialogCloseAttempt = (isOpen: boolean) => {
-    if (!isOpen && isEditMode) {
-      handleCancelClick();
-      return;
+    if (!isOpen) {
+      if (isEditMode) {
+        handleCancelClick();
+        return; 
+      }
+      onOpenChange(false);
+    } else {
+       onOpenChange(true);
     }
-    onOpenChange(isOpen);
   };
   
   if (!member) return null;

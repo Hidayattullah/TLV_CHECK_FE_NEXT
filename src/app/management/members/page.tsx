@@ -232,21 +232,16 @@ function MemberDetailDialog({
   useEffect(() => {
     setFormData(member);
     setAvatarPreview(member?.avatarUrl);
-    if (open && isEditMode) {
-      setOriginalDataOnEdit(member);
-    }
     if (!open) {
       setIsEditMode(false);
     }
   }, [member, open]);
 
   useEffect(() => {
-    if (isEditMode && member) {
+    if (open && isEditMode) {
       setOriginalDataOnEdit(member);
-      setFormData(member);
-      setAvatarPreview(member.avatarUrl);
     }
-  }, [isEditMode, member]);
+  }, [open, isEditMode, member]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

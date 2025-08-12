@@ -362,37 +362,43 @@ function MemberDetailDialog({
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-              {isEditMode && (
-                <div className="flex flex-col items-center gap-4">
-                  <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
-                    {avatarPreview && <AvatarImage src={avatarPreview} alt={member.name} />}
-                    <AvatarFallback>{userInitials}</AvatarFallback>
-                  </Avatar>
-                  {isUploading && (
-                    <div className="w-full px-4">
-                      <Progress value={uploadProgress} className="w-full" />
-                      <p className="text-xs text-center text-muted-foreground mt-1">{uploadProgress}%</p>
-                    </div>
+              <div className="flex flex-col items-center gap-4">
+                <Avatar className="w-24 h-24 mb-2 border-2 border-primary">
+                  {isEditMode ? (
+                     avatarPreview && <AvatarImage src={avatarPreview} alt={member.name} />
+                  ): (
+                    member.avatarUrl && <AvatarImage src={member.avatarUrl} alt={member.name} />
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isUploading || isSaving}
-                    onClick={() => document.getElementById("photo-upload")?.click()}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    {isUploading ? "Mengunggah..." : "Ganti Foto"}
-                  </Button>
-                  <Input 
-                    id="photo-upload" 
-                    type="file" 
-                    className="sr-only" 
-                    accept="image/*" 
-                    onChange={handleImageChange} 
-                    disabled={isUploading || isSaving} 
-                  />
-                </div>
-              )}
+                  <AvatarFallback>{userInitials}</AvatarFallback>
+                </Avatar>
+                {isEditMode && (
+                  <>
+                    {isUploading && (
+                      <div className="w-full px-4">
+                        <Progress value={uploadProgress} className="w-full" />
+                        <p className="text-xs text-center text-muted-foreground mt-1">{uploadProgress}%</p>
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isUploading || isSaving}
+                      onClick={() => document.getElementById("photo-upload")?.click()}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      {isUploading ? "Mengunggah..." : "Ganti Foto"}
+                    </Button>
+                    <Input 
+                      id="photo-upload" 
+                      type="file" 
+                      className="sr-only" 
+                      accept="image/*" 
+                      onChange={handleImageChange} 
+                      disabled={isUploading || isSaving} 
+                    />
+                  </>
+                )}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Nama</Label>
                 <div className="relative">

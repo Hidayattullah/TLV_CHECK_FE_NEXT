@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useTransition } from "react";
@@ -401,10 +400,10 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
           <AlertDialogHeader>
             <AlertDialogTitle>Konfirmasi Penambahan Jemaat</AlertDialogTitle>
             <AlertDialogDescription>
-                <p>Apakah Anda yakin ingin menambahkan jemaat baru dengan detail berikut?</p>
+                <div>Apakah Anda yakin ingin menambahkan jemaat baru dengan detail berikut?</div>
                 <div className="mt-4 space-y-2 text-sm text-foreground bg-secondary/50 p-3 rounded-md">
-                    <p><strong>Nama:</strong> {formData?.name}</p>
-                    <p><strong>No. Telepon:</strong> {formData?.phoneNumber}</p>
+                    <div><strong>Nama:</strong> {formData?.name}</div>
+                    <div><strong>No. Telepon:</strong> {formData?.phoneNumber}</div>
                 </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -772,12 +771,12 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
             <AlertDialogTitle className="flex items-center gap-2">
               <ListChecks className="text-primary"/> Konfirmasi Perubahan Hak Akses
             </AlertDialogTitle>
-            <div className="text-sm text-muted-foreground">
-              <p>Anda akan mengubah hak akses untuk modul berikut:</p>
+            <AlertDialogDescription>
+              <div>Anda akan mengubah hak akses untuk modul berikut:</div>
                <ul className="mt-2 list-disc list-inside text-foreground/80 bg-secondary/50 p-3 rounded-md">
                 {changesSummary.map(change => <li key={change}>{change}</li>)}
               </ul>
-            </div>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
@@ -1310,12 +1309,12 @@ function MemberDetailDialog({
             <AlertDialogTitle className="flex items-center gap-2">
               <ListChecks className="text-primary"/> Konfirmasi Perubahan
             </AlertDialogTitle>
-            <div className="text-sm text-muted-foreground">
-              <p>Apakah Anda yakin ingin menyimpan perubahan berikut?</p>
+            <AlertDialogDescription>
+              <div>Apakah Anda yakin ingin menyimpan perubahan berikut?</div>
                <ul className="mt-2 list-disc list-inside text-foreground/80 bg-secondary/50 p-3 rounded-md">
                 {changesSummary.map(change => <li key={change}>{change}</li>)}
               </ul>
-            </div>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
@@ -1578,5 +1577,3 @@ export default function MembersManagementPage() {
     </>
   );
 }
-
-    

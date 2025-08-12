@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
              <form onSubmit={handleResetPassword}>
               <CardHeader>
                 <CardTitle className="font-bold text-2xl text-primary">Atur Password Baru</CardTitle>
-                <CardDescription>Buat kata sandi baru untuk akun Anda.</CardDescription>
+                <CardDescription>Buat kata sandi baru untuk akun Anda yang bernomor: <strong>{phoneNumber}</strong></CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">

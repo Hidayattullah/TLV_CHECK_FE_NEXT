@@ -55,97 +55,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Member, Module, Permission, RfidType, Gender } from "@/lib/api/types";
+import { getMembers, addMember, updateMember, deleteMember as removeMember } from "@/lib/repository_mock/members";
 
-type Permission = "read" | "edit" | "delete";
-type Module = "members" | "checkin" | "prayers" | "questions";
-type RfidType = "Card" | "Tag" | "Stiker";
-type Gender = "Laki-laki" | "Perempuan";
-
-type Member = {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl: string;
-  joinedDate: string;
-  isActive: boolean;
-  phoneNumber: string;
-  isVerified: boolean;
-  address: string;
-  dateOfBirth: string;
-  gender: Gender;
-  permissions: Record<Module, Permission[]>;
-  rfid: {
-    id: string | null;
-    type: RfidType | null;
-  }
-};
-
-const initialMembers: Member[] = [
-  {
-    id: "1",
-    name: "Tubagus Rifan",
-    email: "tubagus@example.com",
-    avatarUrl: "",
-    joinedDate: "2023-01-15",
-    isActive: true,
-    phoneNumber: "+6281234567890",
-    isVerified: true,
-    address: "Jl. Jenderal Sudirman No. 1, Jakarta",
-    dateOfBirth: "1990-01-01",
-    gender: "Laki-laki",
-    permissions: {
-      members: ["read", "edit", "delete"],
-      checkin: ["read", "edit"],
-      prayers: ["read"],
-      questions: ["read", "edit"],
-    },
-    rfid: { id: '123456789', type: 'Card' },
-  },
-  {
-    id: "2",
-    name: "Jane Doe",
-    email: "jane@example.com",
-    avatarUrl: "",
-    joinedDate: "2023-02-20",
-    isActive: false,
-    phoneNumber: "+6281234567891",
-    isVerified: false,
-    address: "Jl. Gatot Subroto No. 2, Bandung",
-    dateOfBirth: "1992-05-20",
-    gender: "Perempuan",
-    permissions: {
-      members: ["read"],
-      checkin: [],
-      prayers: [],
-      questions: ["read"],
-    },
-    rfid: { id: null, type: null },
-  },
-  {
-    id: "3",
-    name: "Admin Gereja",
-    email: "admin@thelordsvineyard.org",
-    avatarUrl: "",
-    joinedDate: "2022-11-10",
-    isActive: true,
-    phoneNumber: "+6281234567892",
-    isVerified: true,
-    address: "Jl. MH Thamrin No. 3, Surabaya",
-    dateOfBirth: "1985-11-10",
-    gender: "Laki-laki",
-    permissions: {
-      members: ["read", "edit", "delete"],
-      checkin: ["read", "edit", "delete"],
-      prayers: ["read", "edit", "delete"],
-      questions: ["read", "edit", "delete"],
-    },
-    rfid: { id: '987654321', type: 'Tag' },
-  },
-  { id: "4", name: "Sarah Connor", email: "sarah@skynet.com", avatarUrl: "", joinedDate: "2023-03-10", isActive: true, phoneNumber: "+6281234567893", isVerified: true, address: "Jl. Diponegoro No. 4, Yogyakarta", dateOfBirth: "1988-08-15", gender: "Perempuan", permissions: { members: ["read"], checkin: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
-  { id: "5", name: "John Smith", email: "john@matrix.com", avatarUrl: "", joinedDate: "2023-04-05", isActive: false, phoneNumber: "+6281234567894", isVerified: false, address: "Jl. Imam Bonjol No. 5, Semarang", dateOfBirth: "1995-03-25", gender: "Laki-laki", permissions: { members: [], checkin: [], prayers: [], questions: [] }, rfid: { id: null, type: null } },
-  { id: "6", name: "Michael Bay", email: "michael@explosions.com", avatarUrl: "", joinedDate: "2023-05-12", isActive: true, phoneNumber: "+6281234567895", isVerified: true, address: "Jl. Asia Afrika No. 6, Bandung", dateOfBirth: "1970-02-17", gender: "Laki-laki", permissions: { members: ["read", "edit"], checkin: ["read", "edit"], prayers: [], questions: [] }, rfid: { id: '112233445', type: 'Card' } },
-  { id: "7", name: "Ellen Ripley", email: "ellen@weyland.com", avatarUrl: "", joinedDate: "2023-06-18", isActive: true, phoneNumber: "+6281234567896", isVerified: false, address: "Jl. Pahlawan No. 7, Medan", dateOfBirth: "1980-04-30", gender: "Perempuan", permissions: { members: ["read"], checkin: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
-];
 
 const moduleLabels: Record<Module, string> = {
   members: "Manajemen Jemaat",
@@ -191,39 +103,33 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
     },
   });
 
-  function onConfirmSubmit() {
+  async function onConfirmSubmit() {
     if (!formData) return;
 
     setIsSaving(true);
-    setTimeout(() => {
-      const newMember: Member = {
-        id: (initialMembers.length + Math.random()).toString(),
+    try {
+      const newMemberData = await addMember({
         ...formData,
         email: formData.email || `${formData.name.toLowerCase().replace(/\s/g, '.')}@generated.com`,
-        joinedDate: new Date().toISOString().split('T')[0],
-        isActive: true,
-        isVerified: true, // Admin-created users are auto-verified
-        avatarUrl: "",
-        rfid: { id: null, type: null },
-        permissions: {
-          members: [],
-          checkin: [],
-          prayers: [],
-          questions: [],
-        }
-      };
-      
-      onAddMember(newMember);
+      });
+      onAddMember(newMemberData);
       toast({
         title: "Berhasil Ditambahkan!",
         description: `Jemaat baru dengan nama ${formData.name} telah ditambahkan.`,
       });
-      setIsSaving(false);
       onOpenChange(false);
       form.reset();
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Gagal Menambahkan",
+        description: "Terjadi kesalahan saat menambahkan jemaat baru.",
+      });
+    } finally {
+      setIsSaving(false);
       setIsConfirmOpen(false);
       setFormData(null);
-    }, 1500);
+    }
   }
   
   function onFormSubmit(values: AddMemberFormValues) {
@@ -808,7 +714,7 @@ function MemberDetailDialog({
   open: boolean; 
   isLoading: boolean;
   onOpenChange: (open: boolean) => void; 
-  onSave: (updatedMember: Member) => void; 
+  onSave: (id: string, updatedData: Partial<Member>) => void; 
   onRfidSave: (id: string, rfid: Member['rfid']) => void;
   onPermissionsSave: (id: string, permissions: Record<Module, Permission[]>) => void;
   onPermissionDialogOpen: (id: string, open: boolean) => void;
@@ -935,35 +841,30 @@ function MemberDetailDialog({
     setIsSaveAlertOpen(true);
   };
 
-  const executeSave = () => {
+  const executeSave = async () => {
     if (formData) {
       setIsSaving(true);
-      setTimeout(() => {
-        try {
-          if (Math.random() < 0.2) { 
-             throw new Error("Simulated network error");
-          }
-          
-          onSave(formData);
-          setIsSaving(false);
-          setIsEditMode(false);
-          setOriginalDataOnEdit(null);
-          onOpenChange(false);
-          toast({
-            title: "Berhasil!",
-            description: `Perubahan pada ${formData.name} berhasil dilakukan.`,
-          });
-        } catch(error) {
-           setIsSaving(false);
-           toast({
-            variant: "destructive",
-            title: "Gagal!",
-            description: `Gagal menyimpan perubahan untuk ${formData.name}, periksa koneksi Anda.`,
-          });
-        } finally {
-           setIsSaveAlertOpen(false);
-        }
-      }, 1500);
+      try {
+        await updateMember(formData.id, formData);
+        onSave(formData.id, formData);
+
+        setIsEditMode(false);
+        setOriginalDataOnEdit(null);
+        onOpenChange(false);
+        toast({
+          title: "Berhasil!",
+          description: `Perubahan pada ${formData.name} berhasil dilakukan.`,
+        });
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Gagal!",
+          description: `Gagal menyimpan perubahan untuk ${formData.name}, periksa koneksi Anda.`,
+        });
+      } finally {
+         setIsSaving(false);
+         setIsSaveAlertOpen(false);
+      }
     }
   };
   
@@ -1330,7 +1231,7 @@ function MemberDetailDialog({
 const ITEMS_PER_PAGE = 5;
 
 export default function MembersManagementPage() {
-  const [members, setMembers] = useState<Member[]>(initialMembers);
+  const [members, setMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [openPermissionDialogs, setOpenPermissionDialogs] = useState<Record<string, boolean>>({});
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
@@ -1338,8 +1239,27 @@ export default function MembersManagementPage() {
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    async function loadMembers() {
+      setIsLoading(true);
+      try {
+        const data = await getMembers();
+        setMembers(data);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Gagal Memuat Data",
+          description: "Tidak dapat memuat data jemaat. Coba lagi nanti.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadMembers();
+  }, [toast]);
 
   const handlePermissionsSave = (id: string, permissions: Record<Module, Permission[]>) => {
      setMembers(prevMembers =>
@@ -1352,10 +1272,10 @@ export default function MembersManagementPage() {
     }
   };
   
-  const handleMemberSave = (updatedMember: Member) => {
+  const handleMemberSave = (id: string, updatedData: Partial<Member>) => {
     setMembers(prevMembers =>
       prevMembers.map(member =>
-        member.id === updatedMember.id ? updatedMember : member
+        member.id === id ? { ...member, ...updatedData } : member
       )
     );
   };
@@ -1385,18 +1305,26 @@ export default function MembersManagementPage() {
     }, 500);
   };
   
-  const handleDeleteMember = (id: string) => {
+  const handleDeleteMember = async (id: string) => {
     const memberToDelete = members.find(m => m.id === id);
     if (!memberToDelete) return;
     
-    setMembers(prev => prev.filter(member => member.id !== id));
-    setViewingMember(null);
-    
-    toast({
-      title: "Berhasil Dihapus",
-      description: `Jemaat dengan nama ${memberToDelete.name} telah dihapus.`,
-      variant: "destructive"
-    });
+    try {
+        await removeMember(id);
+        setMembers(prev => prev.filter(member => member.id !== id));
+        setViewingMember(null);
+        toast({
+            title: "Berhasil Dihapus",
+            description: `Jemaat dengan nama ${memberToDelete.name} telah dihapus.`,
+            variant: "destructive"
+        });
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Gagal Menghapus",
+            description: "Terjadi kesalahan saat menghapus jemaat.",
+        });
+    }
   };
 
   const handleAddNewMember = (newMember: Member) => {
@@ -1419,13 +1347,9 @@ export default function MembersManagementPage() {
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      startTransition(() => {
-        setCurrentPage(newPage);
-        setIsLoading(false);
-      });
-    }, 300); // Simulate network delay
+    startTransition(() => {
+      setCurrentPage(newPage);
+    });
   };
 
   return (
@@ -1465,7 +1389,7 @@ export default function MembersManagementPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isLoading || isPending ? (
               Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`}>
                   <TableCell><Skeleton className="h-10 w-10 rounded-full" /></TableCell>

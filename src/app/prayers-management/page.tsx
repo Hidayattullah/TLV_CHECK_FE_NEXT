@@ -3,15 +3,6 @@
 
 import React, { useState, useMemo, useTransition } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -20,14 +11,15 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Calendar, User } from "lucide-react";
 
 type PrayerRequest = {
   id: string;
@@ -49,7 +41,7 @@ const mockPrayers: PrayerRequest[] = [
   { id: "p8", userName: "Anonim", requestText: "Pergumulan dalam hubungan rumah tangga. Kiranya Tuhan memulihkan dan memberikan kedamaian.", submittedDate: "2024-07-27", isAnonymous: true },
 ];
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 
 function PrayerRequestDialog({ prayer, isOpen, onOpenChange }: { prayer: PrayerRequest | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
   const { toast } = useToast();
@@ -147,7 +139,7 @@ export default function PrayersManagementPage() {
     }, 300);
   };
   
-  const handleRowClick = (prayer: PrayerRequest) => {
+  const handleCardClick = (prayer: PrayerRequest) => {
     setSelectedPrayer(prayer);
     setIsDialogOpen(true);
   };
@@ -187,53 +179,56 @@ export default function PrayersManagementPage() {
           </div>
         </div>
         
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Pengirim</TableHead>
-                <TableHead>Pokok Doa</TableHead>
-                <TableHead className="text-right">Tanggal</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(isLoading || isPending) ? (
-                Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                  <TableRow key={`skeleton-${index}`}>
-                    <TableCell><div className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-5 w-24" /></div></TableCell>
-                    <TableCell><Skeleton className="h-5 w-full" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-5 w-20" /></TableCell>
-                  </TableRow>
-                ))
-              ) : paginatedRequests.length > 0 ? (
-                paginatedRequests.map(req => (
-                  <TableRow key={req.id} onClick={() => handleRowClick(req)} className="cursor-pointer">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                           <AvatarImage src={req.avatarUrl} alt={req.userName} />
-                           <AvatarFallback>{getInitials(req.userName)}</AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{req.userName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="truncate max-w-sm text-muted-foreground">{req.requestText}</p>
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {new Date(req.submittedDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' })}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                    Tidak ada pokok doa yang cocok dengan pencarian.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {(isLoading || isPending) ? (
+            Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+              <Card key={`skeleton-${index}`}>
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <Skeleton className="h-5 w-24" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+                <CardFooter>
+                  <Skeleton className="h-4 w-20" />
+                </CardFooter>
+              </Card>
+            ))
+          ) : paginatedRequests.length > 0 ? (
+            paginatedRequests.map(req => (
+              <Card 
+                key={req.id} 
+                onClick={() => handleCardClick(req)} 
+                className="cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all flex flex-col"
+              >
+                <CardHeader className="flex flex-row items-center gap-3">
+                   <Avatar>
+                       <AvatarImage src={req.avatarUrl} alt={req.userName} />
+                       <AvatarFallback>{getInitials(req.userName)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow">
+                      <CardTitle className="text-base">{req.userName}</CardTitle>
+                      {req.isAnonymous && <CardDescription className="text-xs">Anonim</CardDescription>}
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <p className="text-muted-foreground line-clamp-3">{req.requestText}</p>
+                </CardContent>
+                <CardFooter className="text-xs text-muted-foreground pt-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3" />
+                    <span>{new Date(req.submittedDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-24">
+              <p className="text-muted-foreground">Tidak ada pokok doa yang cocok dengan pencarian.</p>
+            </div>
+          )}
         </div>
 
         {totalPages > 1 && (

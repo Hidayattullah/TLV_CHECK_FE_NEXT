@@ -44,6 +44,14 @@ export type CheckInEvent = {
   timerEndsAt?: number;
 };
 
+export type PersonalCheckInRecord = {
+  id: string;
+  service: string;
+  checkinDate: string;
+  checkinMethod: "Barcode" | "RFID";
+};
+
+
 // Prayer Request types
 export type PrayerRequest = {
   id: string;

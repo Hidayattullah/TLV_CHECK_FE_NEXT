@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useState, useMemo, useTransition, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -39,6 +39,8 @@ import { Label } from "@/components/ui/label";
 import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 type Attendee = {
   id: string;
@@ -64,6 +66,10 @@ const mockEvents: CheckInEvent[] = [
     attendees: [
       { id: "1", name: "Tubagus Rifan", checkinTime: "09:05", checkinMethod: "Barcode" },
       { id: "4", name: "Sarah Connor", checkinTime: "09:02", checkinMethod: "RFID" },
+      { id: "user-a", name: "John Doe", checkinTime: "09:03", checkinMethod: "Barcode" },
+      { id: "user-b", name: "Peter Parker", checkinTime: "09:04", checkinMethod: "RFID" },
+      { id: "user-c", name: "Bruce Wayne", checkinTime: "09:06", checkinMethod: "Barcode" },
+      { id: "user-d", name: "Clark Kent", checkinTime: "09:07", checkinMethod: "RFID" },
     ],
   },
   {
@@ -167,52 +173,142 @@ function AddEditEventDialog({
 
 function AttendanceListDialog({ event, children, asChild }: { event: CheckInEvent, children: React.ReactNode, asChild?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterMethod, setFilterMethod] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ATTENDEES_PER_PAGE = 5;
+  
+  useEffect(() => {
+    // Reset state when dialog is closed
+    if (!open) {
+      setSearchTerm("");
+      setFilterMethod("all");
+      setCurrentPage(1);
+    }
+  }, [open]);
+  
+  const filteredAttendees = useMemo(() => {
+    return event.attendees
+      .filter(attendee => 
+        attendee.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter(attendee => 
+        filterMethod === "all" ? true : attendee.checkinMethod === filterMethod
+      );
+  }, [event.attendees, searchTerm, filterMethod]);
+
+  const totalPages = Math.ceil(filteredAttendees.length / ATTENDEES_PER_PAGE);
+
+  const paginatedAttendees = useMemo(() => {
+    const startIndex = (currentPage - 1) * ATTENDEES_PER_PAGE;
+    return filteredAttendees.slice(startIndex, startIndex + ATTENDEES_PER_PAGE);
+  }, [filteredAttendees, currentPage]);
   
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild={asChild}>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Daftar Hadir: {event.eventName}</DialogTitle>
           <DialogDescription>
             Jemaat yang telah melakukan check-in pada {new Date(event.eventDate).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
           </DialogDescription>
         </DialogHeader>
-        <div className="max-h-[60vh] overflow-y-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama Jemaat</TableHead>
-                <TableHead>Waktu Check-in</TableHead>
-                <TableHead className="text-right">Metode</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {event.attendees.length > 0 ? (
-                event.attendees.map((att) => (
-                  <TableRow key={att.id}>
-                    <TableCell className="font-medium">{att.name}</TableCell>
-                    <TableCell>{att.checkinTime}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={att.checkinMethod === "Barcode" ? "default" : "secondary"}>
-                        {att.checkinMethod}
-                      </Badge>
+
+        <div className="flex flex-col sm:flex-row gap-4 pt-2 pb-4">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cari nama jemaat..."
+              value={searchTerm}
+              onChange={e => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={filterMethod}
+            onValueChange={(value) => {
+              setFilterMethod(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="sm:w-[180px]">
+              <SelectValue placeholder="Metode Check-in" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Metode</SelectItem>
+              <SelectItem value="Barcode">Barcode</SelectItem>
+              <SelectItem value="RFID">RFID</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-4">
+          <div className="max-h-[45vh] overflow-y-auto border rounded-lg">
+            <Table>
+              <TableHeader className="sticky top-0 bg-background z-10">
+                <TableRow>
+                  <TableHead>Nama Jemaat</TableHead>
+                  <TableHead>Waktu Check-in</TableHead>
+                  <TableHead className="text-right">Metode</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedAttendees.length > 0 ? (
+                  paginatedAttendees.map((att) => (
+                    <TableRow key={att.id}>
+                      <TableCell className="font-medium">{att.name}</TableCell>
+                      <TableCell>{att.checkinTime}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={att.checkinMethod === "Barcode" ? "default" : "secondary"}>
+                          {att.checkinMethod}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                      {searchTerm || filterMethod !== "all" ? "Tidak ada jemaat yang cocok." : "Belum ada jemaat yang check-in."}
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                    Belum ada jemaat yang check-in.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Halaman {currentPage} dari {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Sebelumnya
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Berikutnya
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-        <DialogFooter>
+
+        <DialogFooter className="pt-4">
            <DialogClose asChild>
               <Button type="button" variant="secondary">Tutup</Button>
            </DialogClose>

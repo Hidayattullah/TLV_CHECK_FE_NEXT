@@ -14,7 +14,7 @@ const managementSections = [
     title: "Manajemen Jemaat",
     description: "Lihat, tambah, dan kelola data anggota jemaat.",
     icon: Users,
-    href: "/management/members",
+    href: "/members-management",
     cta: "Kelola Jemaat",
   },
   {

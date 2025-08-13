@@ -224,7 +224,7 @@ export default function PrayersManagementPage() {
                   <Skeleton className="h-4 w-full mb-2" />
                   <Skeleton className="h-4 w-3/4" />
                 </CardContent>
-                <CardFooter className="flex flex-col items-start gap-2">
+                <CardFooter className="flex justify-between items-center gap-2">
                   <Skeleton className="h-4 w-28" />
                   <Skeleton className="h-5 w-36" />
                 </CardFooter>
@@ -250,18 +250,18 @@ export default function PrayersManagementPage() {
                 <CardContent className="flex-grow">
                   <p className="text-muted-foreground line-clamp-3">{req.requestText}</p>
                 </CardContent>
-                <CardFooter className="flex flex-col items-start gap-2 pt-4">
+                <CardFooter className="flex flex-wrap justify-between items-center gap-2 pt-4">
                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>{new Date(req.submittedDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
                   {req.isResponded ? (
-                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200 text-xs">
                           <CheckCircle className="h-3 w-3 mr-1.5" />
-                          Telah Didoakan oleh {req.lastResponseBy}
+                          Didoakan oleh {req.lastResponseBy}
                       </Badge>
                   ) : (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-xs">
                           <MessageSquarePlus className="h-3 w-3 mr-1.5" />
                           Menunggu Doa
                       </Badge>

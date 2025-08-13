@@ -43,11 +43,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle, Settings, Timer, ToggleLeft, ToggleRight } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle, Settings, Timer, ToggleLeft, ToggleRight, Fingerprint } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 
 type Attendee = {
@@ -63,7 +64,9 @@ type CheckInEvent = {
   eventDate: string;
   isActive: boolean;
   attendees: Attendee[];
+  activationType?: 'manual' | 'timer';
   deactivationTimer?: ReturnType<typeof setTimeout>;
+  timerEndsAt?: number;
 };
 
 const mockEvents: CheckInEvent[] = [
@@ -72,6 +75,7 @@ const mockEvents: CheckInEvent[] = [
     eventName: "Ibadah Raya 1",
     eventDate: "2024-07-28",
     isActive: true,
+    activationType: 'manual',
     attendees: [
       { id: "1", name: "Tubagus Rifan", checkinTime: "09:05", checkinMethod: "Barcode" },
       { id: "4", name: "Sarah Connor", checkinTime: "09:02", checkinMethod: "RFID" },
@@ -86,6 +90,7 @@ const mockEvents: CheckInEvent[] = [
     eventName: "Ibadah Raya 2",
     eventDate: "2024-07-28",
     isActive: true,
+    activationType: 'manual',
     attendees: [
       { id: "2", name: "Jane Doe", checkinTime: "17:02", checkinMethod: "RFID" },
     ],
@@ -394,6 +399,41 @@ function StatusManagementDialog({
   )
 }
 
+function TimerCountdown({ endTime }: { endTime: number }) {
+  const [timeLeft, setTimeLeft] = useState(endTime - Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const newTimeLeft = endTime - Date.now();
+      if (newTimeLeft <= 0) {
+        clearInterval(timer);
+        setTimeLeft(0);
+      } else {
+        setTimeLeft(newTimeLeft);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endTime]);
+
+  if (timeLeft <= 0) {
+    return null;
+  }
+
+  const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
+  const seconds = Math.floor((timeLeft / 1000) % 60);
+
+  return (
+    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+      <Timer className="h-3 w-3" />
+      <span>
+        {String(hours).padStart(2, '0')}:{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+      </span>
+    </div>
+  );
+}
+
 
 export default function CheckInCreationPage() {
   const [events, setEvents] = useState<CheckInEvent[]>(mockEvents);
@@ -416,6 +456,7 @@ export default function CheckInCreationPage() {
                 id: `evt-${Date.now()}`,
                 isActive: true,
                 attendees: [],
+                activationType: 'manual',
             };
             setEvents([newEvent, ...events]);
             toast({ title: "Berhasil!", description: "Acara baru telah dibuat." });
@@ -450,7 +491,7 @@ export default function CheckInCreationPage() {
                       title: `Status Diubah`,
                       description: `Acara "${event.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
                   });
-                  return { ...event, isActive, deactivationTimer: undefined };
+                  return { ...event, isActive, deactivationTimer: undefined, activationType: isActive ? 'manual' : undefined, timerEndsAt: undefined };
               }
               return event;
           }));
@@ -458,6 +499,9 @@ export default function CheckInCreationPage() {
   }, [toast]);
 
   const handleTimerSet = useCallback((eventId: string, hours: number) => {
+      const durationMs = hours * 60 * 60 * 1000;
+      const endsAt = Date.now() + durationMs;
+
       startTransition(() => {
           setEvents(prevEvents => prevEvents.map(event => {
               if (event.id === eventId) {
@@ -466,14 +510,14 @@ export default function CheckInCreationPage() {
                   }
                   const newTimer = setTimeout(() => {
                       handleStatusChange(eventId, false);
-                  }, hours * 60 * 60 * 1000);
+                  }, durationMs);
 
                   toast({
                       title: 'Timer Disetel!',
                       description: `Acara "${event.eventName}" akan otomatis selesai dalam ${hours} jam.`
                   });
 
-                  return { ...event, isActive: true, deactivationTimer: newTimer };
+                  return { ...event, isActive: true, deactivationTimer: newTimer, activationType: 'timer', timerEndsAt: endsAt };
               }
               return event;
           }));
@@ -575,17 +619,32 @@ export default function CheckInCreationPage() {
                       <span>{new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric'})}</span>
                   </div>
                 </CardHeader>
-                <CardContent className="flex-grow space-y-4">
+                <CardContent className="flex-grow space-y-2">
                    <Separator />
-                   <div className="flex justify-between items-center">
+                   <div className="flex justify-between items-start pt-2">
                        <div className="flex items-center gap-2">
                            <Users className="h-5 w-5 text-muted-foreground" />
                            <span className="font-medium">{event.attendees.length} Jemaat Hadir</span>
                        </div>
-                       <Badge variant={event.isActive ? "default" : "secondary"}>
-                          {event.isActive ? <CheckCircle className="mr-2 h-4 w-4"/> : <XCircle className="mr-2 h-4 w-4"/>}
-                          {event.isActive ? 'Aktif' : 'Selesai'}
-                        </Badge>
+                       <div className="flex flex-col items-end gap-1">
+                          <Badge variant={event.isActive ? "default" : "secondary"}>
+                            {event.isActive ? <CheckCircle className="mr-2 h-4 w-4"/> : <XCircle className="mr-2 h-4 w-4"/>}
+                            {event.isActive ? 'Aktif' : 'Selesai'}
+                          </Badge>
+                          {event.isActive && (
+                            <>
+                              {event.activationType === 'timer' && event.timerEndsAt && (
+                                <TimerCountdown endTime={event.timerEndsAt} />
+                              )}
+                              {event.activationType === 'manual' && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Fingerprint className="h-3 w-3" />
+                                  <span>Manual</span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                       </div>
                    </div>
                 </CardContent>
                 <CardFooter className="flex pt-4">
@@ -686,5 +745,3 @@ export default function CheckInCreationPage() {
     </>
   );
 }
-
-    

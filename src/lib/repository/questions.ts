@@ -10,6 +10,14 @@ export async function getQuestions(): Promise<Question[]> {
   return customFetch<Question[]>(API_ENDPOINTS.GET_QUESTIONS);
 }
 
+export async function addQuestion(data: { questionText: string }): Promise<Question> {
+  console.log("Adding new question via API...");
+  return customFetch<Question>(API_ENDPOINTS.ADD_QUESTION, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function respondToQuestion(
   questionId: string,
   responseText: string,

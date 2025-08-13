@@ -8,7 +8,21 @@ const simulateApiDelay = (ms = 300) => new Promise(resolve => setTimeout(resolve
 export async function getQuestions(): Promise<Question[]> {
   await simulateApiDelay();
   console.log("Fetching mock questions...");
+  // Return a copy to avoid direct mutation of the mock data array
   return Promise.resolve([...questions]);
+}
+
+export async function addQuestion(data: { userName: string, avatarUrl?: string, questionText: string }): Promise<Question> {
+  await simulateApiDelay();
+  console.log("Adding mock question...");
+  const newQuestion: Question = {
+    ...data,
+    id: `q-${Date.now()}`,
+    submittedDate: new Date().toISOString().split("T")[0],
+    isResponded: false,
+  };
+  questions = [newQuestion, ...questions];
+  return Promise.resolve(newQuestion);
 }
 
 export async function respondToQuestion(

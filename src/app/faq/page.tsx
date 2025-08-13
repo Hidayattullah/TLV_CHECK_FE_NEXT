@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -12,8 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import type { Question } from "@/lib/api/types";
+import { getQuestions, addQuestion } from "@/lib/repository_mock/questions";
+import { Loader2 } from "lucide-react";
 
-const initialFaqs = [
+const staticFaqs = [
   {
     question: "Bagaimana keamanan data yang sudah diregistrasi?",
     answer:
@@ -31,34 +35,62 @@ const initialFaqs = [
   },
 ];
 
-const answeredQuestionsByAdmin = [
-    {
-        question: "Apakah aplikasi ini bisa diakses di luar negeri?",
-        answer: "Tentu saja. Aplikasi ini dapat diakses dari mana saja selama Anda memiliki koneksi internet. Semua fitur akan berfungsi normal."
-    }
-]
-
-type FAQ = {
-  question: string;
-  answer: string;
-};
 
 export default function FAQPage() {
-  const [faqs] = useState<FAQ[]>(initialFaqs);
-  const [userQuestions, setUserQuestions] = useState<FAQ[]>([]);
+  const [userQuestions, setUserQuestions] = useState<Question[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const currentUserName = "Tubagus Rifan"; // Hardcoded for now
 
-  const handleQuestionSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function fetchUserQuestions() {
+      setIsLoading(true);
+      try {
+        const allQuestions = await getQuestions();
+        // Filter questions for the current user
+        const filteredQuestions = allQuestions.filter(q => q.userName === currentUserName);
+        setUserQuestions(filteredQuestions.sort((a, b) => new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime()));
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Gagal Memuat Pertanyaan",
+          description: "Gagal memuat riwayat pertanyaan Anda."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchUserQuestions();
+  }, [toast]);
+
+  const handleQuestionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newQuestion.trim()) {
-      setUserQuestions([
-        ...userQuestions,
-        {
-          question: newQuestion,
-          answer: "Menunggu jawaban dari admin...",
-        },
-      ]);
+    if (!newQuestion.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const newQuestionData = {
+        userName: currentUserName,
+        avatarUrl: "", // Assuming current user has no avatar or it can be fetched elsewhere
+        questionText: newQuestion
+      };
+      const addedQuestion = await addQuestion(newQuestionData);
+      setUserQuestions(prev => [addedQuestion, ...prev]);
       setNewQuestion("");
+      toast({
+        title: "Pertanyaan Terkirim",
+        description: "Pertanyaan Anda telah berhasil dikirim. Admin akan segera menjawabnya.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Mengirim",
+        description: "Gagal mengirim pertanyaan Anda. Coba lagi nanti.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -73,7 +105,7 @@ export default function FAQPage() {
       
       <div className="max-w-3xl mx-auto space-y-8">
         <Accordion type="single" collapsible className="w-full">
-          {faqs.map((faq, index) => (
+          {staticFaqs.map((faq, index) => (
             <AccordionItem value={`item-${index}`} key={index}>
               <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
                 {faq.question}
@@ -99,42 +131,44 @@ export default function FAQPage() {
                 onChange={(e) => setNewQuestion(e.target.value)}
                 className="bg-secondary border-0"
                 rows={4}
+                disabled={isSubmitting}
               />
-              <Button type="submit" disabled={!newQuestion.trim()}>
-                Kirim Pertanyaan
+              <Button type="submit" disabled={!newQuestion.trim() || isSubmitting}>
+                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSubmitting ? "Mengirim..." : "Kirim Pertanyaan"}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        {(userQuestions.length > 0 || answeredQuestionsByAdmin.length > 0) && (
+        {isLoading || userQuestions.length > 0 ? (
           <div className="space-y-4">
-            <h2 className="text-2xl font-headline text-primary">Pertanyaan Anda</h2>
+            <h2 className="text-2xl font-headline text-primary">Riwayat Pertanyaan Anda</h2>
             <Accordion type="single" collapsible className="w-full">
-              {answeredQuestionsByAdmin.map((faq, index) => (
-                <AccordionItem value={`admin-item-${index}`} key={`admin-${index}`}>
-                  <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-base">
-                    <p className="text-primary font-semibold mb-2">Jawaban Admin:</p>
-                    <p className="text-muted-foreground">{faq.answer}</p>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-              {userQuestions.map((faq, index) => (
-                <AccordionItem value={`user-item-${index}`} key={`user-${index}`}>
-                  <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground text-base">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
+              {isLoading ? (
+                <div className="text-center py-4 text-muted-foreground">Memuat pertanyaan...</div>
+              ) : (
+                 userQuestions.map((faq, index) => (
+                  <AccordionItem value={`user-item-${index}`} key={faq.id}>
+                    <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+                      {faq.questionText}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                      {faq.isResponded ? (
+                        <>
+                          <p className="text-primary font-semibold mb-2">Jawaban Admin:</p>
+                          <p className="text-muted-foreground">{faq.responseText}</p>
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground">Menunggu jawaban dari admin...</p>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))
+              )}
             </Accordion>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

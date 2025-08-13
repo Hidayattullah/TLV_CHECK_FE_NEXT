@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
 
   // Question endpoints
   GET_QUESTIONS: `${API_BASE_URL}/questions`,
+  ADD_QUESTION: `${API_BASE_URL}/questions`,
   GET_QUESTION_BY_ID: (id: string) => `${API_BASE_URL}/questions/${id}`,
   RESPOND_TO_QUESTION: (id: string) => `${API_BASE_URL}/questions/${id}/respond`,
 };

@@ -500,47 +500,60 @@ export default function CheckInCreationPage() {
   };
 
  const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
-      startTransition(() => {
-          setEvents(prevEvents => prevEvents.map(event => {
-              if (event.id === eventId) {
-                  if (event.deactivationTimer) {
-                      clearTimeout(event.deactivationTimer);
-                  }
-                  toast({
-                      title: `Status Diubah`,
-                      description: `Acara "${event.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
-                  });
-                  return { ...event, isActive, deactivationTimer: undefined, activationType: isActive ? 'manual' : undefined, timerEndsAt: undefined };
-              }
-              return event;
-          }));
-      });
+    startTransition(() => {
+        setEvents(prevEvents => prevEvents.map(event => {
+            if (event.id === eventId) {
+                if (event.deactivationTimer) {
+                    clearTimeout(event.deactivationTimer);
+                }
+                toast({
+                    title: `Status Diubah`,
+                    description: `Acara "${event.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
+                });
+                return { ...event, isActive, deactivationTimer: undefined, activationType: isActive ? 'manual' : undefined, timerEndsAt: undefined };
+            }
+            return event;
+        }));
+    });
   }, []);
 
   const handleTimerSet = useCallback((eventId: string, hours: number) => {
+    startTransition(() => {
       const durationMs = hours * 60 * 60 * 1000;
       const endsAt = Date.now() + durationMs;
+      let targetEventName = '';
 
-      startTransition(() => {
-          setEvents(prevEvents => prevEvents.map(event => {
-              if (event.id === eventId) {
-                  if (event.deactivationTimer) {
-                      clearTimeout(event.deactivationTimer);
-                  }
-                  const newTimer = setTimeout(() => {
-                      handleStatusChange(eventId, false);
-                  }, durationMs);
+      setEvents(prevEvents => {
+        const newEvents = prevEvents.map(event => {
+          if (event.id === eventId) {
+            targetEventName = event.eventName;
+            if (event.deactivationTimer) {
+              clearTimeout(event.deactivationTimer);
+            }
+            const newTimer = setTimeout(() => {
+              handleStatusChange(eventId, false);
+            }, durationMs);
 
-                  toast({
-                      title: 'Timer Disetel!',
-                      description: `Acara "${event.eventName}" akan otomatis selesai dalam ${hours} jam.`
-                  });
-
-                  return { ...event, isActive: true, deactivationTimer: newTimer, activationType: 'timer', timerEndsAt: endsAt };
-              }
-              return event;
-          }));
+            return {
+              ...event,
+              isActive: true,
+              deactivationTimer: newTimer,
+              activationType: 'timer' as const,
+              timerEndsAt: endsAt
+            };
+          }
+          return event;
+        });
+        return newEvents;
       });
+
+      if (targetEventName) {
+        toast({
+          title: 'Timer Disetel!',
+          description: `Acara "${targetEventName}" akan otomatis selesai dalam ${hours} jam.`
+        });
+      }
+    });
   }, [handleStatusChange]);
 
 

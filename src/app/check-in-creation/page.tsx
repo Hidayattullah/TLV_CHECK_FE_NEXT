@@ -499,7 +499,7 @@ export default function CheckInCreationPage() {
     });
   };
 
-  const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
+ const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
       startTransition(() => {
           setEvents(prevEvents => prevEvents.map(event => {
               if (event.id === eventId) {
@@ -541,7 +541,8 @@ export default function CheckInCreationPage() {
               return event;
           }));
       });
-  }, []);
+  }, [handleStatusChange]);
+
 
   useEffect(() => {
       return () => {
@@ -601,7 +602,7 @@ export default function CheckInCreationPage() {
                 className="pl-9 bg-card"
             />
           </div>
-          <AddEditEventDialog onSave={(data) => handleSaveEvent(data)}>
+          <AddEditEventDialog onSave={(data) => handleSaveEvent(data)} triggerAsChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
               Buat Acara
@@ -764,3 +765,5 @@ export default function CheckInCreationPage() {
     </>
   );
 }
+
+    

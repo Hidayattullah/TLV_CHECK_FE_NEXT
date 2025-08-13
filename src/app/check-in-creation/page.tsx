@@ -209,7 +209,7 @@ function AttendanceListDialog({ event, children, asChild }: { event: CheckInEven
       <DialogTrigger asChild={asChild}>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-3xl flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Daftar Hadir: {event.eventName}</DialogTitle>
           <DialogDescription>
@@ -217,98 +217,100 @@ function AttendanceListDialog({ event, children, asChild }: { event: CheckInEven
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col sm:flex-row gap-4 pt-2 pb-4">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Cari nama jemaat..."
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value);
+        <div className="flex-grow overflow-y-auto -mx-6 px-6 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-2 pb-4 sticky top-0 bg-background z-20">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Cari nama jemaat..."
+                value={searchTerm}
+                onChange={e => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-9"
+              />
+            </div>
+            <Select
+              value={filterMethod}
+              onValueChange={(value) => {
+                setFilterMethod(value);
                 setCurrentPage(1);
               }}
-              className="pl-9"
-            />
+            >
+              <SelectTrigger className="sm:w-[180px]">
+                <SelectValue placeholder="Metode Check-in" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Metode</SelectItem>
+                <SelectItem value="Barcode">Barcode</SelectItem>
+                <SelectItem value="RFID">RFID</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select
-            value={filterMethod}
-            onValueChange={(value) => {
-              setFilterMethod(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="sm:w-[180px]">
-              <SelectValue placeholder="Metode Check-in" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Metode</SelectItem>
-              <SelectItem value="Barcode">Barcode</SelectItem>
-              <SelectItem value="RFID">RFID</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="space-y-4">
-          <div className="max-h-[45vh] overflow-y-auto border rounded-lg">
-            <Table>
-              <TableHeader className="sticky top-0 bg-background z-10">
-                <TableRow>
-                  <TableHead>Nama Jemaat</TableHead>
-                  <TableHead>Waktu Check-in</TableHead>
-                  <TableHead className="text-right">Metode</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedAttendees.length > 0 ? (
-                  paginatedAttendees.map((att) => (
-                    <TableRow key={att.id}>
-                      <TableCell className="font-medium">{att.name}</TableCell>
-                      <TableCell>{att.checkinTime}</TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant={att.checkinMethod === "Barcode" ? "default" : "secondary"}>
-                          {att.checkinMethod}
-                        </Badge>
+          <div className="space-y-4">
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nama Jemaat</TableHead>
+                    <TableHead>Waktu Check-in</TableHead>
+                    <TableHead className="text-right">Metode</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedAttendees.length > 0 ? (
+                    paginatedAttendees.map((att) => (
+                      <TableRow key={att.id}>
+                        <TableCell className="font-medium">{att.name}</TableCell>
+                        <TableCell>{att.checkinTime}</TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant={att.checkinMethod === "Barcode" ? "default" : "secondary"}>
+                            {att.checkinMethod}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                        {searchTerm || filterMethod !== "all" ? "Tidak ada jemaat yang cocok." : "Belum ada jemaat yang check-in."}
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                      {searchTerm || filterMethod !== "all" ? "Tidak ada jemaat yang cocok." : "Belum ada jemaat yang check-in."}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                Halaman {currentPage} dari {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Sebelumnya
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Berikutnya
-                </Button>
-              </div>
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          )}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  Halaman {currentPage} dari {totalPages}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    Sebelumnya
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    Berikutnya
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter className="pt-4 border-t -mx-6 px-6">
            <DialogClose asChild>
               <Button type="button" variant="secondary">Tutup</Button>
            </DialogClose>

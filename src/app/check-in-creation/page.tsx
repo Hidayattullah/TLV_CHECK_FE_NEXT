@@ -30,6 +30,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
@@ -381,10 +382,28 @@ function StatusManagementDialog({
             </div>
              <div className="flex gap-2">
               {[1, 2, 3].map((hour) => (
-                <Button key={hour} variant="outline" className="w-full" onClick={() => { onTimerSet(event.id, hour); setOpen(false); }}>
-                  <Timer className="mr-2 h-4 w-4"/>
-                  {hour} Jam
-                </Button>
+                <AlertDialog key={hour}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Timer className="mr-2 h-4 w-4"/>
+                      {hour} Jam
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Konfirmasi Timer</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Apakah Anda yakin ingin mengatur acara ini untuk otomatis selesai dalam {hour} jam? Status acara juga akan diubah menjadi Aktif.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => { onTimerSet(event.id, hour); setOpen(false); }}>
+                        Lanjutkan & Atur Timer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               ))}
             </div>
           </div>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useTransition, useEffect } from "react";
+import React, { useState, useMemo, useTransition, useEffect, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -31,15 +31,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle, Settings, Timer, ToggleLeft, ToggleRight } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 
 type Attendee = {
@@ -55,6 +63,7 @@ type CheckInEvent = {
   eventDate: string;
   isActive: boolean;
   attendees: Attendee[];
+  deactivationTimer?: ReturnType<typeof setTimeout>;
 };
 
 const mockEvents: CheckInEvent[] = [
@@ -106,10 +115,12 @@ function AddEditEventDialog({
   event,
   onSave,
   children,
+  triggerAsChild
 }: {
   event?: CheckInEvent | null;
   onSave: (data: Omit<CheckInEvent, "id" | "attendees" | "isActive">) => void;
   children: React.ReactNode;
+  triggerAsChild?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [eventName, setEventName] = useState("");
@@ -142,7 +153,7 @@ function AddEditEventDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogTrigger asChild={triggerAsChild}>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{event ? "Edit Acara" : "Buat Acara Check-in Baru"}</DialogTitle>
@@ -179,7 +190,6 @@ function AttendanceListDialog({ event, children, asChild }: { event: CheckInEven
   const ATTENDEES_PER_PAGE = 5;
   
   useEffect(() => {
-    // Reset state when dialog is closed
     if (!open) {
       setSearchTerm("");
       setFilterMethod("all");
@@ -320,6 +330,70 @@ function AttendanceListDialog({ event, children, asChild }: { event: CheckInEven
   );
 }
 
+function StatusManagementDialog({
+  event,
+  onStatusChange,
+  onTimerSet,
+  children,
+  triggerAsChild
+}: {
+  event: CheckInEvent;
+  onStatusChange: (eventId: string, isActive: boolean) => void;
+  onTimerSet: (eventId: string, hours: number) => void;
+  children: React.ReactNode;
+  triggerAsChild?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild={triggerAsChild}>
+        {children}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Kelola Status: {event.eventName}</DialogTitle>
+          <DialogDescription>
+            Atur status keaktifan acara secara manual atau otomatis.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 space-y-6">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <Label htmlFor="manual-toggle" className="font-semibold">Status Manual</Label>
+              <p className="text-sm text-muted-foreground">Ubah status acara sekarang juga.</p>
+            </div>
+            <Switch
+              id="manual-toggle"
+              checked={event.isActive}
+              onCheckedChange={(checked) => onStatusChange(event.id, checked)}
+            />
+          </div>
+          <div className="space-y-4 p-4 border rounded-lg">
+             <div>
+              <Label className="font-semibold">Timer Otomatis</Label>
+              <p className="text-sm text-muted-foreground">Atur acara untuk selesai secara otomatis.</p>
+            </div>
+             <div className="flex gap-2">
+              {[1, 2, 3].map((hour) => (
+                <Button key={hour} variant="outline" className="w-full" onClick={() => { onTimerSet(event.id, hour); setOpen(false); }}>
+                  <Timer className="mr-2 h-4 w-4"/>
+                  {hour} Jam
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="secondary">Tutup</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 
 export default function CheckInCreationPage() {
   const [events, setEvents] = useState<CheckInEvent[]>(mockEvents);
@@ -331,22 +405,22 @@ export default function CheckInCreationPage() {
   const [eventToDelete, setEventToDelete] = useState<CheckInEvent | null>(null);
   const { toast } = useToast();
 
-  const handleSaveEvent = (data: Omit<CheckInEvent, "id" | "attendees" | "isActive">, id?: string) => {
-    if (id) {
-      // Edit
-      setEvents(events.map(e => e.id === id ? { ...e, ...data } : e));
-      toast({ title: "Berhasil!", description: "Acara berhasil diperbarui." });
-    } else {
-      // Add
-      const newEvent: CheckInEvent = {
-        ...data,
-        id: `evt-${Date.now()}`,
-        isActive: true,
-        attendees: [],
-      };
-      setEvents([newEvent, ...events]);
-      toast({ title: "Berhasil!", description: "Acara baru telah dibuat." });
-    }
+  const handleSaveEvent = (data: Omit<CheckInEvent, "id" | "attendees" | "isActive" | "deactivationTimer">, id?: string) => {
+    startTransition(() => {
+        if (id) {
+            setEvents(events.map(e => e.id === id ? { ...e, ...data } : e));
+            toast({ title: "Berhasil!", description: "Acara berhasil diperbarui." });
+        } else {
+            const newEvent: CheckInEvent = {
+                ...data,
+                id: `evt-${Date.now()}`,
+                isActive: true,
+                attendees: [],
+            };
+            setEvents([newEvent, ...events]);
+            toast({ title: "Berhasil!", description: "Acara baru telah dibuat." });
+        }
+    });
   };
   
   const confirmDeleteEvent = (event: CheckInEvent) => {
@@ -357,11 +431,64 @@ export default function CheckInCreationPage() {
   const handleDeleteEvent = () => {
     if(!eventToDelete) return;
 
-    setEvents(events.filter(e => e.id !== eventToDelete.id));
-    toast({ variant: "destructive", title: "Dihapus!", description: `Acara ${eventToDelete.eventName} telah dihapus.` });
-    setDeleteAlertOpen(false);
-    setEventToDelete(null);
+    startTransition(() => {
+        setEvents(events.filter(e => e.id !== eventToDelete.id));
+        toast({ variant: "destructive", title: "Dihapus!", description: `Acara ${eventToDelete.eventName} telah dihapus.` });
+        setDeleteAlertOpen(false);
+        setEventToDelete(null);
+    });
   };
+
+  const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
+      startTransition(() => {
+          setEvents(prevEvents => prevEvents.map(event => {
+              if (event.id === eventId) {
+                  if (event.deactivationTimer) {
+                      clearTimeout(event.deactivationTimer);
+                  }
+                  toast({
+                      title: `Status Diubah`,
+                      description: `Acara "${event.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
+                  });
+                  return { ...event, isActive, deactivationTimer: undefined };
+              }
+              return event;
+          }));
+      });
+  }, [toast]);
+
+  const handleTimerSet = useCallback((eventId: string, hours: number) => {
+      startTransition(() => {
+          setEvents(prevEvents => prevEvents.map(event => {
+              if (event.id === eventId) {
+                  if (event.deactivationTimer) {
+                      clearTimeout(event.deactivationTimer);
+                  }
+                  const newTimer = setTimeout(() => {
+                      handleStatusChange(eventId, false);
+                  }, hours * 60 * 60 * 1000);
+
+                  toast({
+                      title: 'Timer Disetel!',
+                      description: `Acara "${event.eventName}" akan otomatis selesai dalam ${hours} jam.`
+                  });
+
+                  return { ...event, isActive: true, deactivationTimer: newTimer };
+              }
+              return event;
+          }));
+      });
+  }, [handleStatusChange, toast]);
+
+  useEffect(() => {
+      return () => {
+          events.forEach(event => {
+              if (event.deactivationTimer) {
+                  clearTimeout(event.deactivationTimer);
+              }
+          });
+      };
+  }, [events]);
 
 
   const filteredEvents = useMemo(() => {
@@ -420,7 +547,7 @@ export default function CheckInCreationPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {isLoading ? (
+          {(isLoading || isPending) ? (
             Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
               <Card key={`skeleton-${index}`}>
                   <CardHeader>
@@ -433,10 +560,6 @@ export default function CheckInCreationPage() {
                   </CardContent>
                   <CardFooter className="flex flex-col gap-2">
                       <Skeleton className="h-9 w-full" />
-                      <div className="flex gap-2 w-full">
-                        <Skeleton className="h-9 w-full" />
-                        <Skeleton className="h-9 w-full" />
-                      </div>
                   </CardFooter>
               </Card>
             ))
@@ -465,19 +588,48 @@ export default function CheckInCreationPage() {
                         </Badge>
                    </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-2 pt-4">
-                    <div className="flex gap-2 w-full">
-                        <AddEditEventDialog event={event} onSave={(data) => handleSaveEvent(data, event.id)}>
-                            <Button variant="outline" className="w-full">
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                            </Button>
-                        </AddEditEventDialog>
-                        <Button variant="outline" className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => confirmDeleteEvent(event)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                        </Button>
-                    </div>
+                <CardFooter className="flex pt-4">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                       <Button variant="outline" className="w-full">
+                         <Settings className="mr-2 h-4 w-4" />
+                         Kelola
+                       </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                       <AddEditEventDialog
+                        event={event}
+                        onSave={(data) => handleSaveEvent(data, event.id)}
+                        triggerAsChild
+                       >
+                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Edit className="mr-2 h-4 w-4"/>
+                            Edit Detail
+                         </DropdownMenuItem>
+                       </AddEditEventDialog>
+                       
+                       <StatusManagementDialog
+                          event={event}
+                          onStatusChange={handleStatusChange}
+                          onTimerSet={handleTimerSet}
+                          triggerAsChild
+                       >
+                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            {event.isActive ? <ToggleRight className="mr-2 h-4 w-4"/> : <ToggleLeft className="mr-2 h-4 w-4"/>}
+                            Kelola Status
+                         </DropdownMenuItem>
+                       </StatusManagementDialog>
+
+                       <DropdownMenuSeparator/>
+                       <DropdownMenuItem 
+                          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                          onSelect={() => confirmDeleteEvent(event)}
+                        >
+                         <Trash2 className="mr-2 h-4 w-4"/>
+                         Hapus Acara
+                       </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardFooter>
               </Card>
             ))
@@ -534,3 +686,5 @@ export default function CheckInCreationPage() {
     </>
   );
 }
+
+    

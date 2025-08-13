@@ -115,7 +115,7 @@ const mockEvents: CheckInEvent[] = [
   },
 ];
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 4;
 
 function AddEditEventDialog({
   event,
@@ -353,15 +353,13 @@ function StatusManagementDialog({
   const [isManualConfirmOpen, setManualConfirmOpen] = useState(false);
 
   const handleManualSwitch = () => {
-    // This function now only opens the confirmation dialog.
     setManualConfirmOpen(true);
   };
 
   const handleManualConfirm = () => {
-    // The actual status change happens here, after confirmation.
     onStatusChange(event.id, !event.isActive);
     setManualConfirmOpen(false);
-    setOpen(false); // Close the main dialog after action
+    setOpen(false);
   };
   
   return (
@@ -383,11 +381,32 @@ function StatusManagementDialog({
                 <Label htmlFor="manual-toggle" className="font-semibold">Status Manual</Label>
                 <p className="text-sm text-muted-foreground">Ubah status acara sekarang juga.</p>
               </div>
-              <Switch
-                id="manual-toggle"
-                checked={event.isActive}
-                onCheckedChange={handleManualSwitch}
-              />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                   <Switch
+                    id="manual-toggle"
+                    checked={event.isActive}
+                    onCheckedChange={handleManualSwitch}
+                  />
+                </AlertDialogTrigger>
+                 <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="text-primary"/>
+                        Konfirmasi Perubahan Status
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Apakah Anda yakin ingin mengubah status acara &quot;{event.eventName}&quot; menjadi <strong>{event.isActive ? 'Selesai' : 'Aktif'}</strong>?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleManualConfirm}>
+                        Ya, Lanjutkan
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+              </AlertDialog>
             </div>
             <div className="space-y-4 p-4 border rounded-lg">
                <div>
@@ -429,25 +448,6 @@ function StatusManagementDialog({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <AlertDialog open={isManualConfirmOpen} onOpenChange={setManualConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="text-primary"/>
-              Konfirmasi Perubahan Status
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin mengubah status acara &quot;{event.eventName}&quot; menjadi <strong>{event.isActive ? 'Selesai' : 'Aktif'}</strong>?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleManualConfirm}>
-              Ya, Lanjutkan
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }
@@ -547,7 +547,7 @@ export default function CheckInCreationPage() {
         }
         return event;
     }));
-  }, [toast]);
+  }, []);
 
   const handleTimerSet = useCallback((eventId: string, hours: number) => {
     startTransition(() => {
@@ -584,7 +584,7 @@ export default function CheckInCreationPage() {
         });
       }, 0);
     });
-  }, [events, handleStatusChange, toast]);
+  }, [events, handleStatusChange]);
 
 
   useEffect(() => {

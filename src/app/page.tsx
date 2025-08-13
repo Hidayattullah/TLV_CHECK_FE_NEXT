@@ -34,7 +34,7 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
 export default function DashboardPage() {
   const userName = "Tubagus Rifan";
   const userInitials = userName.split(' ').map(n => n[0]).join('');
-  const userAvatarUrl = "https://placehold.co/128x128.png";
+  const userAvatarUrl = ""; // Removed placeholder
 
   return (
     <div className="bg-primary min-h-screen flex flex-col relative overflow-hidden pb-24">
@@ -49,7 +49,7 @@ export default function DashboardPage() {
           <Dialog>
             <DialogTrigger asChild>
               <Avatar className="w-12 h-12 cursor-pointer">
-                <AvatarImage src={userAvatarUrl} alt={userName} data-ai-hint="person portrait" />
+                {userAvatarUrl && <AvatarImage src={userAvatarUrl} alt={userName} data-ai-hint="person portrait" />}
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
             </DialogTrigger>
@@ -58,7 +58,13 @@ export default function DashboardPage() {
                   <DialogTitle>{userName}</DialogTitle>
                 </DialogHeader>
                 <div className="flex justify-center items-center p-4 min-h-[100px]">
-                  <Image src={userAvatarUrl} alt={`Avatar of ${userName}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                  {userAvatarUrl ? (
+                    <Image src={userAvatarUrl} alt={`Avatar of ${userName}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                  ) : (
+                    <div className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center">
+                      <span className="text-4xl text-primary font-bold">{userInitials}</span>
+                    </div>
+                  )}
                 </div>
               </DialogContent>
           </Dialog>

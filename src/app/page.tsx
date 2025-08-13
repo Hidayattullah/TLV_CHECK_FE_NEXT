@@ -61,9 +61,7 @@ export default function DashboardPage() {
                   {userAvatarUrl ? (
                     <Image src={userAvatarUrl} alt={`Avatar of ${userName}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
                   ) : (
-                    <div className="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center">
-                      <span className="text-4xl text-primary font-bold">{userInitials}</span>
-                    </div>
+                    <p className="text-muted-foreground">{userName} belum mengunggah foto.</p>
                   )}
                 </div>
               </DialogContent>

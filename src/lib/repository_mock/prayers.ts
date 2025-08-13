@@ -1,3 +1,4 @@
+
 import { mockPrayers } from "@/lib/mock/prayers";
 import type { PrayerRequest } from "@/lib/api/types";
 
@@ -9,6 +10,19 @@ export async function getPrayerRequests(): Promise<PrayerRequest[]> {
   await simulateApiDelay();
   console.log("Fetching mock prayer requests...");
   return Promise.resolve([...prayers]);
+}
+
+export async function addPrayerRequest(data: { userName: string; requestText: string; isAnonymous: boolean, submittedBy: string, avatarUrl?: string }): Promise<PrayerRequest> {
+  await simulateApiDelay();
+  console.log("Adding mock prayer request...");
+  const newPrayer: PrayerRequest = {
+    ...data,
+    id: `p-${Date.now()}`,
+    submittedDate: new Date().toISOString().split('T')[0],
+    isResponded: false,
+  };
+  prayers = [newPrayer, ...prayers];
+  return Promise.resolve(newPrayer);
 }
 
 export async function respondToPrayerRequest(

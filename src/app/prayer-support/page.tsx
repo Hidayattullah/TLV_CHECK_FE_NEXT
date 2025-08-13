@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,37 +9,42 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, Heart, MessageSquare } from "lucide-react";
+import { CheckCircle, Heart, Loader2 } from "lucide-react";
+import type { PrayerRequest } from "@/lib/api/types";
+import { getPrayerRequests, addPrayerRequest } from "@/lib/repository_mock/prayers";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type Prayer = {
-  id: string;
-  name: string;
-  request: string;
-  response?: string;
-  responderName?: string;
-  date: string;
-};
-
-// Data now only represents prayers from the current user (e.g., "Tubagus Rifan")
-const initialPrayers: Prayer[] = [
-    {
-        id: "1",
-        name: "Tubagus Rifan",
-        request: "Mohon doakan untuk kelancaran proyek pekerjaan yang sedang saya kerjakan. Kiranya Tuhan memberikan hikmat dan jalan keluar.",
-        response: "Tuhan menyertai setiap langkahmu, Tubagus. Kami berdoa agar hikmat dan kekuatan dari-Nya senantiasa menyertaimu dalam menyelesaikan proyek ini. Tetap andalkan Tuhan. Tuhan memberkati.",
-        responderName: "Admin Gereja",
-        date: "2024-07-25"
-    }
-];
-
+const CURRENT_USER_NAME = "Tubagus Rifan"; // Hardcoded for mock purposes
 
 export default function PrayerSupportPage() {
   const [name, setName] = useState("");
   const [prayerRequest, setPrayerRequest] = useState("");
-  const [submittedPrayers, setSubmittedPrayers] = useState<Prayer[]>(initialPrayers);
+  const [myPrayers, setMyPrayers] = useState<PrayerRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function fetchMyPrayers() {
+      setIsLoading(true);
+      try {
+        const allPrayers = await getPrayerRequests();
+        const filteredPrayers = allPrayers.filter(p => p.userName === CURRENT_USER_NAME || (p.isAnonymous && p.submittedBy === CURRENT_USER_NAME));
+        setMyPrayers(filteredPrayers.sort((a, b) => new Date(b.submittedDate).getTime() - new Date(a.submittedDate).getTime()));
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Gagal Memuat Doa",
+          description: "Gagal memuat riwayat doa Anda.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMyPrayers();
+  }, [toast]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prayerRequest.trim()) {
       toast({
@@ -50,23 +55,36 @@ export default function PrayerSupportPage() {
       return;
     }
 
-    const newPrayer: Prayer = {
-        id: `prayer-${Date.now()}`,
-        name: name || "Anonim", // User can still submit as anonymous, but it will appear in their private list
-        request: prayerRequest,
-        date: new Date().toISOString().split("T")[0],
-    };
+    setIsSubmitting(true);
+    try {
+      const newPrayerData = {
+        userName: name || "Anonim",
+        requestText: prayerRequest,
+        isAnonymous: !name,
+        submittedBy: CURRENT_USER_NAME, // Hidden field to track owner of anonymous prayer
+        avatarUrl: "" // Assuming no avatar for simplicity here
+      };
 
-    setSubmittedPrayers(prev => [newPrayer, ...prev]);
+      const addedPrayer = await addPrayerRequest(newPrayerData);
+      setMyPrayers(prev => [addedPrayer, ...prev]);
 
-    toast({
-      title: "Permohonan Terkirim",
-      description: "Permohonan doa Anda telah berhasil dikirim. Tuhan memberkati.",
-    });
+      toast({
+        title: "Permohonan Terkirim",
+        description: "Permohonan doa Anda telah berhasil dikirim. Tuhan memberkati.",
+      });
 
-    // Reset form
-    setName("");
-    setPrayerRequest("");
+      // Reset form
+      setName("");
+      setPrayerRequest("");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Mengirim",
+        description: "Gagal mengirim permohonan doa Anda. Coba lagi nanti.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -93,6 +111,7 @@ export default function PrayerSupportPage() {
                   placeholder="Anda bisa menggunakan 'Anonim'"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -104,23 +123,32 @@ export default function PrayerSupportPage() {
                   onChange={(e) => setPrayerRequest(e.target.value)}
                   rows={6}
                   required
+                  disabled={isSubmitting}
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Kirim Permohonan Doa
+              <Button type="submit" className="w-full" disabled={!prayerRequest.trim() || isSubmitting}>
+                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSubmitting ? "Mengirim..." : "Kirim Permohonan Doa"}
               </Button>
             </form>
           </CardContent>
         </Card>
         
-        {submittedPrayers.length > 0 && (
+        {isLoading || myPrayers.length > 0 ? (
           <>
             <Separator />
             
             <div>
                 <h2 className="text-2xl font-headline text-primary mb-4 text-center">Riwayat Permohonan Doa Anda</h2>
                 <div className="space-y-6">
-                    {submittedPrayers.map((prayer) => (
+                    {isLoading ? (
+                      Array.from({length: 2}).map((_, i) => (
+                        <Card key={i}>
+                          <CardHeader><Skeleton className="h-6 w-1/2"/></CardHeader>
+                          <CardContent><Skeleton className="h-10 w-full"/></CardContent>
+                        </Card>
+                      ))
+                    ) : myPrayers.map((prayer) => (
                         <Card key={prayer.id} className="overflow-hidden">
                             <CardHeader>
                                 <div className="flex items-center gap-3">
@@ -128,17 +156,17 @@ export default function PrayerSupportPage() {
                                         <Heart className="h-5 w-5 text-primary" />
                                     </div>
                                     <div>
-                                        <CardTitle className="text-lg">{prayer.name}</CardTitle>
+                                        <CardTitle className="text-lg">{prayer.userName}</CardTitle>
                                         <p className="text-xs text-muted-foreground">
-                                            {new Date(prayer.date).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            {new Date(prayer.submittedDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </p>
                                     </div>
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-muted-foreground">{prayer.request}</p>
+                                <p className="text-muted-foreground">{prayer.requestText}</p>
                             </CardContent>
-                            {prayer.response && (
+                            {prayer.isResponded && prayer.responseText && (
                                <>
                                 <Separator className="my-4" />
                                 <CardFooter className="flex flex-col items-start bg-green-50/50 p-4">
@@ -147,11 +175,11 @@ export default function PrayerSupportPage() {
                                             <CheckCircle className="h-5 w-5 text-green-700" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-green-900">Tanggapan Doa dari {prayer.responderName}</h3>
+                                            <h3 className="font-semibold text-green-900">Tanggapan Doa dari {prayer.lastResponseBy}</h3>
                                             <p className="text-xs text-green-700">Telah didoakan</p>
                                         </div>
                                     </div>
-                                    <p className="text-green-800/80 text-sm">{prayer.response}</p>
+                                    <p className="text-green-800/80 text-sm">{prayer.responseText}</p>
                                 </CardFooter>
                                </>
                             )}
@@ -160,7 +188,7 @@ export default function PrayerSupportPage() {
                 </div>
             </div>
           </>
-        )}
+        ) : null}
       </div>
     </div>
   );

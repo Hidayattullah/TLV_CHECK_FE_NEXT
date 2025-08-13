@@ -1,3 +1,4 @@
+
 export type Permission = "read" | "edit" | "delete";
 export type Module = "members" | "checkin" | "prayers" | "questions";
 export type RfidType = "Card" | "Tag" | "Stiker";
@@ -60,6 +61,7 @@ export type PrayerRequest = {
   requestText: string;
   submittedDate: string;
   isAnonymous: boolean;
+  submittedBy?: string; // To track owner of anonymous requests
   isResponded?: boolean;
   lastResponseBy?: string;
   responseText?: string;

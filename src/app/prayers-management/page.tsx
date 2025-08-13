@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useState, useMemo, useTransition, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Calendar, User, MessageSquarePlus, CheckCircle, Loader2 } from "lucide-react";
+import { Search, Calendar, User, MessageSquarePlus, CheckCircle, Loader2, Edit, Save } from "lucide-react";
 
 type PrayerRequest = {
   id: string;
@@ -31,15 +31,16 @@ type PrayerRequest = {
   isAnonymous: boolean;
   isResponded?: boolean;
   lastResponseBy?: string;
+  responseText?: string;
 };
 
 const mockPrayers: PrayerRequest[] = [
-  { id: "p1", userName: "Maria S.", requestText: "Mohon doakan untuk kesembuhan ibu saya yang sedang sakit keras. Kiranya Tuhan memberikan kekuatan dan pemulihan.", submittedDate: "2024-08-01", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan" },
+  { id: "p1", userName: "Maria S.", requestText: "Mohon doakan untuk kesembuhan ibu saya yang sedang sakit keras. Kiranya Tuhan memberikan kekuatan dan pemulihan.", submittedDate: "2024-08-01", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan", responseText: "Kami berdoa untuk ibu Maria, agar Tuhan Yesus memberikan kekuatan dan jamahan kesembuhan. Tetap kuat dalam iman. Tuhan memberkati." },
   { id: "p2", userName: "Anonim", requestText: "Pergumulan dalam pekerjaan. Saya merasa tidak memiliki harapan dan stres. Mohon dukungan doa agar saya menemukan jalan keluar.", submittedDate: "2024-08-01", isAnonymous: true, isResponded: false },
   { id: "p3", userName: "Yohanes P.", avatarUrl: "/avatars/yohanes.png", requestText: "Doakan untuk kelancaran studi anak saya yang akan menghadapi ujian akhir. Semoga diberikan hikmat dan ketenangan.", submittedDate: "2024-07-31", isAnonymous: false, isResponded: false },
-  { id: "p4", userName: "Keluarga Smith", requestText: "Kami sekeluarga sedang mengalami kesulitan finansial. Mohon doakan agar Tuhan membuka jalan dan mencukupkan segala kebutuhan kami.", submittedDate: "2024-07-30", isAnonymous: false, isResponded: true, lastResponseBy: "Admin Gereja" },
+  { id: "p4", userName: "Keluarga Smith", requestText: "Kami sekeluarga sedang mengalami kesulitan finansial. Mohon doakan agar Tuhan membuka jalan dan mencukupkan segala kebutuhan kami.", submittedDate: "2024-07-30", isAnonymous: false, isResponded: true, lastResponseBy: "Admin Gereja", responseText: "Tuhan Yesus adalah sumber segala berkat. Kami berdoa agar jalan-jalan baru dibukakan untuk keluarga Smith. Percayalah pada pemeliharaan-Nya." },
   { id: "p5", userName: "Anonim", requestText: "Saya sedang berjuang melawan kecanduan. Mohon doa agar saya diberikan kekuatan untuk lepas dari jerat ini.", submittedDate: "2024-07-30", isAnonymous: true, isResponded: false },
-  { id: "p6", userName: "Grace L.", avatarUrl: "/avatars/grace.png", requestText: "Mengucap syukur atas pekerjaan baru yang Tuhan berikan. Mohon doakan agar saya bisa menjadi berkat di tempat kerja yang baru.", submittedDate: "2024-07-29", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan" },
+  { id: "p6", userName: "Grace L.", avatarUrl: "/avatars/grace.png", requestText: "Mengucap syukur atas pekerjaan baru yang Tuhan berikan. Mohon doakan agar saya bisa menjadi berkat di tempat kerja yang baru.", submittedDate: "2024-07-29", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan", responseText: "Puji Tuhan untuk berkat pekerjaan baru! Kami doakan agar Grace dapat menjadi garam dan terang di lingkungan kerjanya." },
   { id: "p7", userName: "David K.", requestText: "Mohon doakan untuk pelayanan kaum muda di gereja kami, agar semakin bertumbuh dan berdampak bagi banyak orang.", submittedDate: "2024-07-28", isAnonymous: false, isResponded: false },
   { id: "p8", userName: "Anonim", requestText: "Pergumulan dalam hubungan rumah tangga. Kiranya Tuhan memulihkan dan memberikan kedamaian.", submittedDate: "2024-07-27", isAnonymous: true, isResponded: false },
 ];
@@ -60,6 +61,17 @@ function PrayerRequestDialog({
   const { toast } = useToast();
   const [response, setResponse] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  useEffect(() => {
+    if (prayer) {
+      setResponse(prayer.responseText || "");
+      setIsEditing(!prayer.isResponded);
+    } else {
+      setResponse("");
+      setIsEditing(false);
+    }
+  }, [prayer]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,16 +90,19 @@ function PrayerRequestDialog({
         title: "Doa Terkirim",
         description: "Doa dukungan Anda telah berhasil dikirim.",
       });
-      setResponse("");
       setIsSending(false);
-      onOpenChange(false);
+      setIsEditing(false);
+      // Do not close the dialog, let user see the result
+      // onOpenChange(false);
     }, 1000);
   };
   
   if (!prayer) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+        if (!isSending) onOpenChange(open);
+    }}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Pokok Doa dari {prayer.isAnonymous ? "Jemaat Anonim" : prayer.userName}</DialogTitle>
@@ -99,29 +114,50 @@ function PrayerRequestDialog({
           <div className="p-4 bg-secondary/50 rounded-lg whitespace-pre-wrap">
             <p className="text-foreground">{prayer.requestText}</p>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="prayer-response" className="font-semibold text-primary">Tulis Doa Dukungan Anda</Label>
-              <Textarea
-                id="prayer-response"
-                placeholder={`Tuliskan doa atau kata-kata penyemangat untuk ${prayer.isAnonymous ? "jemaat ini" : prayer.userName}...`}
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
-                rows={5}
-                disabled={isSending}
-              />
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="secondary" disabled={isSending}>Tutup</Button>
-              </DialogClose>
-              <Button type="submit" disabled={isSending || !response.trim()}>
-                {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {isSending ? "Mengirim..." : "Kirim Doa"}
-              </Button>
-            </DialogFooter>
-          </form>
+          
+          <div className="space-y-4">
+            <Label htmlFor="prayer-response" className="font-semibold text-primary">Tanggapan Doa</Label>
+            
+            {isEditing ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Textarea
+                  id="prayer-response"
+                  placeholder={`Tuliskan doa atau kata-kata penyemangat untuk ${prayer.isAnonymous ? "jemaat ini" : prayer.userName}...`}
+                  value={response}
+                  onChange={(e) => setResponse(e.target.value)}
+                  rows={5}
+                  disabled={isSending}
+                  className="bg-card"
+                />
+                 <div className="flex justify-end gap-2">
+                  {prayer.isResponded && (
+                     <Button type="button" variant="secondary" onClick={() => setIsEditing(false)} disabled={isSending}>Batal</Button>
+                  )}
+                  <Button type="submit" disabled={isSending || !response.trim()}>
+                    {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    {isSending ? "Menyimpan..." : "Simpan Doa"}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
+                 <p className="text-green-900 whitespace-pre-wrap">{prayer.responseText}</p>
+                 <div className="text-xs text-green-700">Didoakan oleh {prayer.lastResponseBy}</div>
+                 <div className="flex justify-end">
+                    <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit Doa
+                    </Button>
+                 </div>
+              </div>
+            )}
+          </div>
         </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary" disabled={isSending}>Tutup</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -137,13 +173,19 @@ export default function PrayersManagementPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleRespond = (prayerId: string, responseText: string, responderName: string) => {
+    const updatedRequest = { 
+        isResponded: true, 
+        lastResponseBy: responderName,
+        responseText: responseText
+    };
+
     setRequests(prev => prev.map(req => 
       req.id === prayerId 
-        ? { ...req, isResponded: true, lastResponseBy: responderName } 
+        ? { ...req, ...updatedRequest } 
         : req
     ));
     if (selectedPrayer?.id === prayerId) {
-      setSelectedPrayer(prev => prev ? {...prev, isResponded: true, lastResponseBy: responderName} : null);
+      setSelectedPrayer(prev => prev ? {...prev, ...updatedRequest} : null);
     }
   };
 

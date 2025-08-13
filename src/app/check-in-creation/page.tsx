@@ -381,32 +381,11 @@ function StatusManagementDialog({
                 <Label htmlFor="manual-toggle" className="font-semibold">Status Manual</Label>
                 <p className="text-sm text-muted-foreground">Ubah status acara sekarang juga.</p>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                   <Switch
-                    id="manual-toggle"
-                    checked={event.isActive}
-                    onCheckedChange={handleManualSwitch}
-                  />
-                </AlertDialogTrigger>
-                 <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="text-primary"/>
-                        Konfirmasi Perubahan Status
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Apakah Anda yakin ingin mengubah status acara &quot;{event.eventName}&quot; menjadi <strong>{event.isActive ? 'Selesai' : 'Aktif'}</strong>?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Batal</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleManualConfirm}>
-                        Ya, Lanjutkan
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-              </AlertDialog>
+              <Switch
+                id="manual-toggle"
+                checked={event.isActive}
+                onCheckedChange={handleManualSwitch}
+              />
             </div>
             <div className="space-y-4 p-4 border rounded-lg">
                <div>
@@ -448,6 +427,25 @@ function StatusManagementDialog({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={isManualConfirmOpen} onOpenChange={setManualConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="text-primary"/>
+              Konfirmasi Perubahan Status
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin mengubah status acara &quot;{event.eventName}&quot; menjadi <strong>{event.isActive ? 'Selesai' : 'Aktif'}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleManualConfirm}>
+              Ya, Lanjutkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
@@ -533,7 +531,7 @@ export default function CheckInCreationPage() {
     });
   };
 
- const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
+  const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
     setEvents(prevEvents => prevEvents.map(event => {
         if (event.id === eventId) {
             if (event.deactivationTimer) {

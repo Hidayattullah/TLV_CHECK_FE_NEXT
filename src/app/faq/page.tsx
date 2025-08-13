@@ -31,6 +31,13 @@ const initialFaqs = [
   },
 ];
 
+const answeredQuestionsByAdmin = [
+    {
+        question: "Apakah aplikasi ini bisa diakses di luar negeri?",
+        answer: "Tentu saja. Aplikasi ini dapat diakses dari mana saja selama Anda memiliki koneksi internet. Semua fitur akan berfungsi normal."
+    }
+]
+
 type FAQ = {
   question: string;
   answer: string;
@@ -90,7 +97,7 @@ export default function FAQPage() {
                 placeholder="Tuliskan pertanyaan Anda di sini..."
                 value={newQuestion}
                 onChange={(e) => setNewQuestion(e.target.value)}
-                className="bg-accent/50 border-0"
+                className="bg-secondary border-0"
                 rows={4}
               />
               <Button type="submit" disabled={!newQuestion.trim()}>
@@ -100,10 +107,21 @@ export default function FAQPage() {
           </CardContent>
         </Card>
 
-        {userQuestions.length > 0 && (
+        {(userQuestions.length > 0 || answeredQuestionsByAdmin.length > 0) && (
           <div className="space-y-4">
             <h2 className="text-2xl font-headline text-primary">Pertanyaan Anda</h2>
             <Accordion type="single" collapsible className="w-full">
+              {answeredQuestionsByAdmin.map((faq, index) => (
+                <AccordionItem value={`admin-item-${index}`} key={`admin-${index}`}>
+                  <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-base">
+                    <p className="text-primary font-semibold mb-2">Jawaban Admin:</p>
+                    <p className="text-muted-foreground">{faq.answer}</p>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
               {userQuestions.map((faq, index) => (
                 <AccordionItem value={`user-item-${index}`} key={`user-${index}`}>
                   <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline">

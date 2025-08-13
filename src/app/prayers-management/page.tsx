@@ -33,29 +33,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Calendar, User, MessageSquarePlus, CheckCircle, Loader2, Edit, Save, AlertTriangle } from "lucide-react";
-
-type PrayerRequest = {
-  id: string;
-  userName: string;
-  avatarUrl?: string;
-  requestText: string;
-  submittedDate: string;
-  isAnonymous: boolean;
-  isResponded?: boolean;
-  lastResponseBy?: string;
-  responseText?: string;
-};
-
-const mockPrayers: PrayerRequest[] = [
-  { id: "p1", userName: "Maria S.", requestText: "Mohon doakan untuk kesembuhan ibu saya yang sedang sakit keras. Kiranya Tuhan memberikan kekuatan dan pemulihan.", submittedDate: "2024-08-01", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan", responseText: "Kami berdoa untuk ibu Maria, agar Tuhan Yesus memberikan kekuatan dan jamahan kesembuhan. Tetap kuat dalam iman. Tuhan memberkati." },
-  { id: "p2", userName: "Anonim", requestText: "Pergumulan dalam pekerjaan. Saya merasa tidak memiliki harapan dan stres. Mohon dukungan doa agar saya menemukan jalan keluar.", submittedDate: "2024-08-01", isAnonymous: true, isResponded: true, lastResponseBy: "Tubagus Rifan", responseText: "Tuhan adalah sumber kekuatan dan pengharapan. Kami berdoa agar Anda diberikan hikmat dan jalan keluar dalam setiap tantangan pekerjaan. Jangan pernah menyerah. Filipi 4:13." },
-  { id: "p3", userName: "Yohanes P.", avatarUrl: "/avatars/yohanes.png", requestText: "Doakan untuk kelancaran studi anak saya yang akan menghadapi ujian akhir. Semoga diberikan hikmat dan ketenangan.", submittedDate: "2024-07-31", isAnonymous: false, isResponded: false },
-  { id: "p4", userName: "Keluarga Smith", requestText: "Kami sekeluarga sedang mengalami kesulitan finansial. Mohon doakan agar Tuhan membuka jalan dan mencukupkan segala kebutuhan kami.", submittedDate: "2024-07-30", isAnonymous: false, isResponded: true, lastResponseBy: "Admin Gereja", responseText: "Tuhan Yesus adalah sumber segala berkat. Kami berdoa agar jalan-jalan baru dibukakan untuk keluarga Smith. Percayalah pada pemeliharaan-Nya." },
-  { id: "p5", userName: "Anonim", requestText: "Saya sedang berjuang melawan kecanduan. Mohon doa agar saya diberikan kekuatan untuk lepas dari jerat ini.", submittedDate: "2024-07-30", isAnonymous: true, isResponded: false },
-  { id: "p6", userName: "Grace L.", avatarUrl: "/avatars/grace.png", requestText: "Mengucap syukur atas pekerjaan baru yang Tuhan berikan. Mohon doakan agar saya bisa menjadi berkat di tempat kerja yang baru.", submittedDate: "2024-07-29", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan", responseText: "Puji Tuhan untuk berkat pekerjaan baru! Kami doakan agar Grace dapat menjadi garam dan terang di lingkungan kerjanya." },
-  { id: "p7", userName: "David K.", requestText: "Mohon doakan untuk pelayanan kaum muda di gereja kami, agar semakin bertumbuh dan berdampak bagi banyak orang.", submittedDate: "2024-07-28", isAnonymous: false, isResponded: false },
-  { id: "p8", userName: "Anonim", requestText: "Pergumulan dalam hubungan rumah tangga. Kiranya Tuhan memulihkan dan memberikan kedamaian.", submittedDate: "2024-07-27", isAnonymous: true, isResponded: false },
-];
+import type { PrayerRequest } from "@/lib/api/types";
+import { getPrayerRequests, respondToPrayerRequest } from "@/lib/repository_mock/prayers";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -85,7 +64,7 @@ function PrayerRequestDialog({
     }
   }, [prayer]);
 
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     if (!response.trim() || !prayer) {
       toast({
         variant: "destructive",
@@ -95,15 +74,23 @@ function PrayerRequestDialog({
       return;
     }
     setIsSending(true);
-    setTimeout(() => {
-      onRespond(prayer.id, response, "Tubagus Rifan"); // Hardcoded user for now
+    try {
+      await respondToPrayerRequest(prayer.id, response, "Tubagus Rifan"); // Hardcoded user for now
+      onRespond(prayer.id, response, "Tubagus Rifan");
       toast({
         title: "Doa Terkirim",
         description: "Doa dukungan Anda telah berhasil dikirim.",
       });
-      setIsSending(false);
       setIsEditing(false);
-    }, 1000);
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Gagal Mengirim",
+        description: "Gagal mengirim tanggapan. Coba lagi nanti.",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
   
   if (!prayer) return null;
@@ -194,14 +181,34 @@ function PrayerRequestDialog({
 }
 
 export default function PrayersManagementPage() {
-  const [requests, setRequests] = useState<PrayerRequest[]>(mockPrayers);
+  const [requests, setRequests] = useState<PrayerRequest[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // 'all', 'responded', 'unresponded'
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerRequest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function loadPrayers() {
+      setIsLoading(true);
+      try {
+        const data = await getPrayerRequests();
+        setRequests(data);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Gagal Memuat Data",
+          description: "Tidak dapat memuat data pokok doa. Coba lagi nanti.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadPrayers();
+  }, [toast]);
 
   const handleRespond = (prayerId: string, responseText: string, responderName: string) => {
     const updatedRequest = { 
@@ -243,13 +250,9 @@ export default function PrayersManagementPage() {
   
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      startTransition(() => {
+    startTransition(() => {
         setCurrentPage(newPage);
-        setIsLoading(false);
-      });
-    }, 300);
+    });
   };
   
   const handleCardClick = (prayer: PrayerRequest) => {

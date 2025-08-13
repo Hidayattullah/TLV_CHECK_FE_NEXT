@@ -43,3 +43,16 @@ export type CheckInEvent = {
   deactivationTimer?: ReturnType<typeof setTimeout>;
   timerEndsAt?: number;
 };
+
+// Prayer Request types
+export type PrayerRequest = {
+  id: string;
+  userName: string;
+  avatarUrl?: string;
+  requestText: string;
+  submittedDate: string;
+  isAnonymous: boolean;
+  isResponded?: boolean;
+  lastResponseBy?: string;
+  responseText?: string;
+};

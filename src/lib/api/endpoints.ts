@@ -17,4 +17,9 @@ export const API_ENDPOINTS = {
   DELETE_CHECK_IN_EVENT: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
   UPDATE_CHECK_IN_EVENT_STATUS: (id: string) => `${API_BASE_URL}/check-in/events/${id}/status`,
   SET_CHECK_IN_EVENT_TIMER: (id: string) => `${API_BASE_URL}/check-in/events/${id}/timer`,
+
+  // Prayer Request endpoints
+  GET_PRAYER_REQUESTS: `${API_BASE_URL}/prayers`,
+  GET_PRAYER_REQUEST_BY_ID: (id: string) => `${API_BASE_URL}/prayers/${id}`,
+  RESPOND_TO_PRAYER_REQUEST: (id: string) => `${API_BASE_URL}/prayers/${id}/respond`,
 };

@@ -19,7 +19,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, Calendar, User, MessageSquarePlus, CheckCircle, Loader2 } from "lucide-react";
 
 type PrayerRequest = {
   id: string;
@@ -28,28 +29,41 @@ type PrayerRequest = {
   requestText: string;
   submittedDate: string;
   isAnonymous: boolean;
+  isResponded?: boolean;
+  lastResponseBy?: string;
 };
 
 const mockPrayers: PrayerRequest[] = [
-  { id: "p1", userName: "Maria S.", requestText: "Mohon doakan untuk kesembuhan ibu saya yang sedang sakit keras. Kiranya Tuhan memberikan kekuatan dan pemulihan.", submittedDate: "2024-08-01", isAnonymous: false },
-  { id: "p2", userName: "Anonim", requestText: "Pergumulan dalam pekerjaan. Saya merasa tidak memiliki harapan dan stres. Mohon dukungan doa agar saya menemukan jalan keluar.", submittedDate: "2024-08-01", isAnonymous: true },
-  { id: "p3", userName: "Yohanes P.", avatarUrl: "/avatars/yohanes.png", requestText: "Doakan untuk kelancaran studi anak saya yang akan menghadapi ujian akhir. Semoga diberikan hikmat dan ketenangan.", submittedDate: "2024-07-31", isAnonymous: false },
-  { id: "p4", userName: "Keluarga Smith", requestText: "Kami sekeluarga sedang mengalami kesulitan finansial. Mohon doakan agar Tuhan membuka jalan dan mencukupkan segala kebutuhan kami.", submittedDate: "2024-07-30", isAnonymous: false },
-  { id: "p5", userName: "Anonim", requestText: "Saya sedang berjuang melawan kecanduan. Mohon doa agar saya diberikan kekuatan untuk lepas dari jerat ini.", submittedDate: "2024-07-30", isAnonymous: true },
-  { id: "p6", userName: "Grace L.", avatarUrl: "/avatars/grace.png", requestText: "Mengucap syukur atas pekerjaan baru yang Tuhan berikan. Mohon doakan agar saya bisa menjadi berkat di tempat kerja yang baru.", submittedDate: "2024-07-29", isAnonymous: false },
-  { id: "p7", userName: "David K.", requestText: "Mohon doakan untuk pelayanan kaum muda di gereja kami, agar semakin bertumbuh dan berdampak bagi banyak orang.", submittedDate: "2024-07-28", isAnonymous: false },
-  { id: "p8", userName: "Anonim", requestText: "Pergumulan dalam hubungan rumah tangga. Kiranya Tuhan memulihkan dan memberikan kedamaian.", submittedDate: "2024-07-27", isAnonymous: true },
+  { id: "p1", userName: "Maria S.", requestText: "Mohon doakan untuk kesembuhan ibu saya yang sedang sakit keras. Kiranya Tuhan memberikan kekuatan dan pemulihan.", submittedDate: "2024-08-01", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan" },
+  { id: "p2", userName: "Anonim", requestText: "Pergumulan dalam pekerjaan. Saya merasa tidak memiliki harapan dan stres. Mohon dukungan doa agar saya menemukan jalan keluar.", submittedDate: "2024-08-01", isAnonymous: true, isResponded: false },
+  { id: "p3", userName: "Yohanes P.", avatarUrl: "/avatars/yohanes.png", requestText: "Doakan untuk kelancaran studi anak saya yang akan menghadapi ujian akhir. Semoga diberikan hikmat dan ketenangan.", submittedDate: "2024-07-31", isAnonymous: false, isResponded: false },
+  { id: "p4", userName: "Keluarga Smith", requestText: "Kami sekeluarga sedang mengalami kesulitan finansial. Mohon doakan agar Tuhan membuka jalan dan mencukupkan segala kebutuhan kami.", submittedDate: "2024-07-30", isAnonymous: false, isResponded: true, lastResponseBy: "Admin Gereja" },
+  { id: "p5", userName: "Anonim", requestText: "Saya sedang berjuang melawan kecanduan. Mohon doa agar saya diberikan kekuatan untuk lepas dari jerat ini.", submittedDate: "2024-07-30", isAnonymous: true, isResponded: false },
+  { id: "p6", userName: "Grace L.", avatarUrl: "/avatars/grace.png", requestText: "Mengucap syukur atas pekerjaan baru yang Tuhan berikan. Mohon doakan agar saya bisa menjadi berkat di tempat kerja yang baru.", submittedDate: "2024-07-29", isAnonymous: false, isResponded: true, lastResponseBy: "Tubagus Rifan" },
+  { id: "p7", userName: "David K.", requestText: "Mohon doakan untuk pelayanan kaum muda di gereja kami, agar semakin bertumbuh dan berdampak bagi banyak orang.", submittedDate: "2024-07-28", isAnonymous: false, isResponded: false },
+  { id: "p8", userName: "Anonim", requestText: "Pergumulan dalam hubungan rumah tangga. Kiranya Tuhan memulihkan dan memberikan kedamaian.", submittedDate: "2024-07-27", isAnonymous: true, isResponded: false },
 ];
 
 const ITEMS_PER_PAGE = 6;
 
-function PrayerRequestDialog({ prayer, isOpen, onOpenChange }: { prayer: PrayerRequest | null, isOpen: boolean, onOpenChange: (open: boolean) => void }) {
+function PrayerRequestDialog({ 
+  prayer, 
+  isOpen, 
+  onOpenChange, 
+  onRespond 
+}: { 
+  prayer: PrayerRequest | null, 
+  isOpen: boolean, 
+  onOpenChange: (open: boolean) => void,
+  onRespond: (prayerId: string, response: string, responder: string) => void
+}) {
   const { toast } = useToast();
   const [response, setResponse] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!response.trim()) {
+    if (!response.trim() || !prayer) {
       toast({
         variant: "destructive",
         title: "Gagal Mengirim",
@@ -57,13 +71,17 @@ function PrayerRequestDialog({ prayer, isOpen, onOpenChange }: { prayer: PrayerR
       });
       return;
     }
-    console.log(`Response for ${prayer?.id}:`, response);
-    toast({
-      title: "Doa Terkirim",
-      description: "Doa dukungan Anda telah berhasil dikirim.",
-    });
-    setResponse("");
-    onOpenChange(false);
+    setIsSending(true);
+    setTimeout(() => {
+      onRespond(prayer.id, response, "Tubagus Rifan"); // Hardcoded user for now
+      toast({
+        title: "Doa Terkirim",
+        description: "Doa dukungan Anda telah berhasil dikirim.",
+      });
+      setResponse("");
+      setIsSending(false);
+      onOpenChange(false);
+    }, 1000);
   };
   
   if (!prayer) return null;
@@ -90,13 +108,17 @@ function PrayerRequestDialog({ prayer, isOpen, onOpenChange }: { prayer: PrayerR
                 value={response}
                 onChange={(e) => setResponse(e.target.value)}
                 rows={5}
+                disabled={isSending}
               />
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="secondary">Tutup</Button>
+                <Button type="button" variant="secondary" disabled={isSending}>Tutup</Button>
               </DialogClose>
-              <Button type="submit">Kirim Doa</Button>
+              <Button type="submit" disabled={isSending || !response.trim()}>
+                {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isSending ? "Mengirim..." : "Kirim Doa"}
+              </Button>
             </DialogFooter>
           </form>
         </div>
@@ -113,6 +135,17 @@ export default function PrayersManagementPage() {
   const [isPending, startTransition] = useTransition();
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerRequest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleRespond = (prayerId: string, responseText: string, responderName: string) => {
+    setRequests(prev => prev.map(req => 
+      req.id === prayerId 
+        ? { ...req, isResponded: true, lastResponseBy: responderName } 
+        : req
+    ));
+    if (selectedPrayer?.id === prayerId) {
+      setSelectedPrayer(prev => prev ? {...prev, isResponded: true, lastResponseBy: responderName} : null);
+    }
+  };
 
   const filteredRequests = useMemo(() => {
     return requests.filter(req => 
@@ -191,8 +224,9 @@ export default function PrayersManagementPage() {
                   <Skeleton className="h-4 w-full mb-2" />
                   <Skeleton className="h-4 w-3/4" />
                 </CardContent>
-                <CardFooter>
-                  <Skeleton className="h-4 w-20" />
+                <CardFooter className="flex flex-col items-start gap-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-5 w-36" />
                 </CardFooter>
               </Card>
             ))
@@ -216,11 +250,22 @@ export default function PrayersManagementPage() {
                 <CardContent className="flex-grow">
                   <p className="text-muted-foreground line-clamp-3">{req.requestText}</p>
                 </CardContent>
-                <CardFooter className="text-xs text-muted-foreground pt-4">
-                  <div className="flex items-center gap-2">
+                <CardFooter className="flex flex-col items-start gap-2 pt-4">
+                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>{new Date(req.submittedDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
+                  {req.isResponded ? (
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
+                          <CheckCircle className="h-3 w-3 mr-1.5" />
+                          Telah Didoakan oleh {req.lastResponseBy}
+                      </Badge>
+                  ) : (
+                      <Badge variant="secondary">
+                          <MessageSquarePlus className="h-3 w-3 mr-1.5" />
+                          Menunggu Doa
+                      </Badge>
+                  )}
                 </CardFooter>
               </Card>
             ))
@@ -266,7 +311,10 @@ export default function PrayersManagementPage() {
             }
             setIsDialogOpen(open);
         }} 
+        onRespond={handleRespond}
       />
     </>
   );
 }
+
+    

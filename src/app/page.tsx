@@ -50,7 +50,7 @@ export default function DashboardPage() {
             <DialogTrigger asChild>
               <Avatar className="w-12 h-12 cursor-pointer">
                 {userAvatarUrl && <AvatarImage src={userAvatarUrl} alt={userName} data-ai-hint="person portrait" />}
-                <AvatarFallback>{userInitials}</AvatarFallback>
+                <AvatarFallback className="text-primary-foreground border-primary-foreground">{userInitials}</AvatarFallback>
               </Avatar>
             </DialogTrigger>
             <DialogContent className="max-w-md">

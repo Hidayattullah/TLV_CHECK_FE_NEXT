@@ -134,7 +134,7 @@ export default function ProfilePage() {
               <DialogTrigger asChild>
                 <Avatar className="w-24 h-24 mb-4 border-2 border-primary cursor-pointer">
                   {profileImage && <AvatarImage src={profileImage} alt="User" data-ai-hint="person portrait" />}
-                  <AvatarFallback>{userInitials}</AvatarFallback>
+                  <AvatarFallback className="text-primary border-primary">{userInitials}</AvatarFallback>
                 </Avatar>
               </DialogTrigger>
               <DialogContent className="max-w-md">
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                         <DialogTrigger asChild>
                           <Avatar className="w-24 h-24 mb-2 border-2 border-primary cursor-pointer">
                             {profileImagePreview && <AvatarImage src={profileImagePreview} alt="User" />}
-                            <AvatarFallback>{userInitials}</AvatarFallback>
+                            <AvatarFallback className="text-primary border-primary">{userInitials}</AvatarFallback>
                           </Avatar>
                         </DialogTrigger>
                         <DialogContent className="max-w-md">

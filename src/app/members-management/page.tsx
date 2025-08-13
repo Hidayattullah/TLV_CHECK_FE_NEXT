@@ -1041,7 +1041,7 @@ function MemberDetailDialog({
                         {currentAvatar ? (
                           <AvatarImage src={currentAvatar} alt={member.name} />
                         ) : (
-                           <AvatarFallback>{userInitials}</AvatarFallback>
+                           <AvatarFallback className="text-primary border-primary">{userInitials}</AvatarFallback>
                         )}
                       </Avatar>
                     </DialogTrigger>
@@ -1483,7 +1483,7 @@ export default function MembersManagementPage() {
                         {member.avatarUrl ? (
                            <AvatarImage src={member.avatarUrl} alt={member.name} data-ai-hint="person portrait" />
                         ) : (
-                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarFallback className="text-primary border-primary">{member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
                         )}
                       </Avatar>
                     </DialogTrigger>

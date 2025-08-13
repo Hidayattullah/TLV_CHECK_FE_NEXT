@@ -27,7 +27,7 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 h-20 bg-card border-t border-border/50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-20">
       <div className="flex justify-around items-center h-full max-w-lg mx-auto">
         <NavLink href="/" icon={Home} label="Home" />
-        <NavLink href="/attendance" icon={History} label="Absenku" />
+        <NavLink href="/check-in" icon={History} label="Check In" />
         
         <div className="relative w-16 h-full flex items-center justify-center">
            <Link href="/scanner" className="absolute bottom-5 flex flex-col items-center justify-center">

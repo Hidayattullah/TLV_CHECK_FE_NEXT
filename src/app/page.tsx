@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/common/bottom-nav";
 
 const mainMenuItems = [
-  { href: "/attendance", label: "Absenku", icon: History },
+  { href: "/check-in", label: "Check In", icon: History },
   { href: "/services", label: "Tentang Kita", icon: Church },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
   { href: "/prayer-support", label: "Dukungan Doa", icon: HeartHandshake },

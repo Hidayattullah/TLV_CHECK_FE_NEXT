@@ -57,7 +57,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Permission = "read" | "edit" | "delete";
-type Module = "members" | "attendance" | "prayers" | "questions";
+type Module = "members" | "checkin" | "prayers" | "questions";
 type RfidType = "Card" | "Tag" | "Stiker";
 type Gender = "Laki-laki" | "Perempuan";
 
@@ -95,7 +95,7 @@ const initialMembers: Member[] = [
     gender: "Laki-laki",
     permissions: {
       members: ["read", "edit", "delete"],
-      attendance: ["read", "edit"],
+      checkin: ["read", "edit"],
       prayers: ["read"],
       questions: ["read", "edit"],
     },
@@ -115,7 +115,7 @@ const initialMembers: Member[] = [
     gender: "Perempuan",
     permissions: {
       members: ["read"],
-      attendance: [],
+      checkin: [],
       prayers: [],
       questions: ["read"],
     },
@@ -135,21 +135,21 @@ const initialMembers: Member[] = [
     gender: "Laki-laki",
     permissions: {
       members: ["read", "edit", "delete"],
-      attendance: ["read", "edit", "delete"],
+      checkin: ["read", "edit", "delete"],
       prayers: ["read", "edit", "delete"],
       questions: ["read", "edit", "delete"],
     },
     rfid: { id: '987654321', type: 'Tag' },
   },
-  { id: "4", name: "Sarah Connor", email: "sarah@skynet.com", avatarUrl: "", joinedDate: "2023-03-10", isActive: true, phoneNumber: "+6281234567893", isVerified: true, address: "Jl. Diponegoro No. 4, Yogyakarta", dateOfBirth: "1988-08-15", gender: "Perempuan", permissions: { members: ["read"], attendance: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
-  { id: "5", name: "John Smith", email: "john@matrix.com", avatarUrl: "", joinedDate: "2023-04-05", isActive: false, phoneNumber: "+6281234567894", isVerified: false, address: "Jl. Imam Bonjol No. 5, Semarang", dateOfBirth: "1995-03-25", gender: "Laki-laki", permissions: { members: [], attendance: [], prayers: [], questions: [] }, rfid: { id: null, type: null } },
-  { id: "6", name: "Michael Bay", email: "michael@explosions.com", avatarUrl: "", joinedDate: "2023-05-12", isActive: true, phoneNumber: "+6281234567895", isVerified: true, address: "Jl. Asia Afrika No. 6, Bandung", dateOfBirth: "1970-02-17", gender: "Laki-laki", permissions: { members: ["read", "edit"], attendance: ["read", "edit"], prayers: [], questions: [] }, rfid: { id: '112233445', type: 'Card' } },
-  { id: "7", name: "Ellen Ripley", email: "ellen@weyland.com", avatarUrl: "", joinedDate: "2023-06-18", isActive: true, phoneNumber: "+6281234567896", isVerified: false, address: "Jl. Pahlawan No. 7, Medan", dateOfBirth: "1980-04-30", gender: "Perempuan", permissions: { members: ["read"], attendance: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
+  { id: "4", name: "Sarah Connor", email: "sarah@skynet.com", avatarUrl: "", joinedDate: "2023-03-10", isActive: true, phoneNumber: "+6281234567893", isVerified: true, address: "Jl. Diponegoro No. 4, Yogyakarta", dateOfBirth: "1988-08-15", gender: "Perempuan", permissions: { members: ["read"], checkin: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
+  { id: "5", name: "John Smith", email: "john@matrix.com", avatarUrl: "", joinedDate: "2023-04-05", isActive: false, phoneNumber: "+6281234567894", isVerified: false, address: "Jl. Imam Bonjol No. 5, Semarang", dateOfBirth: "1995-03-25", gender: "Laki-laki", permissions: { members: [], checkin: [], prayers: [], questions: [] }, rfid: { id: null, type: null } },
+  { id: "6", name: "Michael Bay", email: "michael@explosions.com", avatarUrl: "", joinedDate: "2023-05-12", isActive: true, phoneNumber: "+6281234567895", isVerified: true, address: "Jl. Asia Afrika No. 6, Bandung", dateOfBirth: "1970-02-17", gender: "Laki-laki", permissions: { members: ["read", "edit"], checkin: ["read", "edit"], prayers: [], questions: [] }, rfid: { id: '112233445', type: 'Card' } },
+  { id: "7", name: "Ellen Ripley", email: "ellen@weyland.com", avatarUrl: "", joinedDate: "2023-06-18", isActive: true, phoneNumber: "+6281234567896", isVerified: false, address: "Jl. Pahlawan No. 7, Medan", dateOfBirth: "1980-04-30", gender: "Perempuan", permissions: { members: ["read"], checkin: ["read"], prayers: [], questions: [] }, rfid: { id: null, type: null } },
 ];
 
 const moduleLabels: Record<Module, string> = {
   members: "Manajemen Jemaat",
-  attendance: "Pembuatan Absensi",
+  checkin: "Pembuatan Check In",
   prayers: "Pokok Doa",
   questions: "Pertanyaan Jemaat",
 };
@@ -207,7 +207,7 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
         rfid: { id: null, type: null },
         permissions: {
           members: [],
-          attendance: [],
+          checkin: [],
           prayers: [],
           questions: [],
         }

@@ -18,11 +18,11 @@ const managementSections = [
     cta: "Kelola Jemaat",
   },
   {
-    title: "Pembuatan Absensi",
-    description: "Buat dan kelola kode QR untuk absensi ibadah atau acara.",
+    title: "Pembuatan Check In",
+    description: "Buat dan kelola kode QR untuk check-in ibadah atau acara.",
     icon: QrCode,
-    href: "/management/attendance-creation",
-    cta: "Buat Absensi",
+    href: "/management/check-in-creation",
+    cta: "Buat Check In",
   },
   {
     title: "Pokok Doa",

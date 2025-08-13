@@ -1,0 +1,11 @@
+import type { Question } from "@/lib/api/types";
+
+export const mockQuestions: Question[] = [
+  { id: "q1", userName: "Budi S.", questionText: "Bagaimana cara mendaftar untuk pelayanan musik di gereja? Apakah ada audisi atau persyaratan khusus yang harus dipenuhi?", submittedDate: "2024-08-02", isResponded: true, responseBy: "Admin Gereja", responseText: "Halo Budi, terima kasih atas minatnya. Anda bisa mengisi formulir pendaftaran pelayanan di link berikut: [link]. Nanti tim musik akan menghubungi Anda untuk jadwal audisi. Tuhan memberkati." },
+  { id: "q2", userName: "Rina A.", questionText: "Saya ingin bertanya mengenai jadwal ibadah anak (Sekolah Minggu). Apakah ada kelas untuk anak usia di bawah 5 tahun?", submittedDate: "2024-08-01", isResponded: false },
+  { id: "q3", userName: "Joko P.", avatarUrl: "/avatars/joko.png", questionText: "Apakah gereja menyediakan layanan konseling pranikah? Kami berencana menikah tahun depan dan ingin mendapatkan bimbingan.", submittedDate: "2024-07-31", isResponded: true, responseBy: "Tubagus Rifan", responseText: "Puji Tuhan untuk rencananya, Joko. Ya, kami menyediakan kelas bimbingan pranikah. Silakan hubungi sekretariat gereja untuk informasi jadwal dan pendaftaran." },
+  { id: "q4", userName: "Lia K.", questionText: "Di mana saya bisa mendapatkan materi atau rekaman khotbah dari ibadah hari Minggu yang lalu?", submittedDate: "2024-07-29", isResponded: true, responseBy: "Admin Gereja", responseText: "Tentu, semua rekaman khotbah tersedia di kanal YouTube resmi gereja kita. Anda bisa mencarinya dengan judul 'The Lord's Vineyard Official'." },
+  { id: "q5", userName: "David T.", questionText: "Saya adalah anggota baru, bagaimana cara saya bisa bergabung dengan kelompok sel (komsel)?", submittedDate: "2024-07-28", isResponded: false },
+  { id: "q6", userName: "Siti H.", questionText: "Apakah ada program baptisan dalam waktu dekat?", submittedDate: "2024-07-26", isResponded: true, responseBy: "Admin Gereja", responseText: "Ya, pendaftaran untuk baptisan air akan dibuka pada minggu pertama bulan September. Pantau terus warta jemaat untuk informasi lebih lanjut." },
+  { id: "q7", userName: "Agus W.", questionText: "Saya kesulitan mengakses aplikasi versi lama, apakah ada pembaruan?", submittedDate: "2024-07-25", isResponded: false },
+];

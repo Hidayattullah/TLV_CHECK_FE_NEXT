@@ -22,4 +22,9 @@ export const API_ENDPOINTS = {
   GET_PRAYER_REQUESTS: `${API_BASE_URL}/prayers`,
   GET_PRAYER_REQUEST_BY_ID: (id: string) => `${API_BASE_URL}/prayers/${id}`,
   RESPOND_TO_PRAYER_REQUEST: (id: string) => `${API_BASE_URL}/prayers/${id}/respond`,
+
+  // Question endpoints
+  GET_QUESTIONS: `${API_BASE_URL}/questions`,
+  GET_QUESTION_BY_ID: (id: string) => `${API_BASE_URL}/questions/${id}`,
+  RESPOND_TO_QUESTION: (id: string) => `${API_BASE_URL}/questions/${id}/respond`,
 };

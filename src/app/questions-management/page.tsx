@@ -33,25 +33,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Calendar, User, CheckCircle, Loader2, Edit, Save, AlertTriangle, MessageSquareQuote } from "lucide-react";
-
-type Question = {
-  id: string;
-  userName: string;
-  avatarUrl?: string;
-  questionText: string;
-  submittedDate: string;
-  isResponded?: boolean;
-  responseBy?: string;
-  responseText?: string;
-};
-
-const mockQuestions: Question[] = [
-  { id: "q1", userName: "Budi S.", questionText: "Bagaimana cara mendaftar untuk pelayanan musik di gereja? Apakah ada audisi atau persyaratan khusus yang harus dipenuhi?", submittedDate: "2024-08-02", isResponded: true, responseBy: "Admin Gereja", responseText: "Halo Budi, terima kasih atas minatnya. Anda bisa mengisi formulir pendaftaran pelayanan di link berikut: [link]. Nanti tim musik akan menghubungi Anda untuk jadwal audisi. Tuhan memberkati." },
-  { id: "q2", userName: "Rina A.", questionText: "Saya ingin bertanya mengenai jadwal ibadah anak (Sekolah Minggu). Apakah ada kelas untuk anak usia di bawah 5 tahun?", submittedDate: "2024-08-01", isResponded: false },
-  { id: "q3", userName: "Joko P.", avatarUrl: "/avatars/joko.png", questionText: "Apakah gereja menyediakan layanan konseling pranikah? Kami berencana menikah tahun depan dan ingin mendapatkan bimbingan.", submittedDate: "2024-07-31", isResponded: true, responseBy: "Tubagus Rifan", responseText: "Puji Tuhan untuk rencananya, Joko. Ya, kami menyediakan kelas bimbingan pranikah. Silakan hubungi sekretariat gereja untuk informasi jadwal dan pendaftaran." },
-  { id: "q4", userName: "Lia K.", questionText: "Di mana saya bisa mendapatkan materi atau rekaman khotbah dari ibadah hari Minggu yang lalu?", submittedDate: "2024-07-29", isResponded: true, responseBy: "Admin Gereja", responseText: "Tentu, semua rekaman khotbah tersedia di kanal YouTube resmi gereja kita. Anda bisa mencarinya dengan judul 'The Lord's Vineyard Official'." },
-  { id: "q5", userName: "David T.", questionText: "Saya adalah anggota baru, bagaimana cara saya bisa bergabung dengan kelompok sel (komsel)?", submittedDate: "2024-07-28", isResponded: false },
-];
+import type { Question } from "@/lib/api/types";
+import { getQuestions, respondToQuestion } from "@/lib/repository_mock/questions";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -81,7 +64,7 @@ function QuestionResponseDialog({
     }
   }, [question]);
 
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     if (!response.trim() || !question) {
       toast({
         variant: "destructive",
@@ -91,15 +74,23 @@ function QuestionResponseDialog({
       return;
     }
     setIsSending(true);
-    setTimeout(() => {
-      onRespond(question.id, response, "Tubagus Rifan"); // Hardcoded user for now
-      toast({
-        title: "Jawaban Terkirim",
-        description: "Jawaban Anda telah berhasil dikirim kepada jemaat.",
-      });
-      setIsSending(false);
-      setIsEditing(false);
-    }, 1000);
+    try {
+        await respondToQuestion(question.id, response, "Tubagus Rifan"); // Hardcoded user for now
+        onRespond(question.id, response, "Tubagus Rifan");
+        toast({
+            title: "Jawaban Terkirim",
+            description: "Jawaban Anda telah berhasil dikirim kepada jemaat.",
+        });
+        setIsEditing(false);
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Gagal Mengirim",
+            description: "Gagal mengirim jawaban. Coba lagi nanti.",
+        });
+    } finally {
+        setIsSending(false);
+    }
   };
   
   if (!question) return null;
@@ -190,14 +181,34 @@ function QuestionResponseDialog({
 }
 
 export default function QuestionsManagementPage() {
-  const [questions, setQuestions] = useState<Question[]>(mockQuestions);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // 'all', 'responded', 'unresponded'
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function loadQuestions() {
+        setIsLoading(true);
+        try {
+            const data = await getQuestions();
+            setQuestions(data);
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Gagal Memuat Pertanyaan",
+                description: "Tidak dapat memuat data pertanyaan. Coba lagi nanti.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    loadQuestions();
+  }, [toast]);
 
   const handleRespond = (questionId: string, responseText: string, responderName: string) => {
     const updatedQuestion = { 
@@ -239,13 +250,9 @@ export default function QuestionsManagementPage() {
   
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      startTransition(() => {
-        setCurrentPage(newPage);
-        setIsLoading(false);
-      });
-    }, 300);
+    startTransition(() => {
+      setCurrentPage(newPage);
+    });
   };
   
   const handleCardClick = (question: Question) => {

@@ -56,3 +56,15 @@ export type PrayerRequest = {
   lastResponseBy?: string;
   responseText?: string;
 };
+
+// Question types
+export type Question = {
+  id: string;
+  userName: string;
+  avatarUrl?: string;
+  questionText: string;
+  submittedDate: string;
+  isResponded?: boolean;
+  responseBy?: string;
+  responseText?: string;
+};

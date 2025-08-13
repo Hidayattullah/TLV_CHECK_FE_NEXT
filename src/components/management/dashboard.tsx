@@ -28,7 +28,7 @@ const managementSections = [
     title: "Pokok Doa",
     description: "Tinjau dan kelola permohonan doa yang masuk dari jemaat.",
     icon: ScrollText,
-    href: "/management/prayers",
+    href: "/prayers-management",
     cta: "Lihat Doa",
   },
   {

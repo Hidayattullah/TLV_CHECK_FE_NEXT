@@ -165,16 +165,13 @@ function AddEditEventDialog({
   );
 }
 
-function AttendanceListDialog({ event }: { event: CheckInEvent }) {
+function AttendanceListDialog({ event, children, asChild }: { event: CheckInEvent, children: React.ReactNode, asChild?: boolean }) {
   const [open, setOpen] = useState(false);
   
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-            <Eye className="mr-2 h-4 w-4" />
-            Lihat Daftar Hadir
-        </Button>
+      <DialogTrigger asChild={asChild}>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
@@ -349,11 +346,13 @@ export default function CheckInCreationPage() {
             paginatedEvents.map(event => (
               <Card key={event.id} className="flex flex-col">
                 <CardHeader>
-                    <CardTitle className="text-xl text-primary">{event.eventName}</CardTitle>
-                    <div className="flex items-center text-sm text-muted-foreground gap-2 pt-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric'})}</span>
-                    </div>
+                  <AttendanceListDialog event={event} asChild>
+                    <CardTitle className="text-xl text-primary cursor-pointer hover:underline">{event.eventName}</CardTitle>
+                  </AttendanceListDialog>
+                  <div className="flex items-center text-sm text-muted-foreground gap-2 pt-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric'})}</span>
+                  </div>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                    <Separator />
@@ -369,7 +368,6 @@ export default function CheckInCreationPage() {
                    </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-2 pt-4">
-                    <AttendanceListDialog event={event} />
                     <div className="flex gap-2 w-full">
                         <AddEditEventDialog event={event} onSave={(data) => handleSaveEvent(data, event.id)}>
                             <Button variant="outline" className="w-full">

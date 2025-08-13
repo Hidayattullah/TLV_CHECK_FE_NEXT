@@ -36,7 +36,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 type Attendee = {
   id: string;
@@ -92,7 +94,7 @@ const mockEvents: CheckInEvent[] = [
   },
 ];
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 
 function AddEditEventDialog({
   event,
@@ -169,8 +171,9 @@ function AttendanceListDialog({ event }: { event: CheckInEvent }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Eye className="h-4 w-4" />
+        <Button variant="outline" className="w-full">
+            <Eye className="mr-2 h-4 w-4" />
+            Lihat Daftar Hadir
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
@@ -300,7 +303,7 @@ export default function CheckInCreationPage() {
           </p>
         </header>
 
-        <div className="flex justify-between items-center mb-4 gap-4">
+        <div className="flex justify-between items-center mb-6 gap-4">
           <div className="relative flex-grow max-w-sm">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
              <Input
@@ -321,67 +324,76 @@ export default function CheckInCreationPage() {
           </AddEditEventDialog>
         </div>
 
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama Acara</TableHead>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Jemaat Hadir</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-                  <TableRow key={`skeleton-${index}`}>
-                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
-                  </TableRow>
-                ))
-              ) : paginatedEvents.length > 0 ? (
-                paginatedEvents.map(event => (
-                  <TableRow key={event.id}>
-                    <TableCell className="font-medium">{event.eventName}</TableCell>
-                    <TableCell>{new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric'})}</TableCell>
-                    <TableCell>
-                      <Badge variant={event.isActive ? "default" : "secondary"}>
-                        {event.isActive ? 'Aktif' : 'Selesai'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{event.attendees.length} jemaat</TableCell>
-                    <TableCell className="text-right">
-                       <div className="flex justify-end items-center gap-2">
-                        <AttendanceListDialog event={event} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
+            Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+              <Card key={`skeleton-${index}`}>
+                  <CardHeader>
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-5 w-20" />
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-2">
+                      <Skeleton className="h-9 w-full" />
+                      <div className="flex gap-2 w-full">
+                        <Skeleton className="h-9 w-full" />
+                        <Skeleton className="h-9 w-full" />
+                      </div>
+                  </CardFooter>
+              </Card>
+            ))
+          ) : paginatedEvents.length > 0 ? (
+            paginatedEvents.map(event => (
+              <Card key={event.id} className="flex flex-col">
+                <CardHeader>
+                    <CardTitle className="text-xl text-primary">{event.eventName}</CardTitle>
+                    <div className="flex items-center text-sm text-muted-foreground gap-2 pt-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric'})}</span>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-grow space-y-4">
+                   <Separator />
+                   <div className="flex justify-between items-center">
+                       <div className="flex items-center gap-2">
+                           <Users className="h-5 w-5 text-muted-foreground" />
+                           <span className="font-medium">{event.attendees.length} Jemaat Hadir</span>
+                       </div>
+                       <Badge variant={event.isActive ? "default" : "secondary"}>
+                          {event.isActive ? <CheckCircle className="mr-2 h-4 w-4"/> : <XCircle className="mr-2 h-4 w-4"/>}
+                          {event.isActive ? 'Aktif' : 'Selesai'}
+                        </Badge>
+                   </div>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-2 pt-4">
+                    <AttendanceListDialog event={event} />
+                    <div className="flex gap-2 w-full">
                         <AddEditEventDialog event={event} onSave={(data) => handleSaveEvent(data, event.id)}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Edit className="h-4 w-4" />
+                            <Button variant="outline" className="w-full">
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
                             </Button>
                         </AddEditEventDialog>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => confirmDeleteEvent(event)}>
-                            <Trash2 className="h-4 w-4" />
+                        <Button variant="outline" className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => confirmDeleteEvent(event)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Hapus
                         </Button>
-                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                    Tidak ada acara yang cocok.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                </CardFooter>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-24">
+                <p className="text-muted-foreground">Tidak ada acara yang cocok.</p>
+            </div>
+          )}
         </div>
         
         {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-8">
             <span className="text-sm text-muted-foreground">
                 Halaman {currentPage} dari {totalPages}
             </span>
@@ -426,3 +438,5 @@ export default function CheckInCreationPage() {
     </>
   );
 }
+
+    

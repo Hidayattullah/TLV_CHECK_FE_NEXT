@@ -21,7 +21,7 @@ const managementSections = [
     title: "Pembuatan Check In",
     description: "Buat dan kelola kode QR untuk check-in ibadah atau acara.",
     icon: QrCode,
-    href: "/management/check-in-creation",
+    href: "/check-in-creation",
     cta: "Buat Check In",
   },
   {

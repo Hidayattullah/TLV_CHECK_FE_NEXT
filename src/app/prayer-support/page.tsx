@@ -20,22 +20,15 @@ type Prayer = {
   date: string;
 };
 
+// Data now only represents prayers from the current user (e.g., "Tubagus Rifan")
 const initialPrayers: Prayer[] = [
     {
         id: "1",
-        name: "Maria S.",
-        request: "Mohon doakan untuk kesembuhan ibu saya yang sedang sakit keras. Kiranya Tuhan memberikan kekuatan dan pemulihan.",
-        response: "Kami berdoa untuk ibu Maria, agar Tuhan Yesus memberikan kekuatan dan jamahan kesembuhan. Tetap kuat dalam iman. Tuhan memberkati.",
+        name: "Tubagus Rifan",
+        request: "Mohon doakan untuk kelancaran proyek pekerjaan yang sedang saya kerjakan. Kiranya Tuhan memberikan hikmat dan jalan keluar.",
+        response: "Tuhan menyertai setiap langkahmu, Tubagus. Kami berdoa agar hikmat dan kekuatan dari-Nya senantiasa menyertaimu dalam menyelesaikan proyek ini. Tetap andalkan Tuhan. Tuhan memberkati.",
         responderName: "Admin Gereja",
-        date: "2024-08-01"
-    },
-    {
-        id: "2",
-        name: "Anonim",
-        request: "Pergumulan dalam pekerjaan. Saya merasa tidak memiliki harapan dan stres. Mohon dukungan doa agar saya menemukan jalan keluar.",
-        response: "Tuhan adalah sumber kekuatan dan pengharapan. Kami berdoa agar Anda diberikan hikmat dan jalan keluar dalam setiap tantangan pekerjaan. Jangan pernah menyerah. Filipi 4:13.",
-        responderName: "Admin Gereja",
-        date: "2024-07-30"
+        date: "2024-07-25"
     }
 ];
 
@@ -59,7 +52,7 @@ export default function PrayerSupportPage() {
 
     const newPrayer: Prayer = {
         id: `prayer-${Date.now()}`,
-        name: name || "Anonim",
+        name: name || "Anonim", // User can still submit as anonymous, but it will appear in their private list
         request: prayerRequest,
         date: new Date().toISOString().split("T")[0],
     };
@@ -120,50 +113,54 @@ export default function PrayerSupportPage() {
           </CardContent>
         </Card>
         
-        <Separator />
-        
-        <div>
-            <h2 className="text-2xl font-headline text-primary mb-4 text-center">Dinding Doa Komunitas</h2>
-            <div className="space-y-6">
-                {submittedPrayers.map((prayer) => (
-                    <Card key={prayer.id} className="overflow-hidden">
-                        <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <div className="bg-primary/10 p-2 rounded-full">
-                                    <Heart className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                    <CardTitle className="text-lg">{prayer.name}</CardTitle>
-                                    <p className="text-xs text-muted-foreground">
-                                        {new Date(prayer.date).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground">{prayer.request}</p>
-                        </CardContent>
-                        {prayer.response && (
-                           <>
-                            <Separator className="my-4" />
-                            <CardFooter className="flex flex-col items-start bg-green-50/50 p-4">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="bg-green-100 p-2 rounded-full">
-                                        <CheckCircle className="h-5 w-5 text-green-700" />
+        {submittedPrayers.length > 0 && (
+          <>
+            <Separator />
+            
+            <div>
+                <h2 className="text-2xl font-headline text-primary mb-4 text-center">Riwayat Permohonan Doa Anda</h2>
+                <div className="space-y-6">
+                    {submittedPrayers.map((prayer) => (
+                        <Card key={prayer.id} className="overflow-hidden">
+                            <CardHeader>
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-primary/10 p-2 rounded-full">
+                                        <Heart className="h-5 w-5 text-primary" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-green-900">Tanggapan Doa dari {prayer.responderName}</h3>
-                                        <p className="text-xs text-green-700">Telah didoakan</p>
+                                        <CardTitle className="text-lg">{prayer.name}</CardTitle>
+                                        <p className="text-xs text-muted-foreground">
+                                            {new Date(prayer.date).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </p>
                                     </div>
                                 </div>
-                                <p className="text-green-800/80 text-sm">{prayer.response}</p>
-                            </CardFooter>
-                           </>
-                        )}
-                    </Card>
-                ))}
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-muted-foreground">{prayer.request}</p>
+                            </CardContent>
+                            {prayer.response && (
+                               <>
+                                <Separator className="my-4" />
+                                <CardFooter className="flex flex-col items-start bg-green-50/50 p-4">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="bg-green-100 p-2 rounded-full">
+                                            <CheckCircle className="h-5 w-5 text-green-700" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-green-900">Tanggapan Doa dari {prayer.responderName}</h3>
+                                            <p className="text-xs text-green-700">Telah didoakan</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-green-800/80 text-sm">{prayer.response}</p>
+                                </CardFooter>
+                               </>
+                            )}
+                        </Card>
+                    ))}
+                </div>
             </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

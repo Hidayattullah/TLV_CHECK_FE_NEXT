@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Edit, LogOut, Upload, Loader2 } from "lucide-react";
@@ -18,6 +19,7 @@ import Image from "next/image";
 
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSaveAlertOpen, setIsSaveAlertOpen] = useState(false);
   const [profileImage, setProfileImage] = useState("");
   const [profileImagePreview, setProfileImagePreview] = useState(profileImage);
   const [isUploading, setIsUploading] = useState(false);
@@ -101,6 +103,7 @@ export default function ProfilePage() {
     setUserName(newName);
     setIsSaving(false);
     setIsDialogOpen(false);
+    setIsSaveAlertOpen(false);
   }
 
   const handleCancelChanges = () => {
@@ -321,15 +324,33 @@ export default function ProfilePage() {
                          Batal
                        </Button>
                     </DialogClose>
-                    <Button 
-                      type="submit" 
-                      onClick={handleSaveChanges}
-                      disabled={isSaving}
-                      pressed={pressedButtons['save-button']}
-                    >
-                      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
-                    </Button>
+                    <AlertDialog open={isSaveAlertOpen} onOpenChange={setIsSaveAlertOpen}>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          type="button"
+                          disabled={isSaving}
+                          pressed={pressedButtons['save-button']}
+                          onClick={() => handleButtonPress('save-button')}
+                        >
+                          Simpan Perubahan
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Konfirmasi Perubahan</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Apakah Anda yakin ingin menyimpan perubahan pada profil Anda?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={isSaving}>Batal</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleSaveChanges} disabled={isSaving}>
+                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isSaving ? "Menyimpan..." : "Lanjutkan & Simpan"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

@@ -9,6 +9,7 @@ import { History, Church, HeartHandshake, MessageSquareQuote, ClipboardList } fr
 import { UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/common/bottom-nav";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const mainMenuItems = [
   { href: "/check-in", label: "Check In", icon: History },
@@ -33,6 +34,7 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
 export default function DashboardPage() {
   const userName = "Tubagus Rifan";
   const userInitials = userName.split(' ').map(n => n[0]).join('');
+  const userAvatarUrl = "https://placehold.co/128x128.png";
 
   return (
     <div className="bg-primary min-h-screen flex flex-col relative overflow-hidden pb-24">
@@ -44,10 +46,22 @@ export default function DashboardPage() {
 
       <header className="p-4 flex items-center justify-between text-white relative z-10">
         <div className="flex items-center gap-3">
-          <Avatar className="w-12 h-12">
-            <AvatarImage src="https://placehold.co/.png" alt={userName} data-ai-hint="person portrait" />
-            <AvatarFallback>{userInitials}</AvatarFallback>
-          </Avatar>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Avatar className="w-12 h-12 cursor-pointer">
+                <AvatarImage src={userAvatarUrl} alt={userName} data-ai-hint="person portrait" />
+                <AvatarFallback>{userInitials}</AvatarFallback>
+              </Avatar>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{userName}</DialogTitle>
+                </DialogHeader>
+                <div className="flex justify-center items-center p-4 min-h-[100px]">
+                  <Image src={userAvatarUrl} alt={`Avatar of ${userName}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                </div>
+              </DialogContent>
+          </Dialog>
           <div>
             <p className="text-sm">Selamat Datang,</p>
             <h1 className="font-bold text-lg">{userName}</h1>

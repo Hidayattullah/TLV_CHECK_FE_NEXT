@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
     <div className="bg-background min-h-screen">
       <header className="bg-primary text-primary-foreground p-4 flex items-center gap-4 sticky top-0 z-10">
         <Link href="/login" passHref>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground hover:text-primary">
             <ArrowLeft />
           </Button>
         </Link>

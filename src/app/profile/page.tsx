@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Edit, LogOut, Upload } from "lucide-react";
+import { ArrowLeft, Edit, LogOut, Upload, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
@@ -117,6 +117,7 @@ export default function ProfilePage() {
           <Button 
             variant="ghost" 
             size="icon"
+            className="text-primary-foreground hover:bg-primary-foreground hover:text-primary"
             pressed={pressedButtons['back-button']}
             onClick={() => handleButtonPress('back-button')}
           >

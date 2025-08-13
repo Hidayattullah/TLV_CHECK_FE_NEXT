@@ -32,7 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Calendar, User, MessageSquarePlus, CheckCircle, Loader2, Edit, Save, AlertTriangle, MessageSquareQuestion } from "lucide-react";
+import { Search, Calendar, User, CheckCircle, Loader2, Edit, Save, AlertTriangle, MessageSquareQuote } from "lucide-react";
 
 type Question = {
   id: string;
@@ -355,7 +355,7 @@ export default function QuestionsManagementPage() {
                       </Badge>
                   ) : (
                       <Badge variant="secondary" className="text-xs">
-                          <MessageSquareQuestion className="h-3 w-3 mr-1.5" />
+                          <MessageSquareQuote className="h-3 w-3 mr-1.5" />
                           Menunggu Jawaban
                       </Badge>
                   )}

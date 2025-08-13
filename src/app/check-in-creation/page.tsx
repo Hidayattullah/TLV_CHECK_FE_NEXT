@@ -533,48 +533,39 @@ export default function CheckInCreationPage() {
     });
   };
 
- const handleStatusChange = (eventId: string, isActive: boolean) => {
-    startTransition(() => {
-        setEvents(prevEvents => prevEvents.map(event => {
-            if (event.id === eventId) {
-                if (event.deactivationTimer) {
-                    clearTimeout(event.deactivationTimer);
-                }
-                toast({
-                    title: `Status Diubah`,
-                    description: `Acara "${event.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
-                });
-                return { ...event, isActive, deactivationTimer: undefined, activationType: isActive ? 'manual' : undefined, timerEndsAt: undefined };
+ const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
+    setEvents(prevEvents => prevEvents.map(event => {
+        if (event.id === eventId) {
+            if (event.deactivationTimer) {
+                clearTimeout(event.deactivationTimer);
             }
-            return event;
-        }));
-    });
-  };
+            toast({
+                title: `Status Diubah`,
+                description: `Acara "${event.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
+            });
+            return { ...event, isActive, deactivationTimer: undefined, activationType: isActive ? 'manual' : undefined, timerEndsAt: undefined };
+        }
+        return event;
+    }));
+  }, [toast]);
 
-  const handleTimerSet = (eventId: string, hours: number) => {
+  const handleTimerSet = useCallback((eventId: string, hours: number) => {
     startTransition(() => {
       const durationMs = hours * 60 * 60 * 1000;
       const endsAt = Date.now() + durationMs;
-      let targetEvent: CheckInEvent | undefined;
+      
+      const targetEvent = events.find(e => e.id === eventId);
+      if (!targetEvent) return;
 
-      const newEvents = events.map(event => {
+      const newTimer = setTimeout(() => {
+        handleStatusChange(eventId, false);
+      }, durationMs);
+
+      setEvents(prevEvents => prevEvents.map(event => {
         if (event.id === eventId) {
-          targetEvent = event;
           if (event.deactivationTimer) {
             clearTimeout(event.deactivationTimer);
           }
-          const newTimer = setTimeout(() => {
-            // Re-fetch the event from state inside timeout to avoid stale state
-            setEvents(currentEvents => currentEvents.map(e => 
-              e.id === eventId ? { ...e, isActive: false, deactivationTimer: undefined, activationType: undefined, timerEndsAt: undefined } : e
-            ));
-            toast({
-                title: `Waktu Habis`,
-                description: `Acara "${event.eventName}" telah selesai secara otomatis.`
-            });
-
-          }, durationMs);
-
           return {
             ...event,
             isActive: true,
@@ -584,18 +575,16 @@ export default function CheckInCreationPage() {
           };
         }
         return event;
-      });
-      
-      setEvents(newEvents);
+      }));
 
-      if (targetEvent) {
+      setTimeout(() => {
         toast({
           title: 'Timer Disetel!',
           description: `Acara "${targetEvent.eventName}" akan otomatis selesai dalam ${hours} jam.`
         });
-      }
+      }, 0);
     });
-  };
+  }, [events, handleStatusChange, toast]);
 
 
   useEffect(() => {
@@ -819,5 +808,3 @@ export default function CheckInCreationPage() {
     </>
   );
 }
-
-    

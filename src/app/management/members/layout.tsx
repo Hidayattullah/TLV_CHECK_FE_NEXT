@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -27,14 +28,14 @@ const managementSections = [
     title: "Pokok Doa",
     description: "Tinjau dan kelola permohonan doa yang masuk dari jemaat.",
     icon: ScrollText,
-    href: "/management/prayers",
+    href: "/prayers-management",
     cta: "Lihat Doa",
   },
   {
     title: "Pertanyaan Jemaat",
     description: "Lihat dan jawab pertanyaan yang diajukan oleh jemaat.",
     icon: MessageSquareQuote,
-    href: "/management/questions",
+    href: "/questions-management",
     cta: "Lihat Pertanyaan",
   },
 ];

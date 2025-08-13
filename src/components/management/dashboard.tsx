@@ -35,7 +35,7 @@ const managementSections = [
     title: "Pertanyaan Jemaat",
     description: "Lihat dan jawab pertanyaan yang diajukan oleh jemaat.",
     icon: MessageSquareQuote,
-    href: "/management/questions",
+    href: "/questions-management",
     cta: "Lihat Pertanyaan",
   },
 ];

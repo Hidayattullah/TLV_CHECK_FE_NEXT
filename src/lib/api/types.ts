@@ -24,3 +24,22 @@ export type Member = {
 
 // Type for adding a new member, without system-generated fields like id, joinedDate etc.
 export type NewMember = Omit<Member, "id" | "joinedDate" | "isActive" | "isVerified" | "avatarUrl" | "permissions" | "rfid">;
+
+// Check-in types
+export type Attendee = {
+  id: string;
+  name: string;
+  checkinTime: string;
+  checkinMethod: "Barcode" | "RFID";
+};
+
+export type CheckInEvent = {
+  id: string;
+  eventName: string;
+  eventDate: string;
+  isActive: boolean;
+  attendees: Attendee[];
+  activationType?: 'manual' | 'timer';
+  deactivationTimer?: ReturnType<typeof setTimeout>;
+  timerEndsAt?: number;
+};

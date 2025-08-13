@@ -10,5 +10,11 @@ export const API_ENDPOINTS = {
   UPDATE_MEMBER: (id: string) => `${API_BASE_URL}/members/${id}`,
   DELETE_MEMBER: (id: string) => `${API_BASE_URL}/members/${id}`,
 
-  // ... other endpoints for check-in, prayers, etc.
+  // Check-in endpoints
+  GET_CHECK_IN_EVENTS: `${API_BASE_URL}/check-in/events`,
+  ADD_CHECK_IN_EVENT: `${API_BASE_URL}/check-in/events`,
+  UPDATE_CHECK_IN_EVENT: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
+  DELETE_CHECK_IN_EVENT: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
+  UPDATE_CHECK_IN_EVENT_STATUS: (id: string) => `${API_BASE_URL}/check-in/events/${id}/status`,
+  SET_CHECK_IN_EVENT_TIMER: (id: string) => `${API_BASE_URL}/check-in/events/${id}/timer`,
 };

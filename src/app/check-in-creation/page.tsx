@@ -50,70 +50,16 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import type { CheckInEvent, Attendee } from "@/lib/api/types";
+import { 
+  getCheckInEvents, 
+  addCheckInEvent,
+  updateCheckInEvent,
+  deleteCheckInEvent,
+  updateCheckInEventStatus,
+  setCheckInEventTimer,
+} from "@/lib/repository_mock/check-in";
 
-
-type Attendee = {
-  id: string;
-  name: string;
-  checkinTime: string;
-  checkinMethod: "Barcode" | "RFID";
-};
-
-type CheckInEvent = {
-  id: string;
-  eventName: string;
-  eventDate: string;
-  isActive: boolean;
-  attendees: Attendee[];
-  activationType?: 'manual' | 'timer';
-  deactivationTimer?: ReturnType<typeof setTimeout>;
-  timerEndsAt?: number;
-};
-
-const mockEvents: CheckInEvent[] = [
-  {
-    id: "evt-001",
-    eventName: "Ibadah Raya 1",
-    eventDate: "2024-07-28",
-    isActive: true,
-    activationType: 'manual',
-    attendees: [
-      { id: "1", name: "Tubagus Rifan", checkinTime: "09:05", checkinMethod: "Barcode" },
-      { id: "4", name: "Sarah Connor", checkinTime: "09:02", checkinMethod: "RFID" },
-      { id: "user-a", name: "John Doe", checkinTime: "09:03", checkinMethod: "Barcode" },
-      { id: "user-b", name: "Peter Parker", checkinTime: "09:04", checkinMethod: "RFID" },
-      { id: "user-c", name: "Bruce Wayne", checkinTime: "09:06", checkinMethod: "Barcode" },
-      { id: "user-d", name: "Clark Kent", checkinTime: "09:07", checkinMethod: "RFID" },
-    ],
-  },
-  {
-    id: "evt-002",
-    eventName: "Ibadah Raya 2",
-    eventDate: "2024-07-28",
-    isActive: true,
-    activationType: 'manual',
-    attendees: [
-      { id: "2", name: "Jane Doe", checkinTime: "17:02", checkinMethod: "RFID" },
-    ],
-  },
-  {
-    id: "evt-003",
-    eventName: "Ibadah Dewasa Muda",
-    eventDate: "2024-07-27",
-    isActive: false,
-    attendees: [
-      { id: "6", name: "Michael Bay", checkinTime: "18:30", checkinMethod: "Barcode" },
-      { id: "3", name: "Admin Gereja", checkinTime: "18:25", checkinMethod: "RFID" },
-    ],
-  },
-  {
-    id: "evt-004",
-    eventName: "Ibadah Youth",
-    eventDate: "2024-07-26",
-    isActive: false,
-    attendees: [],
-  },
-];
 
 const ITEMS_PER_PAGE = 4;
 
@@ -124,7 +70,7 @@ function AddEditEventDialog({
   triggerAsChild
 }: {
   event?: CheckInEvent | null;
-  onSave: (data: Omit<CheckInEvent, "id" | "attendees" | "isActive">) => void;
+  onSave: (data: Pick<CheckInEvent, 'eventName' | 'eventDate'>, id?: string) => void;
   children: React.ReactNode;
   triggerAsChild?: boolean;
 }) {
@@ -153,7 +99,7 @@ function AddEditEventDialog({
       });
       return;
     }
-    onSave({ eventName, eventDate });
+    onSave({ eventName, eventDate }, event?.id);
     setOpen(false);
   };
 
@@ -487,30 +433,48 @@ function TimerCountdown({ endTime }: { endTime: number }) {
 
 
 export default function CheckInCreationPage() {
-  const [events, setEvents] = useState<CheckInEvent[]>(mockEvents);
+  const [events, setEvents] = useState<CheckInEvent[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [isDeleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<CheckInEvent | null>(null);
   const { toast } = useToast();
 
-  const handleSaveEvent = (data: Omit<CheckInEvent, "id" | "attendees" | "isActive" | "deactivationTimer">, id?: string) => {
-    startTransition(() => {
-        if (id) {
-            setEvents(events.map(e => e.id === id ? { ...e, ...data } : e));
-            toast({ title: "Berhasil!", description: "Acara berhasil diperbarui." });
-        } else {
-            const newEvent: CheckInEvent = {
-                ...data,
-                id: `evt-${Date.now()}`,
-                isActive: true,
-                attendees: [],
-                activationType: 'manual',
-            };
-            setEvents([newEvent, ...events]);
-            toast({ title: "Berhasil!", description: "Acara baru telah dibuat." });
+  useEffect(() => {
+    async function loadEvents() {
+      setIsLoading(true);
+      try {
+        const data = await getCheckInEvents();
+        setEvents(data);
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Gagal Memuat Acara",
+          description: "Tidak dapat memuat data acara check-in. Coba lagi nanti.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadEvents();
+  }, [toast]);
+
+  const handleSaveEvent = (data: Pick<CheckInEvent, 'eventName' | 'eventDate'>, id?: string) => {
+    startTransition(async () => {
+        try {
+            if (id) {
+                const updatedEvent = await updateCheckInEvent(id, data);
+                setEvents(events.map(e => e.id === id ? updatedEvent : e));
+                toast({ title: "Berhasil!", description: "Acara berhasil diperbarui." });
+            } else {
+                const newEvent = await addCheckInEvent(data);
+                setEvents([newEvent, ...events]);
+                toast({ title: "Berhasil!", description: "Acara baru telah dibuat." });
+            }
+        } catch (error) {
+            toast({ variant: "destructive", title: "Gagal!", description: "Gagal menyimpan acara." });
         }
     });
   };
@@ -523,66 +487,51 @@ export default function CheckInCreationPage() {
   const handleDeleteEvent = () => {
     if(!eventToDelete) return;
 
-    startTransition(() => {
-        setEvents(events.filter(e => e.id !== eventToDelete.id));
-        toast({ variant: "destructive", title: "Dihapus!", description: `Acara ${eventToDelete.eventName} telah dihapus.` });
-        setDeleteAlertOpen(false);
-        setEventToDelete(null);
+    startTransition(async () => {
+        try {
+            await deleteCheckInEvent(eventToDelete!.id);
+            setEvents(events.filter(e => e.id !== eventToDelete!.id));
+            toast({ variant: "destructive", title: "Dihapus!", description: `Acara ${eventToDelete!.eventName} telah dihapus.` });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Gagal!", description: "Gagal menghapus acara." });
+        } finally {
+            setDeleteAlertOpen(false);
+            setEventToDelete(null);
+        }
     });
   };
 
-  const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
-    setEvents(prevEvents => prevEvents.map(event => {
-        if (event.id === eventId) {
-            if (event.deactivationTimer) {
-                clearTimeout(event.deactivationTimer);
-            }
-            toast({
-                title: `Status Diubah`,
-                description: `Acara "${event.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
-            });
-            return { ...event, isActive, deactivationTimer: undefined, activationType: isActive ? 'manual' : undefined, timerEndsAt: undefined };
-        }
-        return event;
-    }));
-  }, []);
+  const handleStatusChange = useCallback(async (eventId: string, isActive: boolean) => {
+    try {
+        const updatedEvent = await updateCheckInEventStatus(eventId, isActive);
+        setEvents(prevEvents => prevEvents.map(event =>
+            event.id === eventId ? updatedEvent : event
+        ));
+        toast({
+            title: `Status Diubah`,
+            description: `Acara "${updatedEvent.eventName}" sekarang ${isActive ? 'Aktif' : 'Selesai'}.`
+        });
+    } catch (error) {
+        toast({ variant: "destructive", title: "Gagal!", description: "Gagal mengubah status acara." });
+    }
+  }, [toast]);
 
   const handleTimerSet = useCallback((eventId: string, hours: number) => {
-    startTransition(() => {
-      const durationMs = hours * 60 * 60 * 1000;
-      const endsAt = Date.now() + durationMs;
-      
-      const targetEvent = events.find(e => e.id === eventId);
-      if (!targetEvent) return;
-
-      const newTimer = setTimeout(() => {
-        handleStatusChange(eventId, false);
-      }, durationMs);
-
-      setEvents(prevEvents => prevEvents.map(event => {
-        if (event.id === eventId) {
-          if (event.deactivationTimer) {
-            clearTimeout(event.deactivationTimer);
-          }
-          return {
-            ...event,
-            isActive: true,
-            deactivationTimer: newTimer,
-            activationType: 'timer' as const,
-            timerEndsAt: endsAt
-          };
-        }
-        return event;
-      }));
-
-      setTimeout(() => {
+    startTransition(async () => {
+      try {
+        const eventWithTimer = await setCheckInEventTimer(eventId, hours, handleStatusChange);
+        setEvents(prevEvents => prevEvents.map(event =>
+          event.id === eventId ? eventWithTimer : event
+        ));
         toast({
           title: 'Timer Disetel!',
-          description: `Acara "${targetEvent.eventName}" akan otomatis selesai dalam ${hours} jam.`
+          description: `Acara "${eventWithTimer.eventName}" akan otomatis selesai dalam ${hours} jam.`
         });
-      }, 0);
+      } catch (error) {
+        toast({ variant: "destructive", title: "Gagal!", description: "Gagal menyetel timer." });
+      }
     });
-  }, [events, handleStatusChange]);
+  }, [handleStatusChange, toast]);
 
 
   useEffect(() => {
@@ -611,13 +560,10 @@ export default function CheckInCreationPage() {
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      startTransition(() => {
-        setCurrentPage(newPage);
-        setIsLoading(false);
-      });
-    }, 300);
+    
+    startTransition(() => {
+      setCurrentPage(newPage);
+    });
   };
 
   return (
@@ -643,7 +589,7 @@ export default function CheckInCreationPage() {
                 className="pl-9 bg-card"
             />
           </div>
-          <AddEditEventDialog onSave={(data) => handleSaveEvent(data)} triggerAsChild>
+          <AddEditEventDialog onSave={(data, id) => handleSaveEvent(data, id)} triggerAsChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
               Buat Acara
@@ -719,7 +665,7 @@ export default function CheckInCreationPage() {
                     <DropdownMenuContent align="end" className="w-56">
                        <AddEditEventDialog
                         event={event}
-                        onSave={(data) => handleSaveEvent(data, event.id)}
+                        onSave={(data, id) => handleSaveEvent(data, id)}
                         triggerAsChild
                        >
                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -798,6 +744,7 @@ export default function CheckInCreationPage() {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setEventToDelete(null)}>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive hover:bg-destructive/90">
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Lanjutkan & Hapus
             </AlertDialogAction>
           </AlertDialogFooter>

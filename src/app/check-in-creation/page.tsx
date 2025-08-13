@@ -515,7 +515,7 @@ export default function CheckInCreationPage() {
               return event;
           }));
       });
-  }, [toast]);
+  }, []);
 
   const handleTimerSet = useCallback((eventId: string, hours: number) => {
       const durationMs = hours * 60 * 60 * 1000;
@@ -541,7 +541,7 @@ export default function CheckInCreationPage() {
               return event;
           }));
       });
-  }, [handleStatusChange, toast]);
+  }, []);
 
   useEffect(() => {
       return () => {

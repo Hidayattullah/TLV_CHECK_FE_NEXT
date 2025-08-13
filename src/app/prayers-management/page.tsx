@@ -31,6 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Calendar, User, MessageSquarePlus, CheckCircle, Loader2, Edit, Save, AlertTriangle } from "lucide-react";
 
 type PrayerRequest = {
@@ -143,7 +144,7 @@ function PrayerRequestDialog({
                   )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                       <Button type="button" disabled={isSending || !response.trim()}>
+                       <Button type="submit" disabled={isSending || !response.trim()}>
                         <Save className="mr-2 h-4 w-4" />
                         Simpan Doa
                       </Button>
@@ -195,6 +196,7 @@ function PrayerRequestDialog({
 export default function PrayersManagementPage() {
   const [requests, setRequests] = useState<PrayerRequest[]>(mockPrayers);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all"); // 'all', 'responded', 'unresponded'
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -219,11 +221,18 @@ export default function PrayersManagementPage() {
   };
 
   const filteredRequests = useMemo(() => {
-    return requests.filter(req => 
-      req.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      req.requestText.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [requests, searchTerm]);
+    return requests
+      .filter(req => 
+        req.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        req.requestText.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter(req => {
+        if (filterStatus === 'all') return true;
+        if (filterStatus === 'responded') return req.isResponded;
+        if (filterStatus === 'unresponded') return !req.isResponded;
+        return true;
+      });
+  }, [requests, searchTerm, filterStatus]);
 
   const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
 
@@ -268,8 +277,8 @@ export default function PrayersManagementPage() {
           </p>
         </header>
 
-        <div className="flex justify-between items-center mb-6 gap-4">
-          <div className="relative flex-grow max-w-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+          <div className="relative flex-grow w-full sm:max-w-sm">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
              <Input
                 placeholder="Cari nama atau isi doa..."
@@ -281,6 +290,22 @@ export default function PrayersManagementPage() {
                 className="pl-9 bg-card"
             />
           </div>
+          <Select
+            value={filterStatus}
+            onValueChange={(value) => {
+              setFilterStatus(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-[200px] bg-card">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              <SelectItem value="responded">Sudah Didoakan</SelectItem>
+              <SelectItem value="unresponded">Menunggu Doa</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -345,7 +370,7 @@ export default function PrayersManagementPage() {
             ))
           ) : (
             <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-24">
-              <p className="text-muted-foreground">Tidak ada pokok doa yang cocok dengan pencarian.</p>
+              <p className="text-muted-foreground">Tidak ada pokok doa yang cocok dengan filter.</p>
             </div>
           )}
         </div>

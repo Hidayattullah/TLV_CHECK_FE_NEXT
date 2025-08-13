@@ -44,7 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle, Settings, Timer, ToggleLeft, ToggleRight, Fingerprint } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle, Settings, Timer, ToggleLeft, ToggleRight, Fingerprint, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -341,7 +341,7 @@ function StatusManagementDialog({
   onStatusChange,
   onTimerSet,
   children,
-  triggerAsChild
+  triggerAsChild,
 }: {
   event: CheckInEvent;
   onStatusChange: (eventId: string, isActive: boolean) => void;
@@ -350,71 +350,105 @@ function StatusManagementDialog({
   triggerAsChild?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [isManualConfirmOpen, setManualConfirmOpen] = useState(false);
+
+  const handleManualSwitch = () => {
+    // This function now only opens the confirmation dialog.
+    setManualConfirmOpen(true);
+  };
+
+  const handleManualConfirm = () => {
+    // The actual status change happens here, after confirmation.
+    onStatusChange(event.id, !event.isActive);
+    setManualConfirmOpen(false);
+    setOpen(false); // Close the main dialog after action
+  };
   
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild={triggerAsChild}>
-        {children}
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Kelola Status: {event.eventName}</DialogTitle>
-          <DialogDescription>
-            Atur status keaktifan acara secara manual atau otomatis.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4 space-y-6">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <Label htmlFor="manual-toggle" className="font-semibold">Status Manual</Label>
-              <p className="text-sm text-muted-foreground">Ubah status acara sekarang juga.</p>
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild={triggerAsChild}>
+          {children}
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Kelola Status: {event.eventName}</DialogTitle>
+            <DialogDescription>
+              Atur status keaktifan acara secara manual atau otomatis.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-6">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <Label htmlFor="manual-toggle" className="font-semibold">Status Manual</Label>
+                <p className="text-sm text-muted-foreground">Ubah status acara sekarang juga.</p>
+              </div>
+              <Switch
+                id="manual-toggle"
+                checked={event.isActive}
+                onCheckedChange={handleManualSwitch}
+              />
             </div>
-            <Switch
-              id="manual-toggle"
-              checked={event.isActive}
-              onCheckedChange={(checked) => onStatusChange(event.id, checked)}
-            />
+            <div className="space-y-4 p-4 border rounded-lg">
+               <div>
+                <Label className="font-semibold">Timer Otomatis</Label>
+                <p className="text-sm text-muted-foreground">Atur acara untuk selesai secara otomatis.</p>
+              </div>
+               <div className="flex gap-2">
+                {[1, 2, 3].map((hour) => (
+                  <AlertDialog key={hour}>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <Timer className="mr-2 h-4 w-4"/>
+                        {hour} Jam
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Konfirmasi Timer</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Apakah Anda yakin ingin mengatur acara ini untuk otomatis selesai dalam {hour} jam? Status acara juga akan diubah menjadi Aktif.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { onTimerSet(event.id, hour); setOpen(false); }}>
+                          Lanjutkan & Atur Timer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="space-y-4 p-4 border rounded-lg">
-             <div>
-              <Label className="font-semibold">Timer Otomatis</Label>
-              <p className="text-sm text-muted-foreground">Atur acara untuk selesai secara otomatis.</p>
-            </div>
-             <div className="flex gap-2">
-              {[1, 2, 3].map((hour) => (
-                <AlertDialog key={hour}>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" className="w-full">
-                      <Timer className="mr-2 h-4 w-4"/>
-                      {hour} Jam
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Konfirmasi Timer</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Apakah Anda yakin ingin mengatur acara ini untuk otomatis selesai dalam {hour} jam? Status acara juga akan diubah menjadi Aktif.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Batal</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => { onTimerSet(event.id, hour); setOpen(false); }}>
-                        Lanjutkan & Atur Timer
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              ))}
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="secondary">Tutup</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={isManualConfirmOpen} onOpenChange={setManualConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="text-primary"/>
+              Konfirmasi Perubahan Status
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin mengubah status acara &quot;{event.eventName}&quot; menjadi <strong>{event.isActive ? 'Selesai' : 'Aktif'}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleManualConfirm}>
+              Ya, Lanjutkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 
@@ -499,7 +533,7 @@ export default function CheckInCreationPage() {
     });
   };
 
- const handleStatusChange = useCallback((eventId: string, isActive: boolean) => {
+ const handleStatusChange = (eventId: string, isActive: boolean) => {
     startTransition(() => {
         setEvents(prevEvents => prevEvents.map(event => {
             if (event.id === eventId) {
@@ -515,46 +549,53 @@ export default function CheckInCreationPage() {
             return event;
         }));
     });
-  }, []);
+  };
 
-  const handleTimerSet = useCallback((eventId: string, hours: number) => {
+  const handleTimerSet = (eventId: string, hours: number) => {
     startTransition(() => {
       const durationMs = hours * 60 * 60 * 1000;
       const endsAt = Date.now() + durationMs;
-      let targetEventName = '';
+      let targetEvent: CheckInEvent | undefined;
 
-      setEvents(prevEvents => {
-        const newEvents = prevEvents.map(event => {
-          if (event.id === eventId) {
-            targetEventName = event.eventName;
-            if (event.deactivationTimer) {
-              clearTimeout(event.deactivationTimer);
-            }
-            const newTimer = setTimeout(() => {
-              handleStatusChange(eventId, false);
-            }, durationMs);
-
-            return {
-              ...event,
-              isActive: true,
-              deactivationTimer: newTimer,
-              activationType: 'timer' as const,
-              timerEndsAt: endsAt
-            };
+      const newEvents = events.map(event => {
+        if (event.id === eventId) {
+          targetEvent = event;
+          if (event.deactivationTimer) {
+            clearTimeout(event.deactivationTimer);
           }
-          return event;
-        });
-        return newEvents;
-      });
+          const newTimer = setTimeout(() => {
+            // Re-fetch the event from state inside timeout to avoid stale state
+            setEvents(currentEvents => currentEvents.map(e => 
+              e.id === eventId ? { ...e, isActive: false, deactivationTimer: undefined, activationType: undefined, timerEndsAt: undefined } : e
+            ));
+            toast({
+                title: `Waktu Habis`,
+                description: `Acara "${event.eventName}" telah selesai secara otomatis.`
+            });
 
-      if (targetEventName) {
+          }, durationMs);
+
+          return {
+            ...event,
+            isActive: true,
+            deactivationTimer: newTimer,
+            activationType: 'timer' as const,
+            timerEndsAt: endsAt
+          };
+        }
+        return event;
+      });
+      
+      setEvents(newEvents);
+
+      if (targetEvent) {
         toast({
           title: 'Timer Disetel!',
-          description: `Acara "${targetEventName}" akan otomatis selesai dalam ${hours} jam.`
+          description: `Acara "${targetEvent.eventName}" akan otomatis selesai dalam ${hours} jam.`
         });
       }
     });
-  }, [handleStatusChange]);
+  };
 
 
   useEffect(() => {

@@ -4,6 +4,7 @@
 
 
 
+
 export type Permission = "read" | "edit" | "delete";
 export type Module = "members" | "checkin" | "prayers" | "questions" | "tickets";
 export type RfidType = "Card" | "Tag" | "Stiker";
@@ -71,6 +72,8 @@ export type PrayerRequest = {
   isResponded?: boolean;
   lastResponseBy?: string;
   responseText?: string;
+  isArchived?: boolean;
+  archivedDate?: string;
 };
 
 // Question types

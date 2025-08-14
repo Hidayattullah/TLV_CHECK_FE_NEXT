@@ -5,8 +5,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
 
 export const metadata: Metadata = {
-  title: 'Bappenda Juara',
-  description: 'Aplikasi PBB P2 Mobile Kabupaten Bogor',
+  title: 'The Lords Vineyard',
+  description: 'Aplikasi Checkin TLV',
 };
 
 export default function RootLayout({

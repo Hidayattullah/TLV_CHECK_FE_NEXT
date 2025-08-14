@@ -94,7 +94,10 @@ export default function LoginPage() {
       <header className="bg-primary w-full p-4 flex flex-col items-center justify-center flex-shrink-0 text-primary-foreground">
         <div className="w-full max-w-md relative">
             <Link href="/support-ticket" passHref>
-             <Button variant="ghost" size="icon" className="absolute top-0 right-0 text-primary-foreground hover:bg-primary-foreground/10">
+             <Button 
+                size="icon" 
+                className="absolute top-0 right-0 bg-white text-primary rounded-full hover:bg-primary hover:text-primary-foreground hover:border hover:border-primary-foreground transition-all"
+              >
                 <Headset />
                 <span className="sr-only">Dukungan</span>
              </Button>

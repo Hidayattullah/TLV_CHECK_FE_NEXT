@@ -9,7 +9,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { getMemberByPhoneNumber } from "@/lib/repository_mock/members";
+import { login as loginUser } from "@/lib/repository_mock/members";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function LoginPage() {
@@ -19,35 +19,31 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const { login } = useAuth();
+  const { login: setAuthSession } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const member = await getMemberByPhoneNumber(phoneNumber);
+      // Panggil fungsi login dari repository yang mengembalikan JWT
+      const { token, member } = await loginUser(phoneNumber, password);
       
-      if (member && member.password === password) {
-        login(member.id); // Set user session
-        toast({
-          title: "Login Berhasil!",
-          description: `Selamat datang kembali, ${member.name}.`,
-        });
-        setTimeout(() => router.push("/"), 1000);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login Gagal",
-          description: "Nomor telepon atau password salah.",
-        });
-        setIsLoading(false);
-      }
+      setAuthSession(token); // Simpan token di AuthContext
+      
+      toast({
+        title: "Login Berhasil!",
+        description: `Selamat datang kembali, ${member.name}.`,
+      });
+      
+      setTimeout(() => router.push("/"), 1000);
+
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Nomor telepon atau password salah.";
       toast({
         variant: "destructive",
         title: "Login Gagal",
-        description: "Terjadi kesalahan. Coba lagi nanti.",
+        description: errorMessage,
       });
       setIsLoading(false);
     }

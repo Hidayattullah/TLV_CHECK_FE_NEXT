@@ -1,122 +1,114 @@
 
 "use client";
 
-import { BottomNav } from "@/components/common/bottom-nav";
-import { AuthGuard } from "@/components/common/auth-guard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, History, Shield, Heart, HelpCircle, Church } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
+import { History, Church, HeartHandshake, MessageSquareQuote, ClipboardList, Loader2 } from "lucide-react";
+import { UserCircle } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BottomNav } from "@/components/common/bottom-nav";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useMemo } from "react";
-import type { Module } from "@/lib/api/types";
 
-const userActions = [
-  {
-    title: "Riwayat Check-In",
-    description: "Lihat riwayat kehadiran ibadah Anda.",
-    icon: History,
-    href: "/check-in",
-    cta: "Lihat Riwayat",
-  },
-  {
-    title: "Dukungan Doa",
-    description: "Kirimkan permohonan doa Anda.",
-    icon: Heart,
-    href: "/prayer-support",
-    cta: "Kirim Doa",
-  },
-  {
-    title: "Pertanyaan & Jawaban",
-    description: "Ajukan pertanyaan seputar gereja.",
-    icon: HelpCircle,
-    href: "/faq",
-    cta: "Tanya Jawab",
-  },
-  {
-    title: "Tentang Gereja",
-    description: "Kenali lebih dalam visi dan misi kami.",
-    icon: Church,
-    href: "/services",
-    cta: "Pelajari Lebih",
-  },
+const mainMenuItems = [
+  { href: "/check-in", label: "Check In", icon: History },
+  { href: "/services", label: "Tentang Kita", icon: Church },
+  { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
+  { href: "/prayer-support", label: "Dukungan Doa", icon: HeartHandshake },
 ];
 
-export default function HomePage() {
-  const { user } = useAuth();
+const managementMenuItem = { 
+  href: "/management", 
+  label: "Manajemen", 
+  icon: ClipboardList,
+  requiredPermission: true 
+};
 
+const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
+  <Link href={href} passHref>
+    <Card className="bg-card hover:bg-accent/50 transition-colors duration-200 aspect-square flex flex-col items-center justify-center p-4 text-center rounded-2xl shadow-md">
+      <CardContent className="p-0 flex flex-col items-center justify-center gap-2">
+        <Icon className="w-10 h-10 text-primary" />
+        <p className="text-sm font-semibold text-foreground/80">{label}</p>
+      </CardContent>
+    </Card>
+  </Link>
+);
+
+
+export default function DashboardPage() {
+  const { user, isLoading } = useAuth();
+  
   const hasManagementAccess = useMemo(() => {
-    if (!user?.permissions) return false;
-    // Check if user has 'read' permission for any module
-    return Object.values(user.permissions).some(perms => perms.includes("read"));
+    if (!user || !user.permissions) return false;
+    // Check if user has any permission in any of the management modules
+    return Object.values(user.permissions).some(modulePermissions => modulePermissions.length > 0);
   }, [user]);
 
-  return (
-    <AuthGuard>
-      <div className="bg-background min-h-screen flex flex-col pb-20">
-        <main className="flex-grow p-4 sm:p-6 lg:p-8">
-          <div className="max-w-4xl mx-auto">
-            <header className="mb-8">
-              <h1 className="font-headline text-4xl mb-2 text-primary">
-                Selamat Datang, {user?.name.split(" ")[0]}
-              </h1>
-              <p className="text-muted-foreground">Apa yang ingin Anda lakukan hari ini?</p>
-            </header>
+  const userName = user?.name || "Guest";
+  const userInitials = userName.split(' ').map(n => n[0]).join('');
+  const userAvatarUrl = user?.avatarUrl || "";
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hasManagementAccess && (
-                <Card className="col-span-1 md:col-span-2 lg:col-span-3 bg-primary/5 border-primary/20">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-xl text-primary flex items-center gap-2">
-                          <Shield />
-                          Manajemen Gereja
-                        </CardTitle>
-                        <CardDescription className="mt-1">
-                          Akses dasbor untuk mengelola data jemaat, check-in, dan lainnya.
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Link href="/management">
-                      <Button variant="management">
-                        Buka Dasbor Manajemen <ArrowRight className="ml-2" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              )}
-
-              {userActions.map((action) => (
-                <Card key={action.title} className="flex flex-col">
-                  <CardHeader className="flex-grow">
-                     <div className="flex items-start justify-between">
-                        <div>
-                           <CardTitle className="text-xl flex items-center gap-3">
-                            <action.icon className="w-6 h-6 text-primary" />
-                            {action.title}
-                          </CardTitle>
-                          <CardDescription className="mt-2">{action.description}</CardDescription>
-                        </div>
-                      </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Link href={action.href}>
-                      <Button variant="outline" className="w-full">
-                        {action.cta}
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </main>
-        
-        <BottomNav />
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-primary">
+        <Loader2 className="w-12 h-12 animate-spin text-primary-foreground" />
       </div>
-    </AuthGuard>
+    )
+  }
+
+  return (
+    <div className="bg-primary min-h-screen flex flex-col relative overflow-hidden pb-24">
+      {/* Abstract background shapes */}
+      <div className="absolute top-0 left-0 w-full h-1/2">
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-white/10 rounded-full" />
+        <div className="absolute top-10 right-0 w-3/4 h-1/2 bg-white/5 rounded-full" />
+      </div>
+
+      <header className="p-4 flex items-center justify-between text-white relative z-10">
+        <div className="flex items-center gap-3">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Avatar className="w-12 h-12 cursor-pointer">
+                {userAvatarUrl && <AvatarImage src={userAvatarUrl} alt={userName} data-ai-hint="person portrait" />}
+                <AvatarFallback className="text-primary-foreground border-primary-foreground">{userInitials}</AvatarFallback>
+              </Avatar>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{userName}</DialogTitle>
+                </DialogHeader>
+                <div className="flex justify-center items-center p-4 min-h-[100px]">
+                  {userAvatarUrl ? (
+                    <Image src={userAvatarUrl} alt={`Avatar of ${userName}`} width={400} height={400} className="rounded-lg" data-ai-hint="person portrait"/>
+                  ) : (
+                    <p className="text-muted-foreground">{userName} belum mengunggah foto.</p>
+                  )}
+                </div>
+              </DialogContent>
+          </Dialog>
+          <div>
+            <p className="text-sm">Shalom,</p>
+            <h1 className="font-bold text-lg">{userName}</h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-grow flex flex-col items-center w-full mt-4 z-10">
+        <div className="bg-card w-full flex-grow p-6 rounded-3xl shadow-lg space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {mainMenuItems.map((item) => (
+              <MenuItem key={item.href} {...item} />
+            ))}
+            {hasManagementAccess && <MenuItem {...managementMenuItem} />}
+          </div>
+        </div>
+      </main>
+
+      <BottomNav />
+    </div>
   );
 }

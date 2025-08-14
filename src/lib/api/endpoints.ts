@@ -28,4 +28,10 @@ export const API_ENDPOINTS = {
   ADD_QUESTION: `${API_BASE_URL}/questions`,
   GET_QUESTION_BY_ID: (id: string) => `${API_BASE_URL}/questions/${id}`,
   RESPOND_TO_QUESTION: (id: string) => `${API_BASE_URL}/questions/${id}/respond`,
+
+  // Support Ticket endpoints
+  CREATE_SUPPORT_TICKET: `${API_BASE_URL}/tickets`,
+  GET_ALL_SUPPORT_TICKETS: `${API_BASE_URL}/tickets`,
+  GET_SUPPORT_TICKET_BY_ID: (id: string) => `${API_BASE_URL}/tickets/${id}`,
+  UPDATE_SUPPORT_TICKET: (id: string) => `${API_BASE_URL}/tickets/${id}`,
 };

@@ -96,7 +96,10 @@ export async function addMember(newMemberData: NewMember): Promise<Member> {
     isActive: true,
     isVerified: true, // Auto-verified for mock
     avatarUrl: "",
-    permissions: { members: [], checkin: [], prayers: [], questions: [] },
+    permissions: {
+      members: [], checkin: [], prayers: [], questions: [],
+      tickets: []
+    },
     rfid: { id: null, type: null },
   };
   

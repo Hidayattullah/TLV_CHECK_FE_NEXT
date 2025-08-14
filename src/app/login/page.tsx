@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -11,25 +11,45 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { login as loginUser } from "@/lib/repository_mock/members";
 import { useAuth } from "@/hooks/use-auth";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const { login: setAuthSession } = useAuth();
+
+  useEffect(() => {
+    const savedPhoneNumber = localStorage.getItem("rememberedPhoneNumber");
+    const savedPassword = localStorage.getItem("rememberedPassword");
+    if (savedPhoneNumber && savedPassword) {
+      setPhoneNumber(savedPhoneNumber);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Panggil fungsi login dari repository yang mengembalikan JWT
       const { token, member } = await loginUser(phoneNumber, password);
       
-      setAuthSession(token); // Simpan token di AuthContext
+      setAuthSession(token);
+      
+      if (rememberMe) {
+        localStorage.setItem("rememberedPhoneNumber", phoneNumber);
+        localStorage.setItem("rememberedPassword", password);
+      } else {
+        localStorage.removeItem("rememberedPhoneNumber");
+        localStorage.removeItem("rememberedPassword");
+      }
       
       toast({
         title: "Login Berhasil!",
@@ -109,6 +129,24 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember-me"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  disabled={isLoading}
+                />
+                <Label htmlFor="remember-me" className="text-sm font-medium text-muted-foreground cursor-pointer">
+                  Ingat Saya
+                </Label>
+              </div>
+              <Link href="/reset-password" prefetch={false} className="text-sm text-primary hover:text-primary/80">
+                  Lupa Password
+              </Link>
+            </div>
+
              <div className="pt-2">
               <Button type="submit" className="w-full h-12 rounded-full text-lg font-semibold" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -117,12 +155,7 @@ export default function LoginPage() {
             </div>
           </form>
          
-          <div className="mt-6 text-center">
-             <Link href="/reset-password" prefetch={false} className="text-primary hover:text-primary/80 text-sm">
-                Lupa Password
-             </Link>
-          </div>
-           <div className="mt-4 text-center text-sm">
+           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Belum punya akun? </span>
             <Link href="/register" prefetch={false} className="font-semibold text-primary hover:text-primary/80">
               Daftar

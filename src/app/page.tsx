@@ -91,7 +91,7 @@ export default function DashboardPage() {
               </DialogContent>
           </Dialog>
           <div>
-            <p className="text-sm">Selamat Datang,</p>
+            <p className="text-sm">Shalom,</p>
             <h1 className="font-bold text-lg">{userName}</h1>
           </div>
         </div>

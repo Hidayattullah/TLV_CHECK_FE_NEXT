@@ -34,7 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Calendar, CheckCircle, Loader2, Edit, Save, AlertTriangle, MessageSquareQuote, Archive, Trash2 } from "lucide-react";
 import type { Question } from "@/lib/api/types";
-import { getQuestions, respondToQuestion, deleteQuestions as apiDeleteQuestions } from "@/lib/repository_mock/questions";
+import { getQuestions, respondToQuestion, deleteQuestions as apiDeleteQuestions, archiveQuestion as apiArchiveQuestion } from "@/lib/repository_mock/questions";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -44,7 +44,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
 
 const ITEMS_PER_PAGE = 6;
 const ARCHIVE_ITEMS_PER_PAGE = 5;
@@ -416,6 +415,7 @@ export default function QuestionsManagementPage() {
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [isResponseDialogOpen, setResponseDialogOpen] = useState(false);
   const [isArchiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [questionToArchive, setQuestionToArchive] = useState<Question | null>(null);
   const { toast } = useToast();
 
   const fetchQuestions = async () => {
@@ -463,6 +463,28 @@ export default function QuestionsManagementPage() {
     ));
     if (selectedQuestion?.id === questionId) {
       setSelectedQuestion(prev => prev ? {...prev, ...updatedQuestionData} : null);
+    }
+  };
+  
+  const handleArchiveQuestion = async () => {
+    if (!questionToArchive) return;
+    try {
+      await apiArchiveQuestion(questionToArchive.id);
+      setAllQuestions(prev => prev.map(q => 
+        q.id === questionToArchive.id ? { ...q, isArchived: true, archivedDate: new Date().toISOString() } : q
+      ));
+      toast({
+        title: "Berhasil Diarsipkan",
+        description: `Pertanyaan dari ${questionToArchive.userName} telah diarsipkan.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Mengarsipkan",
+        description: "Tidak dapat mengarsipkan pertanyaan ini."
+      });
+    } finally {
+      setQuestionToArchive(null);
     }
   };
 
@@ -585,10 +607,12 @@ export default function QuestionsManagementPage() {
             paginatedQuestions.map(req => (
               <Card 
                 key={req.id} 
-                onClick={() => handleCardClick(req)} 
-                className="cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all flex flex-col"
+                className="hover:shadow-lg hover:border-primary/50 transition-all flex flex-col group relative"
               >
-                <CardHeader className="flex flex-row items-center gap-3">
+                <CardHeader 
+                  onClick={() => handleCardClick(req)} 
+                  className="flex flex-row items-center gap-3 cursor-pointer"
+                >
                    <Avatar>
                        <AvatarImage src={req.avatarUrl} alt={req.userName} data-ai-hint="person" />
                        <AvatarFallback>{getInitials(req.userName)}</AvatarFallback>
@@ -597,10 +621,19 @@ export default function QuestionsManagementPage() {
                       <CardTitle className="text-base">{req.userName}</CardTitle>
                     </div>
                 </CardHeader>
-                <CardContent className="flex-grow">
+                <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => { e.stopPropagation(); setQuestionToArchive(req); }}
+                >
+                    <Archive className="h-4 w-4"/>
+                    <span className="sr-only">Arsipkan</span>
+                </Button>
+                <CardContent onClick={() => handleCardClick(req)} className="flex-grow cursor-pointer">
                   <p className="text-muted-foreground line-clamp-3">{req.questionText}</p>
                 </CardContent>
-                <CardFooter className="flex flex-wrap justify-between items-center gap-2 pt-4">
+                <CardFooter onClick={() => handleCardClick(req)} className="flex flex-wrap justify-between items-center gap-2 pt-4 cursor-pointer">
                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span>{new Date(req.submittedDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
@@ -670,7 +703,20 @@ export default function QuestionsManagementPage() {
         onViewQuestion={handleCardClick}
         onDelete={handleDeleteFromArchive}
       />
+      <AlertDialog open={!!questionToArchive} onOpenChange={(open) => !open && setQuestionToArchive(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Arsip</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin mengarsipkan pertanyaan dari <strong>{questionToArchive?.userName}</strong>? Anda masih dapat melihatnya di menu Arsip.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleArchiveQuestion}>Lanjutkan & Arsipkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
-

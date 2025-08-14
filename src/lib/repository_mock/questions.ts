@@ -92,3 +92,26 @@ export async function deleteQuestions(ids: string[]): Promise<void> {
         return Promise.reject(new Error("Some questions not found for deletion"));
     }
 }
+
+export async function archiveQuestion(questionId: string): Promise<Question> {
+  await simulateApiDelay();
+  console.log(`Archiving mock question ${questionId}...`);
+  let archivedQuestion: Question | undefined;
+  questions = questions.map(q => {
+    if (q.id === questionId) {
+      archivedQuestion = {
+        ...q,
+        isArchived: true,
+        archivedDate: new Date().toISOString(),
+      };
+      return archivedQuestion;
+    }
+    return q;
+  });
+
+  if (archivedQuestion) {
+    return Promise.resolve(archivedQuestion);
+  } else {
+    return Promise.reject(new Error("Question not found for archiving"));
+  }
+}

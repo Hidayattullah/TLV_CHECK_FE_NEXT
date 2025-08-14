@@ -224,6 +224,14 @@ export default function SupportTicketPage() {
                     <p className="font-mono">{searchedTicket.id}</p>
                   </div>
                   <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Nama</p>
+                    <p>{searchedTicket.userName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">No. Telepon</p>
+                    <p>{searchedTicket.phoneNumber}</p>
+                  </div>
+                  <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Deskripsi Anda</p>
                     <p className="p-3 bg-secondary/50 rounded-md">{searchedTicket.description}</p>
                   </div>

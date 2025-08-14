@@ -1,6 +1,7 @@
 
 
 
+
 export type Permission = "read" | "edit" | "delete";
 export type Module = "members" | "checkin" | "prayers" | "questions" | "tickets";
 export type RfidType = "Card" | "Tag" | "Stiker";
@@ -83,13 +84,15 @@ export type Question = {
 };
 
 // Support Ticket types
+export type TicketStatus = "Proses" | "Selesai" | "Ditolak";
+
 export type SupportTicket = {
   id: string;
   userName: string;
   phoneNumber: string;
   description: string;
   submittedDate: string;
-  isResolved: boolean;
+  status: TicketStatus;
   response?: string;
   resolvedBy?: string;
   resolvedDate?: string;

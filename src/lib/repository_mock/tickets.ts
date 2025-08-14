@@ -29,3 +29,9 @@ export async function getSupportTicketById(ticketId: string): Promise<SupportTic
   
   return Promise.resolve(ticket || null);
 }
+
+export async function getAllSupportTickets(): Promise<SupportTicket[]> {
+  await simulateApiDelay();
+  console.log("Fetching all mock support tickets...");
+  return Promise.resolve([...tickets]);
+}

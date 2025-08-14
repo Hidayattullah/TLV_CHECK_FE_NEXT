@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, QrCode, ScrollText, MessageSquareQuote } from "lucide-react";
+import { Users, QrCode, ScrollText, MessageSquareQuote, Ticket } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import type { Module } from "@/lib/api/types";
@@ -42,6 +42,14 @@ const managementSections = [
     href: "/questions-management",
     cta: "Lihat Pertanyaan",
     module: "questions" as Module,
+  },
+  {
+    title: "Tiket Dukungan",
+    description: "Kelola dan tanggapi tiket dukungan dari pengguna.",
+    icon: Ticket,
+    href: "/tickets-management",
+    cta: "Kelola Tiket",
+    module: "tickets" as Module,
   },
 ];
 

@@ -41,6 +41,25 @@ export default function LoginPage() {
     try {
       const { token, member } = await loginUser(phoneNumber, password);
       
+      if (!member.isActive) {
+        toast({
+          variant: "destructive",
+          title: "Akun Tidak Aktif",
+          description: (
+            <span>
+              Maaf, akun Anda tidak aktif. Harap hubungi administrator melalui{" "}
+              <Link href="/support-ticket" className="underline font-bold">
+                formulir ini
+              </Link>
+              .
+            </span>
+          ),
+          duration: 10000,
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       setAuthSession(token);
       
       if (rememberMe) {

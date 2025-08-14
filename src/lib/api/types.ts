@@ -80,3 +80,16 @@ export type Question = {
   responseBy?: string;
   responseText?: string;
 };
+
+// Support Ticket types
+export type SupportTicket = {
+  id: string;
+  userName: string;
+  phoneNumber: string;
+  description: string;
+  submittedDate: string;
+  isResolved: boolean;
+  response?: string;
+  resolvedBy?: string;
+  resolvedDate?: string;
+};

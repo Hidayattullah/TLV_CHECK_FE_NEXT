@@ -123,9 +123,9 @@
   }
   
   .btn-primary-fixed:disabled {
-    background-color: hsl(var(--primary) / 0.75);
+    background-color: hsl(324, 69%, 40%);
     color: hsl(var(--primary-foreground) / 0.75);
-    border-color: hsl(var(--primary) / 0.75);
+    border-color: hsl(324, 69%, 40%);
     cursor: not-allowed;
     transform: none;
   }

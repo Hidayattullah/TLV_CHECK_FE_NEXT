@@ -312,7 +312,7 @@ export default function TicketsManagementPage() {
         <Tabs defaultValue="proses" className="w-full">
           <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
             <TabsTrigger value="proses">
-              Dalam Proses <Badge variant="secondary" className="ml-2">{ticketsByStatus.proses.length}</Badge>
+              Proses <Badge variant="secondary" className="ml-2">{ticketsByStatus.proses.length}</Badge>
             </TabsTrigger>
             <TabsTrigger value="selesai">
               Selesai <Badge variant="secondary" className="ml-2">{ticketsByStatus.selesai.length}</Badge>

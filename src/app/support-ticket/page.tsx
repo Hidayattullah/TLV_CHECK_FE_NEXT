@@ -215,8 +215,13 @@ export default function SupportTicketPage() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="font-semibold text-lg flex items-center gap-2"><Ticket className="text-primary"/>Status Tiket</h3>
-                     <Badge variant={searchedTicket.isResolved ? "default" : "secondary"}>
-                       {searchedTicket.isResolved ? "Selesai" : "Dalam Proses"}
+                     <Badge 
+                      variant={
+                        searchedTicket.status === 'Selesai' ? 'default' : 
+                        searchedTicket.status === 'Ditolak' ? 'destructive' : 'secondary'
+                      }
+                     >
+                       {searchedTicket.status}
                     </Badge>
                   </div>
                   <div className="space-y-1">
@@ -235,7 +240,7 @@ export default function SupportTicketPage() {
                     <p className="text-sm text-muted-foreground">Deskripsi Anda</p>
                     <p className="p-3 bg-secondary/50 rounded-md">{searchedTicket.description}</p>
                   </div>
-                  {searchedTicket.isResolved && searchedTicket.response && (
+                  {searchedTicket.response && (
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">Jawaban Admin ({searchedTicket.resolvedBy})</p>
                       <p className="p-3 bg-green-50 border border-green-200 text-green-900 rounded-md">{searchedTicket.response}</p>

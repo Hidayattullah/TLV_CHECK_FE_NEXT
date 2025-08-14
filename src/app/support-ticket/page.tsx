@@ -242,7 +242,7 @@ export default function SupportTicketPage() {
                   </div>
                   {searchedTicket.response && (
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Jawaban Admin ({searchedTicket.resolvedBy})</p>
+                      <p className="text-sm text-muted-foreground">Jawaban Admin</p>
                       <p className="p-3 bg-green-50 border border-green-200 text-green-900 rounded-md">{searchedTicket.response}</p>
                     </div>
                   )}

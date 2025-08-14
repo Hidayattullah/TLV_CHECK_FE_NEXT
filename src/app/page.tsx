@@ -12,6 +12,7 @@ import { BottomNav } from "@/components/common/bottom-nav";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useMemo } from "react";
+import { AuthGuard } from "@/components/common/auth-guard";
 
 const mainMenuItems = [
   { href: "/check-in", label: "Check In", icon: History },
@@ -39,7 +40,7 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
 );
 
 
-export default function DashboardPage() {
+function DashboardPage() {
   const { user, isLoading } = useAuth();
   
   const hasManagementAccess = useMemo(() => {
@@ -110,5 +111,14 @@ export default function DashboardPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+
+export default function HomePage() {
+  return (
+    <AuthGuard>
+      <DashboardPage />
+    </AuthGuard>
   );
 }

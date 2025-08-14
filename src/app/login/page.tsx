@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { getMemberByPhoneNumber } from "@/lib/repository_mock/members";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +29,11 @@ export default function LoginPage() {
       const member = await getMemberByPhoneNumber(phoneNumber);
       
       if (member && member.password === password) {
+        login(member.id); // Set user session
         toast({
           title: "Login Berhasil!",
           description: `Selamat datang kembali, ${member.name}.`,
         });
-        // Simulate setting a session and redirecting
         setTimeout(() => router.push("/"), 1000);
       } else {
         toast({

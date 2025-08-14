@@ -5,19 +5,27 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { History, Church, HeartHandshake, MessageSquareQuote, ClipboardList } from "lucide-react";
+import { History, Church, HeartHandshake, MessageSquareQuote, ClipboardList, Loader2 } from "lucide-react";
 import { UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BottomNav } from "@/components/common/bottom-nav";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth";
+import { useMemo } from "react";
 
 const mainMenuItems = [
   { href: "/check-in", label: "Check In", icon: History },
   { href: "/services", label: "Tentang Kita", icon: Church },
   { href: "/faq", label: "Pertanyaan", icon: MessageSquareQuote },
   { href: "/prayer-support", label: "Dukungan Doa", icon: HeartHandshake },
-  { href: "/management", label: "Manajemen", icon: ClipboardList },
 ];
+
+const managementMenuItem = { 
+  href: "/management", 
+  label: "Manajemen", 
+  icon: ClipboardList,
+  requiredPermission: true 
+};
 
 const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
   <Link href={href} passHref>
@@ -32,9 +40,25 @@ const MenuItem = ({ href, label, icon: Icon }: { href: string; label: string; ic
 
 
 export default function DashboardPage() {
-  const userName = "Tubagus Rifan";
+  const { user, isLoading } = useAuth();
+  
+  const hasManagementAccess = useMemo(() => {
+    if (!user || !user.permissions) return false;
+    // Check if user has any permission in any of the management modules
+    return Object.values(user.permissions).some(modulePermissions => modulePermissions.length > 0);
+  }, [user]);
+
+  const userName = user?.name || "Guest";
   const userInitials = userName.split(' ').map(n => n[0]).join('');
-  const userAvatarUrl = ""; // Removed placeholder
+  const userAvatarUrl = user?.avatarUrl || "";
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-primary">
+        <Loader2 className="w-12 h-12 animate-spin text-primary-foreground" />
+      </div>
+    )
+  }
 
   return (
     <div className="bg-primary min-h-screen flex flex-col relative overflow-hidden pb-24">
@@ -79,6 +103,7 @@ export default function DashboardPage() {
             {mainMenuItems.map((item) => (
               <MenuItem key={item.href} {...item} />
             ))}
+            {hasManagementAccess && <MenuItem {...managementMenuItem} />}
           </div>
         </div>
       </main>

@@ -20,9 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Member } from "@/lib/api/types";
 import { getMemberById, updateMember } from "@/lib/repository_mock/members";
 import { useToast } from "@/hooks/use-toast";
-
-// We'll use a hardcoded ID to simulate a logged-in user
-const CURRENT_USER_ID = "1";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,32 +29,19 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
+  
+  const { user, isLoading, logout, refetchUser } = useAuth();
   const [member, setMember] = useState<Member | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Member>>({});
   const { toast } = useToast();
-
+  const router = useRouter();
+  
   useEffect(() => {
-    async function fetchMember() {
-      setIsLoading(true);
-      try {
-        const memberData = await getMemberById(CURRENT_USER_ID);
-        setMember(memberData);
-        setEditFormData(memberData);
-      } catch (error) {
-        console.error("Failed to fetch profile", error);
-        toast({
-          variant: "destructive",
-          title: "Gagal Memuat Profil",
-          description: "Tidak dapat memuat data profil Anda.",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    if (user) {
+      setMember(user);
+      setEditFormData(user);
     }
-    fetchMember();
-  }, [toast]);
+  }, [user]);
 
   const getInitials = (name: string) => {
     return name
@@ -113,6 +99,7 @@ export default function ProfilePage() {
     try {
       const updatedData = await updateMember(member.id, editFormData);
       setMember(updatedData);
+      refetchUser(); // Refetch user data in context
       toast({
         title: "Berhasil!",
         description: "Profil Anda telah berhasil diperbarui.",
@@ -134,6 +121,11 @@ export default function ProfilePage() {
     setEditFormData(member || {});
     setIsSaving(false);
     setIsDialogOpen(false);
+  }
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
   }
 
   return (
@@ -384,17 +376,18 @@ export default function ProfilePage() {
                     </DialogFooter>
                     </DialogContent>
                 </Dialog>
-                <Link href="/login" passHref className="w-full">
+                
                     <Button 
                     variant="outline" 
                     className="w-full text-primary border-primary hover:bg-primary/10 hover:text-primary"
+                    onClick={handleLogout}
                     >
                     <span className="inline-flex items-center gap-2">
                         <LogOut />
                         Logout
                     </span>
                     </Button>
-                </Link>
+                
                 </div>
             </CardContent>
             </>

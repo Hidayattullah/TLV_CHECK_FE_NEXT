@@ -1,3 +1,5 @@
+// FILE INI SUDAH TIDAK DIGUNAKAN DAN DAPAT DIHAPUS.
+// Komponen ini digunakan oleh halaman /attendance yang telah digantikan oleh /check-in.
 
 "use client";
 

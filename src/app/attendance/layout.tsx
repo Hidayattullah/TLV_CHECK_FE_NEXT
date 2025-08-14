@@ -1,3 +1,5 @@
+// FILE INI SUDAH TIDAK DIGUNAKAN DAN DAPAT DIHAPUS.
+// Halaman "Attendance" telah digantikan oleh halaman "Check In" di rute /check-in.
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";

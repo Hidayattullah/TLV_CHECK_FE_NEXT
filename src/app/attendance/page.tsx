@@ -1,3 +1,7 @@
+// FILE INI SUDAH TIDAK DIGUNAKAN DAN DAPAT DIHAPUS.
+// Halaman "Attendance" telah digantikan oleh halaman "Check In" di rute /check-in.
+// Komponen AttendanceReport juga tidak lagi digunakan.
+
 import { AttendanceReport } from "@/components/attendance/attendance-report";
 
 export default function AttendancePage() {

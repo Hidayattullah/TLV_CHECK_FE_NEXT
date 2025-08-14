@@ -1,3 +1,7 @@
+// FILE INI SUDAH TIDAK DIGUNAKAN DAN DAPAT DIHAPUS.
+// Halaman Manajemen Jemaat sekarang berada di rute /members-management
+// dan komponen dasbor telah dipindahkan.
+
 "use client";
 
 import { useState } from "react";

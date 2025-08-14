@@ -1,3 +1,7 @@
+// FILE INI SUDAH TIDAK DIGUNAKAN DAN DAPAT DIHAPUS.
+// Aplikasi ini tidak menggunakan layout sidebar seperti ini.
+// Navigasi utama ditangani oleh BottomNav dan layout per halaman.
+
 "use client";
 
 import {

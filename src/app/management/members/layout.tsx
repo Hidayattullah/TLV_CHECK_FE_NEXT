@@ -1,3 +1,6 @@
+// FILE INI SUDAH TIDAK DIGUNAKAN DAN DAPAT DIHAPUS.
+// Komponen Dasbor Manajemen telah dipindahkan ke src/components/management/dashboard.tsx
+// dan halaman Manajemen Jemaat sekarang berada di rute /members-management.
 
 "use client";
 

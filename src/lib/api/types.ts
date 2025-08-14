@@ -3,6 +3,7 @@
 
 
 
+
 export type Permission = "read" | "edit" | "delete";
 export type Module = "members" | "checkin" | "prayers" | "questions" | "tickets";
 export type RfidType = "Card" | "Tag" | "Stiker";
@@ -82,6 +83,8 @@ export type Question = {
   isResponded?: boolean;
   responseBy?: string;
   responseText?: string;
+  isArchived?: boolean;
+  archivedDate?: string;
 };
 
 // Support Ticket types

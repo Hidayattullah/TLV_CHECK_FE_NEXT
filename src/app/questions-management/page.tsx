@@ -32,11 +32,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Calendar, User, CheckCircle, Loader2, Edit, Save, AlertTriangle, MessageSquareQuote } from "lucide-react";
+import { Search, Calendar, CheckCircle, Loader2, Edit, Save, AlertTriangle, MessageSquareQuote, Archive, Trash2 } from "lucide-react";
 import type { Question } from "@/lib/api/types";
-import { getQuestions, respondToQuestion } from "@/lib/repository_mock/questions";
+import { getQuestions, respondToQuestion, deleteQuestions as apiDeleteQuestions } from "@/lib/repository_mock/questions";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 
 const ITEMS_PER_PAGE = 6;
+const ARCHIVE_ITEMS_PER_PAGE = 5;
 
 function QuestionResponseDialog({ 
   question, 
@@ -180,55 +183,288 @@ function QuestionResponseDialog({
   );
 }
 
+function ArchiveDialog({
+    archivedQuestions,
+    isOpen,
+    onOpenChange,
+    onViewQuestion,
+    onDelete
+}: {
+    archivedQuestions: Question[],
+    isOpen: boolean,
+    onOpenChange: (open: boolean) => void,
+    onViewQuestion: (question: Question) => void,
+    onDelete: (ids: string[]) => void
+}) {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (!isOpen) {
+            setSearchTerm("");
+            setCurrentPage(1);
+            setSelectedIds(new Set());
+        }
+    }, [isOpen]);
+
+    const filteredArchived = useMemo(() => {
+        return archivedQuestions.filter(q => 
+            q.questionText.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            q.userName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [archivedQuestions, searchTerm]);
+
+    const totalPages = Math.ceil(filteredArchived.length / ARCHIVE_ITEMS_PER_PAGE);
+
+    const paginatedArchived = useMemo(() => {
+        const startIndex = (currentPage - 1) * ARCHIVE_ITEMS_PER_PAGE;
+        return filteredArchived.slice(startIndex, startIndex + ARCHIVE_ITEMS_PER_PAGE);
+    }, [filteredArchived, currentPage]);
+
+    const handleSelect = (id: string, checked: boolean) => {
+        setSelectedIds(prev => {
+            const newSet = new Set(prev);
+            if (checked) {
+                newSet.add(id);
+            } else {
+                newSet.delete(id);
+            }
+            return newSet;
+        });
+    };
+    
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(new Set(paginatedArchived.map(q => q.id)));
+        } else {
+            setSelectedIds(new Set());
+        }
+    };
+    
+    const handleDelete = async () => {
+        if (selectedIds.size === 0) return;
+        setIsDeleting(true);
+        try {
+            await onDelete(Array.from(selectedIds));
+            toast({
+                title: "Berhasil Dihapus",
+                description: `${selectedIds.size} pertanyaan telah dihapus dari arsip.`,
+                variant: "destructive"
+            });
+            setSelectedIds(new Set());
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Gagal Menghapus",
+                description: "Terjadi kesalahan saat menghapus pertanyaan.",
+            });
+        } finally {
+            setIsDeleting(false);
+            setDeleteConfirmOpen(false);
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-3xl flex flex-col max-h-[90vh]">
+                <DialogHeader>
+                    <DialogTitle>Arsip Pertanyaan</DialogTitle>
+                    <DialogDescription>Daftar pertanyaan yang telah diarsipkan. Pertanyaan akan otomatis dihapus setelah 7 hari di arsip.</DialogDescription>
+                </DialogHeader>
+                <div className="flex-grow space-y-4 py-4 overflow-y-auto -mx-6 px-6">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="relative flex-grow">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Cari di arsip..."
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                className="pl-9"
+                            />
+                        </div>
+                        <Button
+                            variant="destructive"
+                            onClick={() => setDeleteConfirmOpen(true)}
+                            disabled={selectedIds.size === 0 || isDeleting}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Hapus ({selectedIds.size})
+                        </Button>
+                    </div>
+
+                    <div className="border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-12">
+                                        <Checkbox
+                                            checked={selectedIds.size > 0 && paginatedArchived.every(q => selectedIds.has(q.id))}
+                                            onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                                        />
+                                    </TableHead>
+                                    <TableHead>Pengirim</TableHead>
+                                    <TableHead>Pertanyaan</TableHead>
+                                    <TableHead>Diarsipkan Pada</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedArchived.length > 0 ? paginatedArchived.map(q => (
+                                    <TableRow key={q.id}>
+                                        <TableCell>
+                                            <Checkbox
+                                                checked={selectedIds.has(q.id)}
+                                                onCheckedChange={(checked) => handleSelect(q.id, !!checked)}
+                                            />
+                                        </TableCell>
+                                        <TableCell
+                                            className="font-medium cursor-pointer hover:underline"
+                                            onClick={() => onViewQuestion(q)}
+                                        >
+                                            {q.userName}
+                                        </TableCell>
+                                        <TableCell
+                                            className="cursor-pointer hover:underline truncate max-w-xs"
+                                            onClick={() => onViewQuestion(q)}
+                                        >
+                                            {q.questionText}
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground text-xs">
+                                            {new Date(q.archivedDate!).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">Arsip kosong.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Halaman {currentPage} dari {totalPages}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                          >
+                            Sebelumnya
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                          >
+                            Berikutnya
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                </div>
+                 <DialogFooter className="pt-4 border-t -mx-6 px-6">
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Tutup</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+             <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Apakah Anda yakin ingin menghapus {selectedIds.size} pertanyaan yang dipilih? Tindakan ini tidak dapat dibatalkan.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
+                           {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                           {isDeleting ? "Menghapus..." : "Lanjutkan & Hapus"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </Dialog>
+    )
+}
+
 export default function QuestionsManagementPage() {
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all"); // 'all', 'responded', 'unresponded'
+  const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isResponseDialogOpen, setResponseDialogOpen] = useState(false);
+  const [isArchiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function loadQuestions() {
-        setIsLoading(true);
-        try {
-            const data = await getQuestions();
-            setQuestions(data);
-        } catch (error) {
-            toast({
-                variant: "destructive",
-                title: "Gagal Memuat Pertanyaan",
-                description: "Tidak dapat memuat data pertanyaan. Coba lagi nanti.",
-            });
-        } finally {
-            setIsLoading(false);
-        }
+  const fetchQuestions = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getQuestions();
+      setAllQuestions(data);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Gagal Memuat Pertanyaan",
+        description: "Tidak dapat memuat data pertanyaan. Coba lagi nanti.",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    loadQuestions();
+  };
+
+  useEffect(() => {
+    fetchQuestions();
   }, [toast]);
 
+  const { activeQuestions, archivedQuestions } = useMemo(() => {
+    const active: Question[] = [];
+    const archived: Question[] = [];
+    allQuestions.forEach(q => {
+      if (q.isArchived) {
+        archived.push(q);
+      } else {
+        active.push(q);
+      }
+    });
+    return { activeQuestions: active, archivedQuestions: archived };
+  }, [allQuestions]);
+
   const handleRespond = (questionId: string, responseText: string, responderName: string) => {
-    const updatedQuestion = { 
+    const updatedQuestionData = { 
         isResponded: true, 
         responseBy: responderName,
         responseText: responseText
     };
 
-    setQuestions(prev => prev.map(req => 
-      req.id === questionId 
-        ? { ...req, ...updatedQuestion } 
-        : req
+    setAllQuestions(prev => prev.map(q => 
+      q.id === questionId ? { ...q, ...updatedQuestionData } : q
     ));
     if (selectedQuestion?.id === questionId) {
-      setSelectedQuestion(prev => prev ? {...prev, ...updatedQuestion} : null);
+      setSelectedQuestion(prev => prev ? {...prev, ...updatedQuestionData} : null);
     }
   };
 
+  const handleDeleteFromArchive = async (ids: string[]) => {
+    await apiDeleteQuestions(ids);
+    setAllQuestions(prev => prev.filter(q => !ids.includes(q.id)));
+  };
+
   const filteredQuestions = useMemo(() => {
-    return questions
+    return activeQuestions
       .filter(req => 
         req.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
         req.questionText.toLowerCase().includes(searchTerm.toLowerCase())
@@ -239,7 +475,7 @@ export default function QuestionsManagementPage() {
         if (filterStatus === 'unresponded') return !req.isResponded;
         return true;
       });
-  }, [questions, searchTerm, filterStatus]);
+  }, [activeQuestions, searchTerm, filterStatus]);
 
   const totalPages = Math.ceil(filteredQuestions.length / ITEMS_PER_PAGE);
 
@@ -257,7 +493,7 @@ export default function QuestionsManagementPage() {
   
   const handleCardClick = (question: Question) => {
     setSelectedQuestion(question);
-    setIsDialogOpen(true);
+    setResponseDialogOpen(true);
   };
 
   const getInitials = (name: string) => {
@@ -275,7 +511,7 @@ export default function QuestionsManagementPage() {
         <header className="mb-8">
           <h1 className="font-headline text-4xl mb-2 text-primary">Tinjau Pertanyaan Jemaat</h1>
           <p className="text-muted-foreground max-w-2xl">
-            Lihat dan berikan jawaban untuk setiap pertanyaan yang masuk dari jemaat.
+            Lihat dan berikan jawaban untuk setiap pertanyaan yang masuk dari jemaat. Pertanyaan akan diarsipkan setelah 7 hari.
           </p>
         </header>
 
@@ -292,22 +528,28 @@ export default function QuestionsManagementPage() {
                 className="pl-9 bg-card"
             />
           </div>
-          <Select
-            value={filterStatus}
-            onValueChange={(value) => {
-              setFilterStatus(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-[200px] bg-card">
-              <SelectValue placeholder="Filter Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Status</SelectItem>
-              <SelectItem value="responded">Sudah Dijawab</SelectItem>
-              <SelectItem value="unresponded">Menunggu Jawaban</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Select
+              value={filterStatus}
+              onValueChange={(value) => {
+                setFilterStatus(value);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[200px] bg-card">
+                <SelectValue placeholder="Filter Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="responded">Sudah Dijawab</SelectItem>
+                <SelectItem value="unresponded">Menunggu Jawaban</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={() => setArchiveDialogOpen(true)}>
+                <Archive className="mr-2 h-4 w-4" />
+                Arsip ({archivedQuestions.length})
+            </Button>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -404,15 +646,23 @@ export default function QuestionsManagementPage() {
       </div>
       <QuestionResponseDialog 
         question={selectedQuestion} 
-        isOpen={isDialogOpen} 
+        isOpen={isResponseDialogOpen} 
         onOpenChange={(open) => {
             if (!open) {
                 setTimeout(() => setSelectedQuestion(null), 300);
             }
-            setIsDialogOpen(open);
+            setResponseDialogOpen(open);
         }} 
         onRespond={handleRespond}
+      />
+      <ArchiveDialog
+        archivedQuestions={archivedQuestions}
+        isOpen={isArchiveDialogOpen}
+        onOpenChange={setArchiveDialogOpen}
+        onViewQuestion={handleCardClick}
+        onDelete={handleDeleteFromArchive}
       />
     </>
   );
 }
+

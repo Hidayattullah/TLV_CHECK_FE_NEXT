@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Headset } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -92,7 +92,13 @@ export default function LoginPage() {
   return (
     <div className="bg-background min-h-screen flex flex-col">
       <header className="bg-primary w-full p-4 flex flex-col items-center justify-center flex-shrink-0 text-primary-foreground">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md relative">
+            <Link href="/support-ticket" passHref>
+             <Button variant="ghost" size="icon" className="absolute top-0 right-0 text-primary-foreground hover:bg-primary-foreground/10">
+                <Headset />
+                <span className="sr-only">Dukungan</span>
+             </Button>
+           </Link>
         </div>
         <div className="my-4 flex flex-col items-center text-center">
            <Image 

@@ -75,7 +75,7 @@ export default function LoginPage() {
         description: `Selamat datang kembali, ${member.name}.`,
       });
       
-      setTimeout(() => router.push("/"), 1000);
+      setTimeout(() => router.push("/dashboard"), 1000);
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Nomor telepon atau password salah.";

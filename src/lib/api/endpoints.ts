@@ -20,14 +20,20 @@ export const API_ENDPOINTS = {
 
   // Prayer Request endpoints
   GET_PRAYER_REQUESTS: `${API_BASE_URL}/prayers`,
+  ADD_PRAYER_REQUEST: `${API_BASE_URL}/prayers`,
   GET_PRAYER_REQUEST_BY_ID: (id: string) => `${API_BASE_URL}/prayers/${id}`,
   RESPOND_TO_PRAYER_REQUEST: (id: string) => `${API_BASE_URL}/prayers/${id}/respond`,
+  ARCHIVE_PRAYER: (id: string) => `${API_BASE_URL}/prayers/${id}/archive`,
+  DELETE_PRAYERS: `${API_BASE_URL}/prayers`,
 
   // Question endpoints
   GET_QUESTIONS: `${API_BASE_URL}/questions`,
   ADD_QUESTION: `${API_BASE_URL}/questions`,
   GET_QUESTION_BY_ID: (id: string) => `${API_BASE_URL}/questions/${id}`,
   RESPOND_TO_QUESTION: (id: string) => `${API_BASE_URL}/questions/${id}/respond`,
+  ARCHIVE_QUESTION: (id: string) => `${API_BASE_URL}/questions/${id}/archive`,
+  DELETE_QUESTIONS: `${API_BASE_URL}/questions`,
+
 
   // Support Ticket endpoints
   CREATE_SUPPORT_TICKET: `${API_BASE_URL}/tickets`,

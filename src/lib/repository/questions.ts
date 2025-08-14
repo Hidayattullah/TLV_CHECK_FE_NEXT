@@ -29,3 +29,18 @@ export async function respondToQuestion(
     body: JSON.stringify({ responseText, responderName }),
   });
 }
+
+export async function archiveQuestion(questionId: string): Promise<Question> {
+    console.log(`Archiving question ${questionId} via API...`);
+    return customFetch<Question>(API_ENDPOINTS.ARCHIVE_QUESTION(questionId), {
+        method: 'POST',
+    });
+}
+
+export async function deleteQuestions(ids: string[]): Promise<void> {
+    console.log(`Deleting questions via API: ${ids.join(', ')}`);
+    await customFetch<void>(API_ENDPOINTS.DELETE_QUESTIONS, {
+        method: 'DELETE',
+        body: JSON.stringify({ ids }),
+    });
+}

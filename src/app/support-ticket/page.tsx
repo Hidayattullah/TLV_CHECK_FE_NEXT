@@ -27,7 +27,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle, Loader2, Search, Ticket, XCircle } from "lucide-react";
+import { CheckCircle, Loader2, Search, Ticket, XCircle, Copy } from "lucide-react";
 import type { SupportTicket } from "@/lib/api/types";
 import { createSupportTicket, getSupportTicketById } from "@/lib/repository_mock/tickets";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +93,14 @@ export default function SupportTicketPage() {
       setIsSearching(false);
     }
   };
+  
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Berhasil Disalin!",
+      description: "ID Tiket telah disalin ke clipboard.",
+    });
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -116,7 +124,18 @@ export default function SupportTicketPage() {
                 <AlertTitle className="font-bold">Tiket Anda Telah Dibuat!</AlertTitle>
                 <AlertDescription>
                   <p>Harap simpan ID Tiket Anda untuk memeriksa status.</p>
-                  <p className="font-mono text-lg font-bold my-2 bg-secondary p-2 rounded">{submittedTicket.id}</p>
+                  <div className="font-mono text-lg font-bold my-2 bg-secondary p-2 rounded flex items-center justify-between">
+                    <span>{submittedTicket.id}</span>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8"
+                      onClick={() => handleCopy(submittedTicket.id)}
+                    >
+                      <Copy className="h-4 w-4"/>
+                      <span className="sr-only">Salin ID Tiket</span>
+                    </Button>
+                  </div>
                   <Button size="sm" onClick={() => setSubmittedTicket(null)}>Buat Tiket Lain</Button>
                 </AlertDescription>
               </Alert>
@@ -171,53 +190,55 @@ export default function SupportTicketPage() {
                 disabled={isSearching}
               />
               <Button type="submit" disabled={isSearching || !searchId.trim()}>
-                {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4"/>}
               </Button>
             </form>
+
             <Separator />
+
             <div className="mt-4">
-              {isSearching ? (
-                 <div className="flex items-center justify-center p-8">
-                    <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
-                    <p className="text-muted-foreground">Mencari...</p>
-                 </div>
-              ) : searchedTicket === 'not_found' ? (
-                <p className="text-center text-destructive">Tiket tidak ditemukan.</p>
-              ) : searchedTicket ? (
-                <div className="space-y-4 text-sm">
+              {isSearching && (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              )}
+              {searchedTicket === 'not_found' && (
+                <Alert variant="destructive">
+                  <XCircle className="h-4 w-4" />
+                  <AlertTitle>Tiket Tidak Ditemukan</AlertTitle>
+                  <AlertDescription>
+                    Pastikan ID Tiket yang Anda masukkan sudah benar.
+                  </AlertDescription>
+                </Alert>
+              )}
+              {searchedTicket && searchedTicket !== 'not_found' && (
+                <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-base text-primary">{searchedTicket.id}</h3>
-                    <Badge variant={searchedTicket.isResolved ? "default" : "secondary"}>
-                      {searchedTicket.isResolved ? "Selesai" : "Dalam Proses"}
+                    <h3 className="font-semibold text-lg flex items-center gap-2"><Ticket className="text-primary"/>Status Tiket</h3>
+                     <Badge variant={searchedTicket.isResolved ? "default" : "secondary"}>
+                       {searchedTicket.isResolved ? "Selesai" : "Dalam Proses"}
                     </Badge>
                   </div>
-                  <div>
-                    <p className="font-semibold text-muted-foreground">Nama</p>
-                    <p>{searchedTicket.userName}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">ID Tiket</p>
+                    <p className="font-mono">{searchedTicket.id}</p>
                   </div>
-                   <div>
-                    <p className="font-semibold text-muted-foreground">Nomor Telepon</p>
-                    <p>{searchedTicket.phoneNumber}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Deskripsi Anda</p>
+                    <p className="p-3 bg-secondary/50 rounded-md">{searchedTicket.description}</p>
                   </div>
-                  <div>
-                    <p className="font-semibold text-muted-foreground">Pertanyaan</p>
-                    <p className="whitespace-pre-wrap">{searchedTicket.description}</p>
-                  </div>
-                   {searchedTicket.isResolved && searchedTicket.response && (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="font-semibold text-green-800">Jawaban Admin:</p>
-                      <p className="text-green-900/90 whitespace-pre-wrap">{searchedTicket.response}</p>
-                      <p className="text-xs text-green-700 mt-2">
-                        Dijawab oleh {searchedTicket.resolvedBy} pada {new Date(searchedTicket.resolvedDate!).toLocaleString('id-ID')}
-                      </p>
+                  {searchedTicket.isResolved && searchedTicket.response && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Jawaban Admin ({searchedTicket.resolvedBy})</p>
+                      <p className="p-3 bg-green-50 border border-green-200 text-green-900 rounded-md">{searchedTicket.response}</p>
                     </div>
                   )}
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                    <Ticket className="h-12 w-12 text-muted-foreground/50 mb-4"/>
-                    <p className="text-muted-foreground">Status tiket akan muncul di sini.</p>
-                </div>
+              )}
+               {!isSearching && !searchedTicket && (
+                 <div className="text-center p-8 text-muted-foreground">
+                    Hasil pencarian akan muncul di sini.
+                 </div>
               )}
             </div>
           </CardContent>

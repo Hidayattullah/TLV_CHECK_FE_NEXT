@@ -7,33 +7,45 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const registeredPhoneNumbers = ["+6281234567890", "+6281234567891", "+6281234567892"];
+import { getMemberByPhoneNumber } from "@/lib/repository_mock/members";
 
 export default function ResetPasswordPage() {
   const [view, setView] = useState<'request' | 'verify' | 'reset'>('request');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
 
-  const handleRequestCode = (e: React.FormEvent) => {
+  const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (registeredPhoneNumbers.includes(phoneNumber)) {
-      toast({
-        title: "Nomor Terdaftar",
-        description: "Kode reset akan segera dikirim ke nomor Anda.",
-      });
-      setView('verify');
-    } else {
-      toast({
+    try {
+      const member = await getMemberByPhoneNumber(phoneNumber);
+      if (member) {
+        toast({
+          title: "Nomor Terdaftar",
+          description: "Kode reset akan segera dikirim ke nomor Anda (simulasi).",
+        });
+        setView('verify');
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Nomor Tidak Ditemukan",
+          description: "Nomor telepon ini belum terdaftar. Silakan registrasi terlebih dahulu.",
+        });
+      }
+    } catch (error) {
+       toast({
         variant: "destructive",
-        title: "Nomor Tidak Ditemukan",
-        description: "Nomor telepon ini belum terdaftar. Silakan registrasi terlebih dahulu.",
+        title: "Terjadi Kesalahan",
+        description: "Tidak dapat memverifikasi nomor telepon. Coba lagi nanti.",
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -84,11 +96,15 @@ export default function ResetPasswordPage() {
                     className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button type="submit" className="w-full">Kirim Kode Reset</Button>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading ? "Memeriksa..." : "Kirim Kode Reset"}
+                </Button>
                 <p className="text-sm text-center text-muted-foreground">
                   Kembali ke halaman{" "}
                   <Link href="/login" prefetch={false} className="underline text-primary/80 hover:text-primary">

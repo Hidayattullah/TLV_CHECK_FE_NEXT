@@ -1,4 +1,5 @@
 
+
 export type Permission = "read" | "edit" | "delete";
 export type Module = "members" | "checkin" | "prayers" | "questions";
 export type RfidType = "Card" | "Tag" | "Stiker";
@@ -16,6 +17,7 @@ export type Member = {
   address: string;
   dateOfBirth: string;
   gender: Gender;
+  password?: string; // Optional for security, might not be sent to client
   permissions: Record<Module, Permission[]>;
   rfid: {
     id: string | null;
@@ -23,7 +25,7 @@ export type Member = {
   };
 };
 
-// Type for adding a new member, without system-generated fields like id, joinedDate etc.
+// Type for adding a new member from registration form
 export type NewMember = Omit<Member, "id" | "joinedDate" | "isActive" | "isVerified" | "avatarUrl" | "permissions" | "rfid">;
 
 // Check-in types

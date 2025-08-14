@@ -1,3 +1,4 @@
+
 import { initialMembers } from "@/lib/mock/members";
 import type { Member, NewMember } from "@/lib/api/types";
 
@@ -14,11 +15,36 @@ export async function getMembers(): Promise<Member[]> {
   return Promise.resolve([...members]);
 }
 
-export async function addMember(newMemberData: Omit<NewMember, "password">): Promise<Member> {
+export async function getMemberById(id: string): Promise<Member> {
+  await simulateApiDelay();
+  console.log(`Fetching mock member data for id: ${id}...`);
+  const member = members.find(m => m.id === id);
+  if (member) {
+    return Promise.resolve(member);
+  } else {
+    return Promise.reject(new Error("Member not found"));
+  }
+}
+
+export async function getMemberByPhoneNumber(phoneNumber: string): Promise<Member | null> {
+  await simulateApiDelay();
+  console.log(`Fetching mock member data for phone: ${phoneNumber}...`);
+  const member = members.find(m => m.phoneNumber === phoneNumber);
+  return Promise.resolve(member || null);
+}
+
+export async function addMember(newMemberData: NewMember): Promise<Member> {
   await simulateApiDelay();
   console.log("Adding mock member...");
+
+  const existingMember = await getMemberByPhoneNumber(newMemberData.phoneNumber);
+  if (existingMember) {
+    return Promise.reject(new Error("Phone number already registered."));
+  }
+
   const newMember: Member = {
     ...newMemberData,
+    email: newMemberData.email || `${newMemberData.name.toLowerCase().replace(/\s/g, '.')}@generated.com`,
     id: `member-${Date.now()}`,
     joinedDate: new Date().toISOString().split("T")[0],
     isActive: true,

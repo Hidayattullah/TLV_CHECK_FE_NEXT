@@ -36,6 +36,14 @@ import { Search, Calendar, CheckCircle, Loader2, Edit, Save, AlertTriangle, Mess
 import type { Question } from "@/lib/api/types";
 import { getQuestions, respondToQuestion, deleteQuestions as apiDeleteQuestions } from "@/lib/repository_mock/questions";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 
 const ITEMS_PER_PAGE = 6;

@@ -1,3 +1,4 @@
+
 import type { Member } from "@/lib/api/types";
 
 export const initialMembers: Member[] = [
@@ -18,7 +19,7 @@ export const initialMembers: Member[] = [
       checkin: ["read", "edit"],
       prayers: ["read"],
       questions: ["read", "edit"],
-      tickets: [],
+      tickets: ["read"],
     },
     rfid: { id: '123456789', type: 'Card' },
   },

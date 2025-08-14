@@ -40,7 +40,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -64,6 +63,7 @@ const moduleLabels: Record<Module, string> = {
   checkin: "Pembuatan Check In",
   prayers: "Pokok Doa",
   questions: "Pertanyaan Jemaat",
+  tickets: "Tiket Dukungan",
 };
 
 const permissionLabels: Record<Permission, string> = {

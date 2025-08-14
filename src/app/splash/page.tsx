@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
-import { Logo } from "@/components/logo";
 
 const APP_VERSION = "1.0.0";
 
@@ -21,13 +20,12 @@ export default function SplashScreenPage() {
   }, [router]);
 
   return (
-    <div className="bg-primary min-h-screen flex flex-col items-center justify-between p-8 text-primary-foreground overflow-hidden">
-      <header className="w-full text-center animate-fade-in-down">
-        <h1 className="text-3xl font-headline tracking-wider">The Lord&apos;s Vineyard</h1>
-      </header>
-      
-      <main className="flex flex-col items-center justify-center flex-grow">
-         <div className="relative w-48 h-48 animate-fade-in-scale">
+    <div className="bg-primary min-h-screen flex flex-col items-center justify-center p-8 text-primary-foreground overflow-hidden">
+      <main className="flex flex-col items-center justify-center flex-grow text-center">
+        <div className="animate-fade-in-down">
+          <h1 className="text-3xl font-headline tracking-wider mb-4">The Lord&apos;s Vineyard</h1>
+        </div>
+         <div className="relative w-64 h-64 animate-fade-in-scale">
            <Image 
               src="/images/emblem_nbg.png" 
               alt="The Lord's Vineyard Logo"

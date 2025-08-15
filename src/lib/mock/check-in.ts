@@ -29,7 +29,7 @@ export const mockEvents: CheckInEvent[] = [
     id: "evt-003",
     eventName: "Ibadah Dewasa Muda",
     eventDate: "2024-07-27",
-    isActive: false,
+    isActive: true,
     attendees: [
       { id: "6", name: "Michael Bay", checkinTime: "18:30", checkinMethod: "Barcode" },
       { id: "3", name: "Admin Gereja", checkinTime: "18:25", checkinMethod: "RFID" },

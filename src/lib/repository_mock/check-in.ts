@@ -12,6 +12,7 @@ const simulateApiDelay = (ms = 300) => new Promise(resolve => setTimeout(resolve
 export async function getCheckInEvents(): Promise<CheckInEvent[]> {
   await simulateApiDelay();
   console.log("Fetching mock check-in events...");
+  // Return a deep copy to prevent direct mutation of the mock data state
   return Promise.resolve(JSON.parse(JSON.stringify(events)));
 }
 
@@ -19,7 +20,6 @@ export async function getCheckInEventById(id: string): Promise<CheckInEvent | nu
     await simulateApiDelay(50); // Shorter delay for polling
     console.log(`Fetching mock check-in event by ID: ${id}`);
     const event = events.find(e => e.id === id);
-    // Return a deep copy of the found event to ensure the caller gets the most current state
     return Promise.resolve(event ? JSON.parse(JSON.stringify(event)) : null);
 }
 
@@ -32,19 +32,17 @@ export async function addAttendee(eventId: string, attendee: Attendee): Promise<
         return Promise.reject(new Error("Event not found"));
     }
 
-    const eventToUpdate = events[eventIndex];
+    const eventToUpdate = { ...events[eventIndex] }; // Create a copy to mutate
 
-    // Ensure attendees is an array
     if (!Array.isArray(eventToUpdate.attendees)) {
         eventToUpdate.attendees = [];
     }
 
-    // CRITICAL FIX: Check for duplicates before adding
     const alreadyExists = eventToUpdate.attendees.some(a => a.id === attendee.id);
 
     if (!alreadyExists) {
         eventToUpdate.attendees.push(attendee);
-        events[eventIndex] = eventToUpdate;
+        events[eventIndex] = eventToUpdate; // Update the original array
     }
 
     return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
@@ -61,7 +59,7 @@ export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "ev
         attendees: [],
         activationType: 'manual',
     };
-    events = [newEvent, ...events];
+    events.unshift(newEvent); // Add to the start of the array
     return Promise.resolve(JSON.parse(JSON.stringify(newEvent)));
 }
 
@@ -108,7 +106,6 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
                 ...event, 
                 isActive, 
                 deactivationTimer: undefined, 
-                // Set activationType to 'manual' if activating, otherwise undefined
                 activationType: isActive ? 'manual' : undefined, 
                 timerEndsAt: undefined 
             };

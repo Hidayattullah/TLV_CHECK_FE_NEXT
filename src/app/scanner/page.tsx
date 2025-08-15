@@ -72,6 +72,7 @@ export default function ScannerPage() {
 
     try {
       const event = await getCheckInEventById(eventId);
+      
       if (event && event.isActive) {
         const alreadyCheckedIn = Array.isArray(event.attendees) && event.attendees.some(attendee => attendee.id === user.id);
         

@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { CameraOff, RotateCw, CheckCircle } from "lucide-react";
+import { CameraOff, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import jsQR from "jsqr";
 import { addAttendee, getCheckInEventById } from "@/lib/repository_mock/check-in";
@@ -20,6 +20,7 @@ export default function ScannerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const router = useRouter();
 
   const getStream = async (deviceId?: string) => {
     if (streamRef.current) {
@@ -87,21 +88,18 @@ export default function ScannerPage() {
           checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
           checkinMethod: "Barcode"
         });
-        toast({
-          title: "Check-in Berhasil!",
-          description: `Selamat datang, ${user.name}, di ${event.eventName}!`,
-          action: <CheckCircle className="text-green-500" />,
-        });
+        router.push(`/scanner/success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
       } else if (event && !event.isActive) {
          toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });
+         setTimeout(() => setIsScanning(true), 3000);
       } 
       else {
         toast({ variant: "destructive", title: "Gagal", description: "Kode QR tidak valid atau acara tidak ditemukan." });
+        setTimeout(() => setIsScanning(true), 3000);
       }
     } catch (error) {
        toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat check-in." });
-    } finally {
-       setTimeout(() => setIsScanning(true), 3000); // Re-enable scanning after a delay
+       setTimeout(() => setIsScanning(true), 3000);
     }
   };
 
@@ -154,6 +152,11 @@ export default function ScannerPage() {
     const animationFrame = requestAnimationFrame(scanQrCode);
     return () => cancelAnimationFrame(animationFrame);
   }, [scanQrCode]);
+  
+  // Re-enable scanning when returning to this page
+  useEffect(() => {
+    setIsScanning(true);
+  }, []);
 
   const handleSwitchCamera = () => {
     if (devices.length < 2) {
@@ -194,18 +197,11 @@ export default function ScannerPage() {
         )}
       </div>
       <div className="mt-4 w-full max-w-md space-y-4">
-        {hasCameraPermission === false && (
-            <Alert variant="destructive">
-              <AlertTitle>Akses Kamera Diperlukan</AlertTitle>
-              <AlertDescription>
-                Mohon izinkan akses kamera untuk menggunakan fitur ini.
-              </AlertDescription>
-            </Alert>
-        )}
-        {hasCameraPermission === true && (
+        {hasCameraPermission === false ? (
+             <p className="text-center text-destructive">Akses kamera diperlukan untuk memindai.</p>
+        ) : hasCameraPermission === true ? (
             <p className="text-center text-muted-foreground">Posisikan kode QR di dalam bingkai untuk memindai.</p>
-        )}
-         {hasCameraPermission === null && (
+        ) : (
             <p className="text-center text-muted-foreground">Meminta izin kamera...</p>
         )}
       </div>

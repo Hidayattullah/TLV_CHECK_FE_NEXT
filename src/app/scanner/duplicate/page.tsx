@@ -4,10 +4,10 @@
 import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { Info } from 'lucide-react';
 import Link from 'next/link';
 
-function SuccessContent() {
+function DuplicateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const eventName = searchParams.get('eventName') || 'acara ini';
@@ -15,16 +15,16 @@ function SuccessContent() {
 
   return (
     <div className="flex flex-col items-center justify-center text-center p-8">
-      <div className="relative my-8 animate-fade-in-down" style={{ animationDelay: '200ms' }}>
-        <CheckCircle className="w-32 h-32 text-green-500" />
+       <div className="relative my-8 animate-fade-in-down" style={{ animationDelay: '200ms' }}>
+        <Info className="w-32 h-32 text-primary" />
       </div>
-
+      
       <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-          Selamat datang, <span className="text-primary">{userName}</span>!
+          <span className="text-primary">{userName}</span>, Anda Sudah Check-in
         </h1>
-        <p className="text-lg text-muted-foreground mt-2">
-          Anda telah berhasil check-in di {eventName}.
+        <p className="text-lg text-muted-foreground mt-2 max-w-md">
+          Anda sudah terdaftar pada acara <strong>{eventName}</strong>. Tidak perlu melakukan pemindaian ulang.
         </p>
       </div>
 
@@ -40,10 +40,10 @@ function SuccessContent() {
   );
 }
 
-export default function ScannerSuccessPage() {
+export default function ScannerDuplicatePage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <SuccessContent />
+            <DuplicateContent />
         </Suspense>
     )
 }

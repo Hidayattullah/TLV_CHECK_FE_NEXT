@@ -84,11 +84,7 @@ export default function ScannerPage() {
       if (event && event.isActive) {
         const alreadyCheckedIn = event.attendees.some(attendee => attendee.id === user.id);
         if (alreadyCheckedIn) {
-          toast({
-            title: "Anda Sudah Check-in",
-            description: "Anda sudah terdaftar di acara ini. Lihat riwayat di halaman Check-In.",
-          });
-          setTimeout(() => setIsScanning(true), 3000);
+          router.push(`/scanner/duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
           return;
         }
 
@@ -165,8 +161,17 @@ export default function ScannerPage() {
   
   // Re-enable scanning when returning to this page
   useEffect(() => {
-    setIsScanning(true);
-  }, []);
+    const handleFocus = () => {
+      if (!isScanning) {
+        console.log("Re-enabling scanning on window focus.");
+        setIsScanning(true);
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isScanning]);
 
   const handleSwitchCamera = () => {
     if (devices.length < 2) {

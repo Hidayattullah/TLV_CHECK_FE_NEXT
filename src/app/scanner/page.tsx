@@ -60,7 +60,8 @@ export default function ScannerPage() {
     try {
       const event = await getCheckInEventById(eventId);
       if (event && event.isActive) {
-        const alreadyCheckedIn = event.attendees.some(attendee => attendee.id === user.id);
+        // Corrected Logic: Check if user.id exists in the attendees array.
+        const alreadyCheckedIn = event.attendees && event.attendees.some(attendee => attendee.id === user.id);
         
         if (alreadyCheckedIn) {
           router.push(`/scanner/duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
@@ -120,14 +121,16 @@ export default function ScannerPage() {
         }
       }
     }
-    requestAnimationFrame(scanQrCode);
+    if (isScanning) {
+      requestAnimationFrame(scanQrCode);
+    }
   }, [isScanning, handleQrCode]);
 
 
   useEffect(() => {
     const getCameraDevices = async () => {
       try {
-        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        await navigator.mediaDevices.getUserMedia({ video: true });
         const videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter(
           (device) => device.kind === "videoinput"
         );
@@ -141,7 +144,6 @@ export default function ScannerPage() {
         const initialDeviceId = rearCamera ? rearCamera.deviceId : videoDevices[0]?.deviceId;
         setCurrentDeviceId(initialDeviceId);
         
-        tempStream.getTracks().forEach(track => track.stop());
       } catch (error) {
         console.error("Error accessing camera:", error);
         setHasCameraPermission(false);
@@ -163,15 +165,22 @@ export default function ScannerPage() {
   }, [toast]);
 
   useEffect(() => {
-    if (currentDeviceId) {
+    if (currentDeviceId && hasCameraPermission) {
       getStream(currentDeviceId);
     }
-  }, [currentDeviceId]);
+  }, [currentDeviceId, hasCameraPermission]);
 
   useEffect(() => {
-    const animationFrame = requestAnimationFrame(scanQrCode);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [scanQrCode]);
+    let animationFrameId: number;
+    if (isScanning && hasCameraPermission) {
+       animationFrameId = requestAnimationFrame(scanQrCode);
+    }
+    return () => {
+      if(animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    }
+  }, [scanQrCode, isScanning, hasCameraPermission]);
   
   // Re-enable scanning when returning to this page
   useEffect(() => {

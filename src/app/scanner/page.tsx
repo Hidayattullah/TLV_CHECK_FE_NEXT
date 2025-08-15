@@ -1,24 +1,29 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { CameraOff, RotateCw } from "lucide-react";
+import { CameraOff, RotateCw, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import jsQR from "jsqr";
+import { addAttendee, getCheckInEventById } from "@/lib/repository_mock/check-in";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ScannerPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | undefined>(undefined);
+  const [isScanning, setIsScanning] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const getStream = async (deviceId?: string) => {
-    // Stop any existing stream before starting a new one
     if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => track.stop());
     }
 
     const constraints = {
@@ -27,92 +32,142 @@ export default function ScannerPage() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream; // Save stream to ref
+      streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch(err) {
+    } catch (err) {
       console.error("Error getting stream:", err);
       setHasCameraPermission(false);
-       toast({
-          variant: "destructive",
-          title: "Akses Kamera Ditolak",
-          description: "Tidak dapat memulai kamera dengan perangkat yang dipilih.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Akses Kamera Ditolak",
+        description: "Tidak dapat memulai kamera dengan perangkat yang dipilih.",
+      });
     }
   };
+
+  const scanQrCode = useCallback(() => {
+    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current && isScanning) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+
+      if (context) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+
+        if (code) {
+          setIsScanning(false);
+          handleQrCode(code.data);
+        }
+      }
+    }
+    requestAnimationFrame(scanQrCode);
+  }, [isScanning]);
+
+  const handleQrCode = async (eventId: string) => {
+    if (!user) {
+      toast({ variant: "destructive", title: "Gagal", description: "Anda harus login untuk check-in." });
+      setTimeout(() => setIsScanning(true), 2000);
+      return;
+    }
+
+    try {
+      const event = await getCheckInEventById(eventId);
+      if (event && event.isActive) {
+        await addAttendee(eventId, {
+          id: user.id,
+          name: user.name,
+          checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+          checkinMethod: "Barcode"
+        });
+        toast({
+          title: "Check-in Berhasil!",
+          description: `Selamat datang, ${user.name}, di ${event.eventName}!`,
+          action: <CheckCircle className="text-green-500" />,
+        });
+      } else if (event && !event.isActive) {
+         toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });
+      } 
+      else {
+        toast({ variant: "destructive", title: "Gagal", description: "Kode QR tidak valid atau acara tidak ditemukan." });
+      }
+    } catch (error) {
+       toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat check-in." });
+    } finally {
+       setTimeout(() => setIsScanning(true), 3000); // Re-enable scanning after a delay
+    }
+  };
+
 
   useEffect(() => {
     const getCameraDevices = async () => {
       try {
-        // Request permission and get a stream to enumerate devices.
         const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
         const videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter(
           (device) => device.kind === "videoinput"
         );
         
-        if (videoDevices.length === 0) {
-          throw new Error("No video input devices found.");
-        }
+        if (videoDevices.length === 0) throw new Error("Tidak ada kamera ditemukan.");
 
         setDevices(videoDevices);
         setHasCameraPermission(true);
         
-        // Find the environment-facing camera first.
         const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear'));
         const initialDeviceId = rearCamera ? rearCamera.deviceId : videoDevices[0]?.deviceId;
-
         setCurrentDeviceId(initialDeviceId);
         
-        // Stop the initial permission stream as getStream will be called inside the other effect
         tempStream.getTracks().forEach(track => track.stop());
-
       } catch (error) {
         console.error("Error accessing camera:", error);
         setHasCameraPermission(false);
         toast({
           variant: "destructive",
           title: "Akses Kamera Ditolak",
-          description: "Mohon izinkan akses kamera di pengaturan browser Anda untuk menggunakan fitur ini.",
+          description: "Mohon izinkan akses kamera di pengaturan browser Anda.",
         });
       }
     };
 
     getCameraDevices();
 
-    // This is the cleanup function that will run when the component unmounts
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
-    if(currentDeviceId) {
-        getStream(currentDeviceId);
+    if (currentDeviceId) {
+      getStream(currentDeviceId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDeviceId]);
 
+  useEffect(() => {
+    const animationFrame = requestAnimationFrame(scanQrCode);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [scanQrCode]);
 
   const handleSwitchCamera = () => {
     if (devices.length < 2) {
-      toast({
-        title: "Tidak ada kamera lain",
-        description: "Hanya satu kamera yang terdeteksi di perangkat ini.",
-      });
+      toast({ title: "Tidak ada kamera lain", description: "Hanya satu kamera yang terdeteksi." });
       return;
     }
     const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
     const nextIndex = (currentIndex + 1) % devices.length;
-    const nextDeviceId = devices[nextIndex].deviceId;
-    setCurrentDeviceId(nextDeviceId);
+    setCurrentDeviceId(devices[nextIndex].deviceId);
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-4">
+      <canvas ref={canvasRef} className="hidden" />
       <div className="relative w-full max-w-md aspect-square bg-black rounded-lg overflow-hidden shadow-lg">
         <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
         {hasCameraPermission === false && (

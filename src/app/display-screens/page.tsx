@@ -88,14 +88,12 @@ export default function DisplayScreensPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Link href={`/display/${event.id}`} passHref target="_blank">
-                      <Button variant="outline" size="sm" asChild>
-                        <a>
-                          <ExternalLink className="mr-2 h-4 w-4"/>
-                          Buka Tautan
-                        </a>
-                      </Button>
-                    </Link>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/display/${event.id}`} target="_blank">
+                        <ExternalLink className="mr-2 h-4 w-4"/>
+                        Buka Tautan
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

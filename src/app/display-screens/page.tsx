@@ -76,14 +76,14 @@ function CreateEditScreenDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{event ? "Edit Layar Check-in" : "Buat Layar Check-in Baru"}</DialogTitle>
+          <DialogTitle>{event ? "Detail Layar Check-in" : "Buat Layar Check-in Baru"}</DialogTitle>
           <DialogDescription>
             {event ? "Lihat atau salin tautan untuk layar check-in." : "Pilih acara yang aktif untuk membuat tautan layar check-in."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="event-select">Pilih Acara</Label>
+            <Label htmlFor="event-select">Acara Terpilih</Label>
             <Select
               value={selectedEventId}
               onValueChange={setSelectedEventId}
@@ -172,12 +172,6 @@ export default function DisplayScreensPage() {
             Buka tautan untuk menampilkan layar check-in pada masing-masing acara ibadah.
           </p>
         </div>
-        <CreateEditScreenDialog activeEvents={activeEvents}>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Buat Layar
-          </Button>
-        </CreateEditScreenDialog>
       </header>
 
       <div className="border rounded-lg">

@@ -5,6 +5,7 @@ import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
+import Link from 'next/link';
 
 function SuccessContent() {
   const router = useRouter();
@@ -39,13 +40,13 @@ function SuccessContent() {
         </p>
       </div>
 
-      <div className="mt-12 animate-fade-in" style={{ animationDelay: '600ms' }}>
-        <Button onClick={() => router.replace('/scanner')} variant="outline" className="mr-4">
+      <div className="mt-12 animate-fade-in flex flex-col sm:flex-row gap-4" style={{ animationDelay: '600ms' }}>
+        <Button onClick={() => router.replace('/scanner')} variant="outline">
           Pindai Lagi
         </Button>
-        <Button onClick={() => router.push('/dashboard')}>
-          Kembali ke Dasbor
-        </Button>
+        <Link href="/dashboard" passHref>
+           <Button>Kembali ke Dasbor</Button>
+        </Link>
       </div>
     </div>
   );

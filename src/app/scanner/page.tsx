@@ -82,6 +82,16 @@ export default function ScannerPage() {
     try {
       const event = await getCheckInEventById(eventId);
       if (event && event.isActive) {
+        const alreadyCheckedIn = event.attendees.some(attendee => attendee.id === user.id);
+        if (alreadyCheckedIn) {
+          toast({
+            title: "Anda Sudah Check-in",
+            description: "Anda sudah terdaftar di acara ini. Lihat riwayat di halaman Check-In.",
+          });
+          setTimeout(() => setIsScanning(true), 3000);
+          return;
+        }
+
         await addAttendee(eventId, {
           id: user.id,
           name: user.name,

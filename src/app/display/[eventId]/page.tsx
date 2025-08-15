@@ -43,23 +43,25 @@ export default function DisplayPage() {
 
     try {
       const data = await getCheckInEventById(eventId);
-      setEvent(data);
+      setEvent(data); // Set event data regardless of attendees
 
       if (data && data.attendees.length > 0) {
         const latestAttendee = data.attendees[data.attendees.length - 1];
         
+        // Only update if the last attendee is different from the one we're tracking
         if (lastAttendeeRef.current?.id !== latestAttendee.id) {
           setLastAttendee(latestAttendee);
           lastAttendeeRef.current = latestAttendee;
 
+          // Set a timeout to clear the welcome message after 5 seconds
           setTimeout(() => {
             setLastAttendee(null);
           }, 5000);
         }
       }
-
     } catch (error) {
       console.error("Failed to fetch event data:", error);
+      setEvent(null); // Set event to null if there's an error (e.g., not found)
     } finally {
       if (isLoading) {
         setIsLoading(false);
@@ -100,11 +102,11 @@ export default function DisplayPage() {
     );
   }
 
-  if (!event) {
+  if (!event || !event.isActive) {
     return (
       <div className="min-h-screen bg-primary text-primary-foreground flex flex-col items-center justify-center p-8 text-center">
-        <h1 className="text-4xl font-bold mb-4">Acara Tidak Ditemukan</h1>
-        <p className="text-xl opacity-80">Pastikan tautan yang Anda gunakan benar atau acara sudah dibuat.</p>
+        <h1 className="text-4xl font-bold mb-4">Acara Tidak Ditemukan atau Sudah Selesai</h1>
+        <p className="text-xl opacity-80">Pastikan tautan yang Anda gunakan benar dan acara sedang berlangsung.</p>
       </div>
     );
   }

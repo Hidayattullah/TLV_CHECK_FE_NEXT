@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -24,6 +23,7 @@ export default function DisplayPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [lastAttendee, setLastAttendee] = useState<Attendee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [eventNotFound, setEventNotFound] = useState(false);
   const lastAttendeeRef = useRef<Attendee | null>(null);
 
   // Settings State
@@ -43,9 +43,19 @@ export default function DisplayPage() {
 
     try {
       const data = await getCheckInEventById(eventId);
+      
+      // Check if event exists and is active
+      if (!data || !data.isActive) {
+        setEventNotFound(true);
+        setEvent(null);
+        return;
+      }
+      
+      // Reset event not found state if event is now active
+      setEventNotFound(false);
       setEvent(data);
 
-      if (data && data.attendees.length > 0) {
+      if (data.attendees.length > 0) {
         const latestAttendee = data.attendees[data.attendees.length - 1];
         
         if (lastAttendeeRef.current?.id !== latestAttendee.id) {
@@ -59,6 +69,7 @@ export default function DisplayPage() {
       }
     } catch (error) {
       console.error("Failed to fetch event data:", error);
+      setEventNotFound(true);
       setEvent(null);
     } finally {
       // Always set loading to false after the first fetch attempt
@@ -70,7 +81,7 @@ export default function DisplayPage() {
   
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-        if (e.key === 's' && eventId) {
+        if (e.key === 's' && eventId && event?.isActive) {
             console.log("Simulating a scan...");
             addAttendee(eventId, {
                 id: `user-${Date.now()}`,
@@ -84,7 +95,7 @@ export default function DisplayPage() {
     };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [eventId, fetchEventData]);
+  }, [eventId, fetchEventData, event?.isActive]);
 
   useEffect(() => {
     fetchEventData();
@@ -101,7 +112,7 @@ export default function DisplayPage() {
     );
   }
 
-  if (!event || !event.isActive) {
+  if (eventNotFound || !event || !event.isActive) {
     return (
       <div className="min-h-screen bg-primary text-primary-foreground flex flex-col items-center justify-center p-8 text-center">
         <h1 className="text-4xl font-bold mb-4">Acara Tidak Ditemukan atau Sudah Selesai</h1>

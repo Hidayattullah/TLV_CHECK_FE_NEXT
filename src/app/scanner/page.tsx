@@ -73,7 +73,7 @@ export default function ScannerPage() {
     try {
       const event = await getCheckInEventById(eventId);
       if (event && event.isActive) {
-        const alreadyCheckedIn = event.attendees && event.attendees.some(attendee => attendee.id === user.id);
+        const alreadyCheckedIn = Array.isArray(event.attendees) && event.attendees.some(attendee => attendee.id === user.id);
         
         if (alreadyCheckedIn) {
           router.push(`/scanner-duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);

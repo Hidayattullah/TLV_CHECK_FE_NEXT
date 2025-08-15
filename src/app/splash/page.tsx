@@ -1,5 +1,3 @@
-// FILE INI SUDAH TIDAK DIGUNAKAN LAGI DAN DAPAT DIHAPUS.
-// Fungsionalitas telah dipindahkan ke /src/app/page.tsx
 
 "use client";
 

@@ -25,7 +25,6 @@ export async function getCheckInEventById(id: string): Promise<CheckInEvent | nu
 
 export async function addAttendee(eventId: string, attendee: Attendee): Promise<CheckInEvent> {
     await simulateApiDelay(100);
-    console.log(`Adding mock attendee to event ${eventId}`);
     
     const eventIndex = events.findIndex(event => event.id === eventId);
 
@@ -44,11 +43,8 @@ export async function addAttendee(eventId: string, attendee: Attendee): Promise<
     const alreadyExists = eventToUpdate.attendees.some(a => a.id === attendee.id);
 
     if (!alreadyExists) {
-        console.log(`Attendee ${attendee.name} does not exist. Adding to event.`);
         eventToUpdate.attendees.push(attendee);
         events[eventIndex] = eventToUpdate;
-    } else {
-        console.log(`Attendee ${attendee.name} already exists. Not adding duplicate.`);
     }
 
     return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
@@ -101,7 +97,7 @@ export async function deleteCheckInEvent(id: string): Promise<void> {
 
 export async function updateCheckInEventStatus(id: string, isActive: boolean): Promise<CheckInEvent> {
     await simulateApiDelay(100);
-    console.log(`Updating mock check-in event status ${id}...`);
+    console.log(`Updating mock check-in event status for ${id} to ${isActive}`);
     let eventToUpdate: CheckInEvent | undefined;
     events = events.map(event => {
         if (event.id === id) {
@@ -112,6 +108,7 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
                 ...event, 
                 isActive, 
                 deactivationTimer: undefined, 
+                // Set activationType to 'manual' if activating, otherwise undefined
                 activationType: isActive ? 'manual' : undefined, 
                 timerEndsAt: undefined 
             };

@@ -406,6 +406,8 @@ function TimerCountdown({ endTime }: { endTime: number }) {
       if (newTimeLeft <= 0) {
         clearInterval(timer);
         setTimeLeft(0);
+        // Note: The actual status change is handled by the mock repository's logic now.
+        // This component just displays the countdown.
       } else {
         setTimeLeft(newTimeLeft);
       }
@@ -444,7 +446,7 @@ export default function CheckInCreationPage() {
   const { toast } = useToast();
 
   const loadEvents = useCallback(async () => {
-    setIsLoading(true);
+    // No setIsLoading(true) here to allow background refresh
     try {
       const data = await getCheckInEvents();
       setEvents(data);
@@ -461,6 +463,9 @@ export default function CheckInCreationPage() {
 
   useEffect(() => {
     loadEvents();
+    // Set up an interval to periodically refresh event data
+    const interval = setInterval(loadEvents, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
   }, [loadEvents]);
 
   const handleSaveEvent = (data: Pick<CheckInEvent, 'eventName' | 'eventDate'>, id?: string) => {
@@ -533,18 +538,6 @@ export default function CheckInCreationPage() {
       }
     });
   }, [handleStatusChange, toast]);
-
-
-  useEffect(() => {
-      return () => {
-          events.forEach(event => {
-              if (event.deactivationTimer) {
-                  clearTimeout(event.deactivationTimer);
-              }
-          });
-      };
-  }, [events]);
-
 
   const filteredEvents = useMemo(() => {
     return events.filter(event =>
@@ -647,18 +640,14 @@ export default function CheckInCreationPage() {
                             {event.isActive ? <CheckCircle className="mr-2 h-4 w-4"/> : <XCircle className="mr-2 h-4 w-4"/>}
                             {event.isActive ? 'Aktif' : 'Selesai'}
                           </Badge>
-                          {event.isActive && (
-                            <>
-                              {event.activationType === 'timer' && event.timerEndsAt && (
-                                <TimerCountdown endTime={event.timerEndsAt} />
-                              )}
-                              {event.activationType === 'manual' && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Fingerprint className="h-3 w-3" />
-                                  <span>Manual</span>
-                                </div>
-                              )}
-                            </>
+                          {event.isActive && event.activationType === 'timer' && event.timerEndsAt && event.timerEndsAt > Date.now() && (
+                            <TimerCountdown endTime={event.timerEndsAt} />
+                          )}
+                          {event.isActive && event.activationType === 'manual' && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Fingerprint className="h-3 w-3" />
+                              <span>Manual</span>
+                            </div>
                           )}
                        </div>
                    </div>

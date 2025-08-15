@@ -3,36 +3,66 @@ import { mockEvents } from "@/lib/mock/check-in";
 import type { CheckInEvent, Attendee } from "@/lib/api/types";
 
 // This is the MOCK repository that simulates API calls for development.
-// It uses the local mock data.
+// It uses localStorage to persist data and simulate a shared backend state.
 
-let events: CheckInEvent[] = JSON.parse(JSON.stringify(mockEvents));
+const LOCAL_STORAGE_KEY = 'checkin_events_mock';
+
+const getEventsFromStorage = (): CheckInEvent[] => {
+  if (typeof window === 'undefined') {
+    return JSON.parse(JSON.stringify(mockEvents));
+  }
+  const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (storedData) {
+    // Basic check to see if data seems valid
+    try {
+      const parsed = JSON.parse(storedData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch (e) {
+       localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  }
+  // If no valid data, initialize from mock and save
+  const initialData = JSON.parse(JSON.stringify(mockEvents));
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(initialData));
+  return initialData;
+};
+
+const saveEventsToStorage = (events: CheckInEvent[]) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(events));
+  }
+};
+
 
 const simulateApiDelay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function getCheckInEvents(): Promise<CheckInEvent[]> {
   await simulateApiDelay();
   console.log("Fetching mock check-in events...");
-  // Return a deep copy to prevent direct mutation of the mock data state
+  const events = getEventsFromStorage();
   return Promise.resolve(JSON.parse(JSON.stringify(events)));
 }
 
 export async function getCheckInEventById(id: string): Promise<CheckInEvent | null> {
-    await simulateApiDelay(50); // Shorter delay for polling
+    await simulateApiDelay(50); 
     console.log(`Fetching mock check-in event by ID: ${id}`);
+    const events = getEventsFromStorage();
     const event = events.find(e => e.id === id);
     return Promise.resolve(event ? JSON.parse(JSON.stringify(event)) : null);
 }
 
 export async function addAttendee(eventId: string, attendee: Attendee): Promise<CheckInEvent> {
     await simulateApiDelay(100);
-    
+    let events = getEventsFromStorage();
     const eventIndex = events.findIndex(event => event.id === eventId);
 
     if (eventIndex === -1) {
         return Promise.reject(new Error("Event not found"));
     }
 
-    const eventToUpdate = { ...events[eventIndex] }; // Create a copy to mutate
+    const eventToUpdate = { ...events[eventIndex] };
 
     if (!Array.isArray(eventToUpdate.attendees)) {
         eventToUpdate.attendees = [];
@@ -42,7 +72,8 @@ export async function addAttendee(eventId: string, attendee: Attendee): Promise<
 
     if (!alreadyExists) {
         eventToUpdate.attendees.push(attendee);
-        events[eventIndex] = eventToUpdate; // Update the original array
+        events[eventIndex] = eventToUpdate;
+        saveEventsToStorage(events);
     }
 
     return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
@@ -52,6 +83,7 @@ export async function addAttendee(eventId: string, attendee: Attendee): Promise<
 export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {
     await simulateApiDelay();
     console.log("Adding mock check-in event...");
+    let events = getEventsFromStorage();
     const newEvent: CheckInEvent = {
         ...data,
         id: `evt-${Date.now()}`,
@@ -59,13 +91,15 @@ export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "ev
         attendees: [],
         activationType: 'manual',
     };
-    events.unshift(newEvent); // Add to the start of the array
+    events.unshift(newEvent);
+    saveEventsToStorage(events);
     return Promise.resolve(JSON.parse(JSON.stringify(newEvent)));
 }
 
 export async function updateCheckInEvent(id: string, data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {
     await simulateApiDelay();
     console.log(`Updating mock check-in event ${id}...`);
+    let events = getEventsFromStorage();
     let eventToUpdate: CheckInEvent | undefined;
     events = events.map(event => {
         if (event.id === id) {
@@ -75,6 +109,7 @@ export async function updateCheckInEvent(id: string, data: Pick<CheckInEvent, "e
         return event;
     });
     if (eventToUpdate) {
+        saveEventsToStorage(events);
         return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {
         return Promise.reject(new Error("Event not found"));
@@ -84,9 +119,11 @@ export async function updateCheckInEvent(id: string, data: Pick<CheckInEvent, "e
 export async function deleteCheckInEvent(id: string): Promise<void> {
     await simulateApiDelay();
     console.log(`Deleting mock check-in event ${id}...`);
+    let events = getEventsFromStorage();
     const initialLength = events.length;
     events = events.filter(event => event.id !== id);
     if (events.length < initialLength) {
+        saveEventsToStorage(events);
         return Promise.resolve();
     } else {
         return Promise.reject(new Error("Event not found for deletion"));
@@ -96,6 +133,7 @@ export async function deleteCheckInEvent(id: string): Promise<void> {
 export async function updateCheckInEventStatus(id: string, isActive: boolean): Promise<CheckInEvent> {
     await simulateApiDelay(100);
     console.log(`Updating mock check-in event status for ${id} to ${isActive}`);
+    let events = getEventsFromStorage();
     let eventToUpdate: CheckInEvent | undefined;
     const eventIndex = events.findIndex(e => e.id === id);
     
@@ -104,9 +142,7 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
     }
     
     const currentEvent = events[eventIndex];
-    if (currentEvent.deactivationTimer) {
-        clearTimeout(currentEvent.deactivationTimer);
-    }
+    // This is a mock, so we don't need to worry about clearing real timers.
     
     eventToUpdate = { 
         ...currentEvent, 
@@ -117,6 +153,7 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
     };
     
     events[eventIndex] = eventToUpdate;
+    saveEventsToStorage(events);
 
     if (eventToUpdate) {
         return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
@@ -128,23 +165,17 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
 export async function setCheckInEventTimer(id: string, hours: number, onTimerEnd: (id: string, status: boolean) => void): Promise<CheckInEvent> {
     await simulateApiDelay(100);
     console.log(`Setting timer for mock check-in event ${id}...`);
+    let events = getEventsFromStorage();
     let eventToUpdate: CheckInEvent | undefined;
     const durationMs = hours * 60 * 60 * 1000;
     const endsAt = Date.now() + durationMs;
 
-    const newTimer = setTimeout(() => {
-        onTimerEnd(id, false);
-    }, durationMs);
-
+    // The timer logic itself is client-side, this function just sets the state
     events = events.map(event => {
         if (event.id === id) {
-            if (event.deactivationTimer) {
-                clearTimeout(event.deactivationTimer);
-            }
             eventToUpdate = {
                 ...event,
                 isActive: true,
-                deactivationTimer: newTimer,
                 activationType: 'timer' as const,
                 timerEndsAt: endsAt
             };
@@ -152,10 +183,11 @@ export async function setCheckInEventTimer(id: string, hours: number, onTimerEnd
         }
         return event;
     });
+
     if (eventToUpdate) {
+        saveEventsToStorage(events);
         return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {
-        clearTimeout(newTimer);
         return Promise.reject(new Error("Event not found"));
     }
 }

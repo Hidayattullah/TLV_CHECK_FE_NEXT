@@ -19,6 +19,7 @@ export async function getCheckInEventById(id: string): Promise<CheckInEvent | nu
     await simulateApiDelay(50); // Shorter delay for polling
     console.log(`Fetching mock check-in event by ID: ${id}`);
     const event = events.find(e => e.id === id);
+    // Return a deep copy of the found event to ensure the caller gets the most current state
     return Promise.resolve(event ? JSON.parse(JSON.stringify(event)) : null);
 }
 

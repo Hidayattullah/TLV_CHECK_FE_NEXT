@@ -1,5 +1,5 @@
 // FILE INI SUDAH TIDAK DIGUNAKAN LAGI DAN DAPAT DIHAPUS.
-// Fungsionalitas telah dipindahkan ke /src/app/scanner-success/layout.tsx
+// Fungsionalitas telah dipindahkan ke /src/app/scanner-duplicate/layout.tsx
 
 "use client";
 

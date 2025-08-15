@@ -1,5 +1,3 @@
-// FILE INI SUDAH TIDAK DIGUNAKAN LAGI DAN DAPAT DIHAPUS.
-// Fungsionalitas telah dipindahkan ke /src/app/scanner-success/layout.tsx
 
 "use client";
 
@@ -8,12 +6,10 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default function ScannerResultLayout({
+export default function ScannerSuccessLayout({
   children,
-  title
 }: {
   children: React.ReactNode;
-  title: string;
 }) {
   return (
     <AuthGuard>
@@ -24,7 +20,7 @@ export default function ScannerResultLayout({
               <ArrowLeft />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold">{title}</h1>
+          <h1 className="text-xl font-bold">Check-in Berhasil!</h1>
         </header>
         <main className="flex-grow flex items-center justify-center">
           {children}

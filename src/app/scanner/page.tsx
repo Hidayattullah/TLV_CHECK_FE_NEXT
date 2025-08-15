@@ -31,7 +31,7 @@ export default function ScannerPage() {
   };
   
   const getStream = useCallback(async (deviceId?: string) => {
-    stopStream(); // Hentikan stream yang ada sebelum memulai yang baru
+    stopStream(); 
 
     const constraints: MediaStreamConstraints = {
       video: deviceId 
@@ -47,12 +47,9 @@ export default function ScannerPage() {
       }
       setHasCameraPermission(true);
 
-      // Setelah mendapatkan stream, enum device untuk menemukan deviceId saat ini jika belum ada
-      if (!deviceId) {
-         const currentTrack = stream.getVideoTracks()[0];
-         const currentSettings = currentTrack.getSettings();
-         setCurrentDeviceId(currentSettings.deviceId);
-      }
+      const currentTrack = stream.getVideoTracks()[0];
+      const currentSettings = currentTrack.getSettings();
+      setCurrentDeviceId(currentSettings.deviceId);
       
     } catch (err) {
       console.error("Error getting stream:", err);
@@ -89,7 +86,7 @@ export default function ScannerPage() {
           checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
           checkinMethod: "Barcode"
         });
-        router.push(`/scanner/success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
+        router.push(`/scanner-success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
       
       } else if (event && !event.isActive) {
          toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });

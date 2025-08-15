@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { CameraOff, RotateCw } from "lucide-react";
+import { CameraOff, RotateCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import jsQR from "jsqr";
 import { addAttendee, getCheckInEventById } from "@/lib/repository_mock/check-in";
@@ -15,6 +15,7 @@ export default function ScannerPage() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [currentDeviceId, setCurrentDeviceId] = useState<string | undefined>(undefined);
   const [isScanning, setIsScanning] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,6 +49,55 @@ export default function ScannerPage() {
     }
   };
 
+  const handleQrCode = async (eventId: string) => {
+    if (!user) {
+      toast({ variant: "destructive", title: "Gagal", description: "Anda harus login untuk check-in." });
+      setIsProcessing(false);
+      setIsScanning(true);
+      return;
+    }
+
+    try {
+      const event = await getCheckInEventById(eventId);
+      if (event && event.isActive) {
+        const alreadyCheckedIn = event.attendees.some(attendee => attendee.id === user.id);
+        
+        if (alreadyCheckedIn) {
+          router.push(`/scanner/duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
+          return;
+        }
+
+        await addAttendee(eventId, {
+          id: user.id,
+          name: user.name,
+          checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+          checkinMethod: "Barcode"
+        });
+        router.push(`/scanner/success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
+      
+      } else if (event && !event.isActive) {
+         toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });
+         setTimeout(() => {
+           setIsProcessing(false);
+           setIsScanning(true);
+         }, 3000);
+      } 
+      else {
+        toast({ variant: "destructive", title: "Gagal", description: "Kode QR tidak valid atau acara tidak ditemukan." });
+        setTimeout(() => {
+          setIsProcessing(false);
+          setIsScanning(true);
+        }, 3000);
+      }
+    } catch (error) {
+       toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat check-in." });
+       setTimeout(() => {
+         setIsProcessing(false);
+         setIsScanning(true);
+       }, 3000);
+    }
+  };
+
   const scanQrCode = useCallback(() => {
     if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current && isScanning) {
       const video = videoRef.current;
@@ -65,49 +115,13 @@ export default function ScannerPage() {
 
         if (code) {
           setIsScanning(false);
+          setIsProcessing(true);
           handleQrCode(code.data);
         }
       }
     }
     requestAnimationFrame(scanQrCode);
-  }, [isScanning]);
-
-  const handleQrCode = async (eventId: string) => {
-    if (!user) {
-      toast({ variant: "destructive", title: "Gagal", description: "Anda harus login untuk check-in." });
-      setTimeout(() => setIsScanning(true), 2000);
-      return;
-    }
-
-    try {
-      const event = await getCheckInEventById(eventId);
-      if (event && event.isActive) {
-        const alreadyCheckedIn = event.attendees.some(attendee => attendee.id === user.id);
-        if (alreadyCheckedIn) {
-          router.push(`/scanner/duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
-          return;
-        }
-
-        await addAttendee(eventId, {
-          id: user.id,
-          name: user.name,
-          checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-          checkinMethod: "Barcode"
-        });
-        router.push(`/scanner/success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
-      } else if (event && !event.isActive) {
-         toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });
-         setTimeout(() => setIsScanning(true), 3000);
-      } 
-      else {
-        toast({ variant: "destructive", title: "Gagal", description: "Kode QR tidak valid atau acara tidak ditemukan." });
-        setTimeout(() => setIsScanning(true), 3000);
-      }
-    } catch (error) {
-       toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat check-in." });
-       setTimeout(() => setIsScanning(true), 3000);
-    }
-  };
+  }, [isScanning, handleQrCode]);
 
 
   useEffect(() => {
@@ -164,6 +178,7 @@ export default function ScannerPage() {
     const handleFocus = () => {
       if (!isScanning) {
         console.log("Re-enabling scanning on window focus.");
+        setIsProcessing(false);
         setIsScanning(true);
       }
     };
@@ -188,6 +203,12 @@ export default function ScannerPage() {
       <canvas ref={canvasRef} className="hidden" />
       <div className="relative w-full max-w-md aspect-square bg-black rounded-lg overflow-hidden shadow-lg">
         <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+        {isProcessing && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4">
+            <Loader2 className="w-12 h-12 mb-4 animate-spin" />
+            <p>Harap tunggu, sedang memproses...</p>
+          </div>
+        )}
         {hasCameraPermission === false && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4">
             <CameraOff className="w-16 h-16 mb-4" />
@@ -195,7 +216,7 @@ export default function ScannerPage() {
             <p className="text-center">Pastikan Anda telah memberikan izin akses kamera.</p>
           </div>
         )}
-         {hasCameraPermission === true && (
+         {hasCameraPermission === true && !isProcessing && (
           <>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-3/4 h-3/4 border-4 border-dashed border-white/50 rounded-lg" />

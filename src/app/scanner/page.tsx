@@ -71,41 +71,17 @@ export default function ScannerPage() {
     }
   
     try {
-      console.log("=== CHECK-IN DEBUG START ===");
-      console.log("User attempting check-in:", { 
-        id: user.id, 
-        name: user.name,
-        type: typeof user.id 
-      });
-      
       const event = await getCheckInEventById(eventId);
-      console.log("Event found:", {
-        id: event?.id,
-        name: event?.eventName,
-        isActive: event?.isActive,
-        attendeesCount: event?.attendees?.length || 0,
-        attendees: event?.attendees
-      });
       
       if (event && event.isActive) {
-        // PERBAIKAN: Hanya gunakan ID untuk pengecekan (lebih akurat)
         const alreadyCheckedIn = Array.isArray(event.attendees) && 
-          event.attendees.some(attendee => {
-            const isMatch = attendee.id === user.id;
-            console.log(`Attendee check: ${attendee.name} (ID: "${attendee.id}") vs User: ${user.name} (ID: "${user.id}") = ${isMatch}`);
-            return isMatch;
-          });
-        
-        console.log("Already checked in result:", alreadyCheckedIn);
-        console.log("=== CHECK-IN DEBUG END ===");
+          event.attendees.some(attendee => attendee.id === user.id);
         
         if (alreadyCheckedIn) {
-          console.log("User already checked in - redirecting to duplicate page");
           router.push(`/scanner-duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
           return;
         }
   
-        console.log("Adding new attendee to event");
         const updatedEvent = await addAttendee(eventId, {
           id: user.id,
           name: user.name,
@@ -113,7 +89,6 @@ export default function ScannerPage() {
           checkinMethod: "Barcode"
         });
         
-        console.log("Successfully added attendee:", updatedEvent);
         router.push(`/scanner-success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
       
       } else if (event && !event.isActive) {

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, Suspense } from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
@@ -12,14 +12,6 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const eventName = searchParams.get('eventName') || 'acara ini';
   const userName = searchParams.get('userName') || 'Anda';
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/scanner');
-    }, 5000); // Redirect back to scanner after 5 seconds
-
-    return () => clearTimeout(timer);
-  }, [router]);
 
   return (
     <div className="flex flex-col items-center justify-center text-center p-8">

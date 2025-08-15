@@ -43,17 +43,15 @@ export default function DisplayPage() {
 
     try {
       const data = await getCheckInEventById(eventId);
-      setEvent(data); // Set event data regardless of attendees
+      setEvent(data);
 
       if (data && data.attendees.length > 0) {
         const latestAttendee = data.attendees[data.attendees.length - 1];
         
-        // Only update if the last attendee is different from the one we're tracking
         if (lastAttendeeRef.current?.id !== latestAttendee.id) {
           setLastAttendee(latestAttendee);
           lastAttendeeRef.current = latestAttendee;
 
-          // Set a timeout to clear the welcome message after 5 seconds
           setTimeout(() => {
             setLastAttendee(null);
           }, 5000);
@@ -61,8 +59,9 @@ export default function DisplayPage() {
       }
     } catch (error) {
       console.error("Failed to fetch event data:", error);
-      setEvent(null); // Set event to null if there's an error (e.g., not found)
+      setEvent(null);
     } finally {
+      // Always set loading to false after the first fetch attempt
       if (isLoading) {
         setIsLoading(false);
       }

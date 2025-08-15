@@ -4,21 +4,21 @@ import type { CheckInEvent, Attendee } from "@/lib/api/types";
 // This is the MOCK repository that simulates API calls for development.
 // It uses the local mock data.
 
-let events: CheckInEvent[] = [...mockEvents];
+let events: CheckInEvent[] = JSON.parse(JSON.stringify(mockEvents));
 
 const simulateApiDelay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function getCheckInEvents(): Promise<CheckInEvent[]> {
   await simulateApiDelay();
   console.log("Fetching mock check-in events...");
-  return Promise.resolve([...events]);
+  return Promise.resolve(JSON.parse(JSON.stringify(events)));
 }
 
 export async function getCheckInEventById(id: string): Promise<CheckInEvent | null> {
     await simulateApiDelay(50); // Shorter delay for polling
     console.log(`Fetching mock check-in event by ID: ${id}`);
     const event = events.find(e => e.id === id);
-    return Promise.resolve(event || null);
+    return Promise.resolve(event ? JSON.parse(JSON.stringify(event)) : null);
 }
 
 export async function addAttendee(eventId: string, attendee: Attendee): Promise<CheckInEvent> {
@@ -33,7 +33,7 @@ export async function addAttendee(eventId: string, attendee: Attendee): Promise<
         return event;
     });
     if (eventToUpdate) {
-        return Promise.resolve(eventToUpdate);
+        return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {
         return Promise.reject(new Error("Event not found"));
     }
@@ -50,7 +50,7 @@ export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "ev
         activationType: 'manual',
     };
     events = [newEvent, ...events];
-    return Promise.resolve(newEvent);
+    return Promise.resolve(JSON.parse(JSON.stringify(newEvent)));
 }
 
 export async function updateCheckInEvent(id: string, data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {
@@ -65,7 +65,7 @@ export async function updateCheckInEvent(id: string, data: Pick<CheckInEvent, "e
         return event;
     });
     if (eventToUpdate) {
-        return Promise.resolve(eventToUpdate);
+        return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {
         return Promise.reject(new Error("Event not found"));
     }
@@ -104,7 +104,7 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
         return event;
     });
     if (eventToUpdate) {
-        return Promise.resolve(eventToUpdate);
+        return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {
         return Promise.reject(new Error("Event not found"));
     }
@@ -138,7 +138,7 @@ export async function setCheckInEventTimer(id: string, hours: number, onTimerEnd
         return event;
     });
     if (eventToUpdate) {
-        return Promise.resolve(eventToUpdate);
+        return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {
         clearTimeout(newTimer);
         return Promise.reject(new Error("Event not found"));

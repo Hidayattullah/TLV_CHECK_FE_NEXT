@@ -33,7 +33,7 @@ export default function ScannerPage() {
   const getStream = useCallback(async (deviceId?: string) => {
     stopStream(); // Hentikan stream yang ada sebelum memulai yang baru
 
-    const constraints = {
+    const constraints: MediaStreamConstraints = {
       video: deviceId 
         ? { deviceId: { exact: deviceId } } 
         : { facingMode: "environment" }
@@ -79,7 +79,7 @@ export default function ScannerPage() {
         const alreadyCheckedIn = event.attendees && event.attendees.some(attendee => attendee.id === user.id);
         
         if (alreadyCheckedIn) {
-          router.push(`/scanner/duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
+          router.push(`/scanner-duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
           return;
         }
 
@@ -144,9 +144,7 @@ export default function ScannerPage() {
 
   useEffect(() => {
     const initializeCamera = async () => {
-        // Coba langsung dapatkan stream dengan kamera belakang
         await getStream();
-        // Setelah stream aktif, baru enum devices untuk opsi switch
         try {
             const allDevices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = allDevices.filter(device => device.kind === 'videoinput');
@@ -177,7 +175,7 @@ export default function ScannerPage() {
   
   useEffect(() => {
     const handleFocus = () => {
-      if (!isScanning) {
+      if (!isScanning && !isProcessing) {
         console.log("Re-enabling scanning on window focus.");
         setIsProcessing(false);
         setIsScanning(true);
@@ -187,7 +185,7 @@ export default function ScannerPage() {
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-  }, [isScanning]);
+  }, [isScanning, isProcessing]);
 
   const handleSwitchCamera = () => {
     if (devices.length < 2) {

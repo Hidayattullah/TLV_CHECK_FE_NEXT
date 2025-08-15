@@ -23,13 +23,20 @@ export default function ScannerPage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const getStream = async (deviceId?: string) => {
+  const stopStream = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
+  };
+  
+  const getStream = useCallback(async (deviceId?: string) => {
+    stopStream(); // Hentikan stream yang ada sebelum memulai yang baru
 
     const constraints = {
-      video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" }
+      video: deviceId 
+        ? { deviceId: { exact: deviceId } } 
+        : { facingMode: "environment" }
     };
 
     try {
@@ -38,16 +45,25 @@ export default function ScannerPage() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
+      setHasCameraPermission(true);
+
+      // Setelah mendapatkan stream, enum device untuk menemukan deviceId saat ini jika belum ada
+      if (!deviceId) {
+         const currentTrack = stream.getVideoTracks()[0];
+         const currentSettings = currentTrack.getSettings();
+         setCurrentDeviceId(currentSettings.deviceId);
+      }
+      
     } catch (err) {
       console.error("Error getting stream:", err);
       setHasCameraPermission(false);
       toast({
         variant: "destructive",
         title: "Akses Kamera Ditolak",
-        description: "Tidak dapat memulai kamera dengan perangkat yang dipilih.",
+        description: "Tidak dapat memulai kamera. Mohon izinkan akses di pengaturan browser Anda.",
       });
     }
-  };
+  }, [toast]);
 
   const handleQrCode = async (eventId: string) => {
     if (!user) {
@@ -60,7 +76,6 @@ export default function ScannerPage() {
     try {
       const event = await getCheckInEventById(eventId);
       if (event && event.isActive) {
-        // Corrected Logic: Check if user.id exists in the attendees array.
         const alreadyCheckedIn = event.attendees && event.attendees.some(attendee => attendee.id === user.id);
         
         if (alreadyCheckedIn) {
@@ -128,47 +143,25 @@ export default function ScannerPage() {
 
 
   useEffect(() => {
-    const getCameraDevices = async () => {
-      try {
-        await navigator.mediaDevices.getUserMedia({ video: true });
-        const videoDevices = (await navigator.mediaDevices.enumerateDevices()).filter(
-          (device) => device.kind === "videoinput"
-        );
-        
-        if (videoDevices.length === 0) throw new Error("Tidak ada kamera ditemukan.");
-
-        setDevices(videoDevices);
-        setHasCameraPermission(true);
-        
-        const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear'));
-        const initialDeviceId = rearCamera ? rearCamera.deviceId : videoDevices[0]?.deviceId;
-        setCurrentDeviceId(initialDeviceId);
-        
-      } catch (error) {
-        console.error("Error accessing camera:", error);
-        setHasCameraPermission(false);
-        toast({
-          variant: "destructive",
-          title: "Akses Kamera Ditolak",
-          description: "Mohon izinkan akses kamera di pengaturan browser Anda.",
-        });
-      }
+    const initializeCamera = async () => {
+        // Coba langsung dapatkan stream dengan kamera belakang
+        await getStream();
+        // Setelah stream aktif, baru enum devices untuk opsi switch
+        try {
+            const allDevices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = allDevices.filter(device => device.kind === 'videoinput');
+            setDevices(videoDevices);
+        } catch (error) {
+            console.error("Tidak dapat menghitung perangkat media:", error);
+        }
     };
 
-    getCameraDevices();
+    initializeCamera();
 
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      stopStream();
     };
-  }, [toast]);
-
-  useEffect(() => {
-    if (currentDeviceId && hasCameraPermission) {
-      getStream(currentDeviceId);
-    }
-  }, [currentDeviceId, hasCameraPermission]);
+  }, [getStream]);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -182,7 +175,6 @@ export default function ScannerPage() {
     }
   }, [scanQrCode, isScanning, hasCameraPermission]);
   
-  // Re-enable scanning when returning to this page
   useEffect(() => {
     const handleFocus = () => {
       if (!isScanning) {
@@ -204,7 +196,9 @@ export default function ScannerPage() {
     }
     const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
     const nextIndex = (currentIndex + 1) % devices.length;
-    setCurrentDeviceId(devices[nextIndex].deviceId);
+    const nextDeviceId = devices[nextIndex].deviceId;
+    setCurrentDeviceId(nextDeviceId);
+    getStream(nextDeviceId);
   };
 
   return (

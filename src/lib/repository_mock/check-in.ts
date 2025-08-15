@@ -13,10 +13,9 @@ const getEventsFromStorage = (): CheckInEvent[] => {
   }
   const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (storedData) {
-    // Basic check to see if data seems valid
     try {
       const parsed = JSON.parse(storedData);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     } catch (e) {
@@ -87,7 +86,7 @@ export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "ev
     const newEvent: CheckInEvent = {
         ...data,
         id: `evt-${Date.now()}`,
-        isActive: true,
+        isActive: true, // New events should be active by default
         attendees: [],
         activationType: 'manual',
     };
@@ -142,7 +141,6 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
     }
     
     const currentEvent = events[eventIndex];
-    // This is a mock, so we don't need to worry about clearing real timers.
     
     eventToUpdate = { 
         ...currentEvent, 
@@ -170,22 +168,23 @@ export async function setCheckInEventTimer(id: string, hours: number, onTimerEnd
     const durationMs = hours * 60 * 60 * 1000;
     const endsAt = Date.now() + durationMs;
 
-    // The timer logic itself is client-side, this function just sets the state
-    events = events.map(event => {
-        if (event.id === id) {
-            eventToUpdate = {
-                ...event,
-                isActive: true,
-                activationType: 'timer' as const,
-                timerEndsAt: endsAt
-            };
-            return eventToUpdate;
-        }
-        return event;
-    });
+    const eventIndex = events.findIndex(e => e.id === id);
+
+    if (eventIndex === -1) {
+       return Promise.reject(new Error("Event not found"));
+    }
+    
+    const currentEvent = events[eventIndex];
+    eventToUpdate = {
+      ...currentEvent,
+      isActive: true,
+      activationType: 'timer' as const,
+      timerEndsAt: endsAt
+    };
+    events[eventIndex] = eventToUpdate;
+    saveEventsToStorage(events);
 
     if (eventToUpdate) {
-        saveEventsToStorage(events);
         return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {
         return Promise.reject(new Error("Event not found"));

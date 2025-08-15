@@ -48,6 +48,10 @@ model Member {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // Relasi balik
+  checkIns      CheckIn[]
+  questions     Question[]
 }
 ```
 

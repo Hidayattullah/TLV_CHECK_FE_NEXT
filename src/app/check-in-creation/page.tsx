@@ -443,37 +443,37 @@ export default function CheckInCreationPage() {
   const [eventToDelete, setEventToDelete] = useState<CheckInEvent | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function loadEvents() {
-      setIsLoading(true);
-      try {
-        const data = await getCheckInEvents();
-        setEvents(data);
-      } catch (error) {
-         toast({
-          variant: "destructive",
-          title: "Gagal Memuat Acara",
-          description: "Tidak dapat memuat data acara check-in. Coba lagi nanti.",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+  const loadEvents = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getCheckInEvents();
+      setEvents(data);
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Gagal Memuat Acara",
+        description: "Tidak dapat memuat data acara check-in. Coba lagi nanti.",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    loadEvents();
   }, [toast]);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   const handleSaveEvent = (data: Pick<CheckInEvent, 'eventName' | 'eventDate'>, id?: string) => {
     startTransition(async () => {
         try {
             if (id) {
-                const updatedEvent = await updateCheckInEvent(id, data);
-                setEvents(events.map(e => e.id === id ? updatedEvent : e));
+                await updateCheckInEvent(id, data);
                 toast({ title: "Berhasil!", description: "Acara berhasil diperbarui." });
             } else {
-                const newEvent = await addCheckInEvent(data);
-                setEvents([newEvent, ...events]);
+                await addCheckInEvent(data);
                 toast({ title: "Berhasil!", description: "Acara baru telah dibuat." });
             }
+            loadEvents();
         } catch (error) {
             toast({ variant: "destructive", title: "Gagal!", description: "Gagal menyimpan acara." });
         }

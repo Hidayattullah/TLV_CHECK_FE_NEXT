@@ -97,22 +97,27 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
     await simulateApiDelay(100);
     console.log(`Updating mock check-in event status for ${id} to ${isActive}`);
     let eventToUpdate: CheckInEvent | undefined;
-    events = events.map(event => {
-        if (event.id === id) {
-            if (event.deactivationTimer) {
-                clearTimeout(event.deactivationTimer);
-            }
-            eventToUpdate = { 
-                ...event, 
-                isActive, 
-                deactivationTimer: undefined, 
-                activationType: isActive ? 'manual' : undefined, 
-                timerEndsAt: undefined 
-            };
-            return eventToUpdate;
-        }
-        return event;
-    });
+    const eventIndex = events.findIndex(e => e.id === id);
+    
+    if (eventIndex === -1) {
+        return Promise.reject(new Error("Event not found"));
+    }
+    
+    const currentEvent = events[eventIndex];
+    if (currentEvent.deactivationTimer) {
+        clearTimeout(currentEvent.deactivationTimer);
+    }
+    
+    eventToUpdate = { 
+        ...currentEvent, 
+        isActive, 
+        deactivationTimer: undefined, 
+        activationType: 'manual', 
+        timerEndsAt: undefined 
+    };
+    
+    events[eventIndex] = eventToUpdate;
+
     if (eventToUpdate) {
         return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
     } else {

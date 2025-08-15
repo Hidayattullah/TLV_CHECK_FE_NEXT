@@ -10,10 +10,9 @@ export const mockEvents: CheckInEvent[] = [
     attendees: [
       { id: "1", name: "Tubagus Rifan", checkinTime: "09:05", checkinMethod: "Barcode" },
       { id: "4", name: "Sarah Connor", checkinTime: "09:02", checkinMethod: "RFID" },
-      { id: "user-a", name: "John Doe", checkinTime: "09:03", checkinMethod: "Barcode" },
-      { id: "user-b", name: "Peter Parker", checkinTime: "09:04", checkinMethod: "RFID" },
-      { id: "user-c", name: "Bruce Wayne", checkinTime: "09:06", checkinMethod: "Barcode" },
-      { id: "user-d", name: "Clark Kent", checkinTime: "09:07", checkinMethod: "RFID" },
+      { id: "5", name: "John Smith", checkinTime: "09:03", checkinMethod: "Barcode" }, // Ganti dari "user-a" ke "5"
+      { id: "7", name: "Ellen Ripley", checkinTime: "09:04", checkinMethod: "RFID" }, // Ganti dari "user-b" ke "7"
+      // Hapus "user-c" dan "user-d" karena tidak ada di data member
     ],
   },
   {

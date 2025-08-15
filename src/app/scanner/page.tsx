@@ -69,34 +69,60 @@ export default function ScannerPage() {
       setIsScanning(true);
       return;
     }
-
+  
     try {
+      console.log("=== CHECK-IN DEBUG START ===");
+      console.log("User attempting check-in:", { 
+        id: user.id, 
+        name: user.name,
+        type: typeof user.id 
+      });
+      
       const event = await getCheckInEventById(eventId);
+      console.log("Event found:", {
+        id: event?.id,
+        name: event?.eventName,
+        isActive: event?.isActive,
+        attendeesCount: event?.attendees?.length || 0,
+        attendees: event?.attendees
+      });
       
       if (event && event.isActive) {
-        const alreadyCheckedIn = Array.isArray(event.attendees) && event.attendees.some(attendee => attendee.id === user.id);
+        // PERBAIKAN: Hanya gunakan ID untuk pengecekan (lebih akurat)
+        const alreadyCheckedIn = Array.isArray(event.attendees) && 
+          event.attendees.some(attendee => {
+            const isMatch = attendee.id === user.id;
+            console.log(`Attendee check: ${attendee.name} (ID: "${attendee.id}") vs User: ${user.name} (ID: "${user.id}") = ${isMatch}`);
+            return isMatch;
+          });
+        
+        console.log("Already checked in result:", alreadyCheckedIn);
+        console.log("=== CHECK-IN DEBUG END ===");
         
         if (alreadyCheckedIn) {
+          console.log("User already checked in - redirecting to duplicate page");
           router.push(`/scanner-duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
           return;
         }
-
-        await addAttendee(eventId, {
+  
+        console.log("Adding new attendee to event");
+        const updatedEvent = await addAttendee(eventId, {
           id: user.id,
           name: user.name,
           checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
           checkinMethod: "Barcode"
         });
+        
+        console.log("Successfully added attendee:", updatedEvent);
         router.push(`/scanner-success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
       
       } else if (event && !event.isActive) {
-         toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });
-         setTimeout(() => {
-           setIsProcessing(false);
-           setIsScanning(true);
-         }, 3000);
-      } 
-      else {
+        toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });
+        setTimeout(() => {
+          setIsProcessing(false);
+          setIsScanning(true);
+        }, 3000);
+      } else {
         toast({ variant: "destructive", title: "Gagal", description: "Kode QR tidak valid atau acara tidak ditemukan." });
         setTimeout(() => {
           setIsProcessing(false);
@@ -104,11 +130,12 @@ export default function ScannerPage() {
         }, 3000);
       }
     } catch (error) {
-       toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat check-in." });
-       setTimeout(() => {
-         setIsProcessing(false);
-         setIsScanning(true);
-       }, 3000);
+      console.error("Error in handleQrCode:", error);
+      toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat check-in." });
+      setTimeout(() => {
+        setIsProcessing(false);
+        setIsScanning(true);
+      }, 3000);
     }
   };
 

@@ -10,6 +10,11 @@ export async function getCheckInEvents(): Promise<CheckInEvent[]> {
   return customFetch<CheckInEvent[]>(API_ENDPOINTS.GET_CHECK_IN_EVENTS);
 }
 
+export async function getCheckInEventById(id: string): Promise<CheckInEvent> {
+  console.log(`Fetching real check-in event data for id: ${id}...`);
+  return customFetch<CheckInEvent>(API_ENDPOINTS.GET_CHECK_IN_EVENT_BY_ID(id));
+}
+
 export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {
   console.log("Adding new check-in event via API...");
   return customFetch<CheckInEvent>(API_ENDPOINTS.ADD_CHECK_IN_EVENT, {

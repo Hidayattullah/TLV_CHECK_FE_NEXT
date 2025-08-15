@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useMemo, useTransition, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -44,7 +45,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle, Settings, Timer, ToggleLeft, ToggleRight, Fingerprint, AlertTriangle } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Eye, Loader2, ListChecks, Search, Users, Calendar, CheckCircle, XCircle, Settings, Timer, ToggleLeft, ToggleRight, Fingerprint, AlertTriangle, MonitorPlay } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -589,12 +590,20 @@ export default function CheckInCreationPage() {
                 className="pl-9 bg-card"
             />
           </div>
-          <AddEditEventDialog onSave={(data, id) => handleSaveEvent(data, id)} triggerAsChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Buat Acara
-            </Button>
-          </AddEditEventDialog>
+          <div className="flex gap-2">
+            <Link href="/display-screens" passHref>
+              <Button variant="outline">
+                <MonitorPlay className="mr-2 h-4 w-4" />
+                Buat Layar
+              </Button>
+            </Link>
+            <AddEditEventDialog onSave={(data, id) => handleSaveEvent(data, id)} triggerAsChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Buat Acara
+              </Button>
+            </AddEditEventDialog>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
 
   // Check-in endpoints
   GET_CHECK_IN_EVENTS: `${API_BASE_URL}/check-in/events`,
+  GET_CHECK_IN_EVENT_BY_ID: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
   ADD_CHECK_IN_EVENT: `${API_BASE_URL}/check-in/events`,
   UPDATE_CHECK_IN_EVENT: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
   DELETE_CHECK_IN_EVENT: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,

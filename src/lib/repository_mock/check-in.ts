@@ -1,5 +1,5 @@
 import { mockEvents } from "@/lib/mock/check-in";
-import type { CheckInEvent } from "@/lib/api/types";
+import type { CheckInEvent, Attendee } from "@/lib/api/types";
 
 // This is the MOCK repository that simulates API calls for development.
 // It uses the local mock data.
@@ -12,6 +12,31 @@ export async function getCheckInEvents(): Promise<CheckInEvent[]> {
   await simulateApiDelay();
   console.log("Fetching mock check-in events...");
   return Promise.resolve([...events]);
+}
+
+export async function getCheckInEventById(id: string): Promise<CheckInEvent | null> {
+    await simulateApiDelay(50); // Shorter delay for polling
+    console.log(`Fetching mock check-in event by ID: ${id}`);
+    const event = events.find(e => e.id === id);
+    return Promise.resolve(event || null);
+}
+
+export async function addAttendee(eventId: string, attendee: Attendee): Promise<CheckInEvent> {
+    await simulateApiDelay(100);
+    console.log(`Adding mock attendee to event ${eventId}`);
+    let eventToUpdate: CheckInEvent | undefined;
+    events = events.map(event => {
+        if (event.id === eventId) {
+            eventToUpdate = { ...event, attendees: [...event.attendees, attendee] };
+            return eventToUpdate;
+        }
+        return event;
+    });
+    if (eventToUpdate) {
+        return Promise.resolve(eventToUpdate);
+    } else {
+        return Promise.reject(new Error("Event not found"));
+    }
 }
 
 export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {

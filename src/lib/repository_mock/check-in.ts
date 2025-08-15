@@ -1,3 +1,4 @@
+
 import { mockEvents } from "@/lib/mock/check-in";
 import type { CheckInEvent, Attendee } from "@/lib/api/types";
 
@@ -24,20 +25,34 @@ export async function getCheckInEventById(id: string): Promise<CheckInEvent | nu
 export async function addAttendee(eventId: string, attendee: Attendee): Promise<CheckInEvent> {
     await simulateApiDelay(100);
     console.log(`Adding mock attendee to event ${eventId}`);
-    let eventToUpdate: CheckInEvent | undefined;
-    events = events.map(event => {
-        if (event.id === eventId) {
-            eventToUpdate = { ...event, attendees: [...event.attendees, attendee] };
-            return eventToUpdate;
-        }
-        return event;
-    });
-    if (eventToUpdate) {
-        return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
-    } else {
+    
+    const eventIndex = events.findIndex(event => event.id === eventId);
+
+    if (eventIndex === -1) {
         return Promise.reject(new Error("Event not found"));
     }
+
+    const eventToUpdate = events[eventIndex];
+
+    // Ensure attendees is an array
+    if (!Array.isArray(eventToUpdate.attendees)) {
+        eventToUpdate.attendees = [];
+    }
+
+    // CRITICAL FIX: Check for duplicates before adding
+    const alreadyExists = eventToUpdate.attendees.some(a => a.id === attendee.id);
+
+    if (!alreadyExists) {
+        console.log(`Attendee ${attendee.name} does not exist. Adding to event.`);
+        eventToUpdate.attendees.push(attendee);
+        events[eventIndex] = eventToUpdate;
+    } else {
+        console.log(`Attendee ${attendee.name} already exists. Not adding duplicate.`);
+    }
+
+    return Promise.resolve(JSON.parse(JSON.stringify(eventToUpdate)));
 }
+
 
 export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {
     await simulateApiDelay();

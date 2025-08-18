@@ -379,7 +379,15 @@ async create(createMemberDto: CreateMemberDto): Promise<Member> {
 }
 ```
 
-### f. Contoh Alur Modul (`members`)
+### f. Keamanan API
+Selain autentikasi dengan JWT, pertimbangkan lapisan keamanan tambahan:
+- **Rate Limiting:** Untuk mencegah serangan *brute-force*, gunakan `@nestjs/throttler` untuk membatasi jumlah permintaan dari satu IP dalam periode waktu tertentu.
+  ```bash
+  npm install @nestjs/throttler
+  ```
+- **Input Sanitization:** Meskipun Prisma secara default melindungi dari *SQL Injection*, `ValidationPipe` dengan `whitelist: true` membantu memastikan tidak ada properti tak terduga yang masuk ke logika bisnis Anda. Ini adalah pertahanan pertama terhadap serangan injeksi atau *Cross-Site Scripting (XSS)*.
+
+### g. Contoh Alur Modul (`members`)
 1.  **Request Masuk:** `PATCH /api/members/:id`
 2.  **Guard:** `JwtAuthGuard` memverifikasi token.
 3.  **Controller (`members.controller.ts`):**

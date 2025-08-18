@@ -67,7 +67,148 @@ NestJS secara default mendorong arsitektur modular. Setiap fitur utama (misalnya
 
 ---
 
-## 3. Struktur Proyek yang Direkomendasikan
+## 3. Skema Database Prisma (Lengkap)
+
+Berikut adalah skema Prisma lengkap yang mencakup semua model data yang diperlukan untuk fitur-fitur aplikasi. Salin konten ini ke dalam file `prisma/schema.prisma` Anda.
+
+```prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================================================= //
+//                MODUL JEMAAT & AUTH                //
+// ================================================= //
+model Member {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?   @unique
+  phoneNumber   String    @unique
+  password      String
+  address       String?
+  dateOfBirth   DateTime?
+  gender        String? // "Laki-laki" atau "Perempuan"
+  avatarUrl     String?
+  joinedDate    DateTime  @default(now())
+  isActive      Boolean   @default(true)
+  isVerified    Boolean   @default(false)
+  permissions   Json      @default("{\"members\":[],\"checkin\":[],\"prayers\":[],\"questions\":[],\"tickets\":[]}")
+  rfidId        String?
+  rfidType      String? // "Card", "Tag", "Stiker"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relasi Balik
+  checkIns       CheckIn[]
+  prayerRequests PrayerRequest[]
+  questions      Question[]
+}
+
+// ================================================= //
+//                   MODUL CHECK-IN                  //
+// ================================================= //
+model Event {
+  id        String   @id @default(cuid())
+  eventName String
+  eventDate DateTime
+  isActive  Boolean  @default(true)
+
+  checkIns CheckIn[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CheckIn {
+  id            String   @id @default(cuid())
+  checkinTime   DateTime @default(now())
+  checkinMethod String // "Barcode" atau "RFID"
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, eventId])
+}
+
+// ================================================= //
+//                  MODUL POKOK DOA                  //
+// ================================================= //
+model PrayerRequest {
+  id             String    @id @default(cuid())
+  userName       String
+  requestText    String    @db.Text
+  isAnonymous    Boolean
+  submittedDate  DateTime  @default(now())
+  isResponded    Boolean   @default(false)
+  responseText   String?   @db.Text
+  lastResponseBy String?
+  isArchived     Boolean   @default(false)
+  archivedDate   DateTime?
+
+  submittedById String
+  submittedBy   Member @relation(fields: [submittedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ================================================= //
+//               MODUL PERTANYAAN JEMAAT             //
+// ================================================= //
+model Question {
+  id            String    @id @default(cuid())
+  userName      String
+  questionText  String    @db.Text
+  submittedDate DateTime  @default(now())
+  isResponded   Boolean   @default(false)
+  responseText  String?   @db.Text
+  responseBy    String?
+  respondedDate DateTime?
+  isArchived    Boolean   @default(false)
+  archivedDate  DateTime?
+
+  submittedById String
+  submittedBy   Member @relation(fields: [submittedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ================================================= //
+//                MODUL TIKET DUKUNGAN               //
+// ================================================= //
+model SupportTicket {
+  id            String    @id @default(cuid())
+  userName      String
+  phoneNumber   String
+  description   String    @db.Text
+  submittedDate DateTime  @default(now())
+  status        String    @default("Proses") // "Proses", "Selesai", "Ditolak"
+  response      String?   @db.Text
+  resolvedBy    String?
+  resolvedDate  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+```
+
+---
+
+## 4. Struktur Proyek yang Direkomendasikan
 
 Struktur ini memisahkan setiap concern dengan jelas dan mudah untuk dinavigasi.
 
@@ -87,7 +228,7 @@ src/
 │
 ├── prisma/                   # Dihasilkan oleh Prisma CLI
 │   ├── migrations/
-│   └── schema.prisma         # Skema database Anda
+│   └── schema.prisma         # Skema database Anda (seperti di atas)
 │
 ├── modules/                  # Direktori utama untuk semua fitur
 │   ├── auth/                 # Modul Autentikasi
@@ -134,7 +275,7 @@ src/
 
 ---
 
-## 4. Panduan Implementasi
+## 5. Panduan Implementasi
 
 ### a. Koneksi Database (PrismaService)
 Buat `src/prisma.service.ts` yang meng-handle koneksi Prisma dan siklus hidup aplikasi.

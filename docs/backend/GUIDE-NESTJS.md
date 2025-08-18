@@ -77,12 +77,13 @@ src/
 ├── main.ts                   # Entry point aplikasi
 │
 ├── common/                   # Kode yang digunakan bersama di banyak modul
-│   ├── decorators/           # Dekorator kustom (misal: CurrentUser)
+│   ├── decorators/           # Dekorator kustom (misal: CurrentUser, Public)
 │   ├── dto/                  # DTO umum (misal: PaginationDto)
-│   ├── guards/               # Guard kustom (misal: RolesGuard)
+│   ├── guards/               # Guard kustom (misal: JwtAuthGuard, RolesGuard)
 │   └── utils/                # Fungsi utilitas (misal: hashPassword)
 │
-├── config/                   # Konfigurasi aplikasi (database, JWT)
+├── config/                   # Konfigurasi aplikasi (database, JWT, dll.)
+│   └── app.config.ts
 │
 ├── prisma/                   # Dihasilkan oleh Prisma CLI
 │   ├── migrations/
@@ -90,23 +91,43 @@ src/
 │
 ├── modules/                  # Direktori utama untuk semua fitur
 │   ├── auth/                 # Modul Autentikasi
-│   │   ├── dto/              # LoginDto, RegisterDto, etc.
-│   │   ├── strategies/       # JwtStrategy
+│   │   ├── dto/              # LoginDto, RegisterDto, TokenPayload.dto.ts
+│   │   ├── strategies/       # JwtStrategy.ts
 │   │   ├── auth.controller.ts
 │   │   ├── auth.module.ts
 │   │   └── auth.service.ts
 │   │
 │   ├── members/              # Modul Jemaat
-│   │   ├── dto/              # CreateMemberDto, UpdateMemberDto
-│   │   ├── entities/         # Member.entity.ts (representasi objek)
+│   │   ├── dto/              # CreateMemberDto, UpdateMemberDto, UpdatePermissionsDto.ts
+│   │   ├── entities/         # Member.entity.ts (representasi objek, opsional)
 │   │   ├── members.controller.ts
 │   │   ├── members.module.ts
 │   │   └── members.service.ts
 │   │
 │   ├── check-in/             # Modul Check-in
-│   │   └── ... (struktur yang sama)
+│   │   ├── dto/              # CreateEventDto, UpdateEventDto, AddAttendeeDto.ts
+│   │   ├── entities/         # Event.entity.ts, CheckIn.entity.ts
+│   │   ├── check-in.controller.ts
+│   │   ├── check-in.module.ts
+│   │   └── check-in.service.ts
 │   │
-│   └── ... (modul lainnya: prayers, questions, tickets)
+│   ├── prayers/              # Modul Pokok Doa
+│   │   ├── dto/              # CreatePrayerRequestDto, RespondPrayerRequestDto.ts
+│   │   ├── prayers.controller.ts
+│   │   ├── prayers.module.ts
+│   │   └── prayers.service.ts
+│   │
+│   ├── questions/            # Modul Pertanyaan
+│   │   ├── dto/              # CreateQuestionDto, RespondQuestionDto.ts
+│   │   ├── questions.controller.ts
+│   │   ├── questions.module.ts
+│   │   └── questions.service.ts
+│   │
+│   └── tickets/              # Modul Tiket Dukungan
+│       ├── dto/              # CreateTicketDto, UpdateTicketDto.ts
+│       ├── tickets.controller.ts
+│       ├── tickets.module.ts
+│       └── tickets.service.ts
 │
 └── prisma.service.ts         # Service untuk koneksi Prisma
 ```
@@ -143,26 +164,44 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   - Bertugas memvalidasi token JWT dari header `Authorization` pada setiap request yang terproteksi.
   - Jika valid, ia akan melampirkan data pengguna ke objek `request`.
 
-### c. Global JWT Guard
-Aktifkan `JwtAuthGuard` secara global di `main.ts` agar semua endpoint terproteksi secara default. Gunakan decorator `@Public()` untuk endpoint yang tidak memerlukan otentikasi (seperti login, register).
+### c. Global JWT Guard & CORS
+Aktifkan `JwtAuthGuard` secara global di `main.ts` agar semua endpoint terproteksi secara default. Gunakan decorator `@Public()` untuk endpoint yang tidak memerlukan otentikasi (seperti login, register). Aktifkan juga CORS.
 
 ```typescript
-// main.ts
-const app = await NestFactory.create(AppModule);
-const reflector = app.get(Reflector);
-app.useGlobalGuards(new JwtAuthGuard(reflector)); // Terapkan guard secara global
-// ...
+// src/main.ts
+import { NestFactory, Reflector } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Aktifkan CORS (Cross-Origin Resource Sharing)
+  // Konfigurasi lebih lanjut bisa ditambahkan sesuai kebutuhan produksi
+  app.enableCors();
+
+  // Terapkan ValidationPipe secara global
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  // Terapkan JwtAuthGuard secara global
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
+
+  await app.listen(3000);
+}
+bootstrap();
 ```
 
 ### d. Validasi DTO
-Gunakan `class-validator` di dalam file DTO Anda. Aktifkan `ValidationPipe` secara global di `main.ts`.
+Gunakan `class-validator` di dalam file DTO Anda. Aktifkan `ValidationPipe` secara global di `main.ts` (seperti contoh di atas).
 
 ```typescript
 // src/modules/auth/dto/login.dto.ts
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsPhoneNumber } from 'class-validator';
 
 export class LoginDto {
-  @IsString()
+  @IsPhoneNumber('ID') // Validasi nomor telepon Indonesia
   @IsNotEmpty()
   phoneNumber: string;
 
@@ -170,18 +209,15 @@ export class LoginDto {
   @IsNotEmpty()
   password: string;
 }
-
-// src/main.ts
-app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 ```
 
 ### e. Penanganan Error (Error Handling)
-- **Gunakan Exception Bawaan NestJS:** `NotFoundException`, `BadRequestException`, `UnauthorizedException`, dll. NestJS akan secara otomatis mengubahnya menjadi respons HTTP yang sesuai.
+- **Gunakan Exception Bawaan NestJS:** `NotFoundException`, `BadRequestException`, `UnauthorizedException`, `ConflictException`. NestJS akan secara otomatis mengubahnya menjadi respons HTTP yang sesuai.
 - **Buat Custom Exception Filter:** Jika Anda memerlukan format error yang seragam di seluruh aplikasi, buat `HttpExceptionFilter` untuk menangkap semua error dan memformatnya.
 
 ```typescript
 // Contoh di dalam service
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ConflictException } from '@nestjs/common';
 
 async findOne(id: string): Promise<Member> {
   const member = await this.prisma.member.findUnique({ where: { id } });
@@ -189,6 +225,16 @@ async findOne(id: string): Promise<Member> {
     throw new NotFoundException(`Member with ID "${id}" not found`);
   }
   return member;
+}
+
+async create(createMemberDto: CreateMemberDto): Promise<Member> {
+    const existingMember = await this.prisma.member.findUnique({
+        where: { phoneNumber: createMemberDto.phoneNumber }
+    });
+    if (existingMember) {
+        throw new ConflictException('Phone number already registered.');
+    }
+    // ...logika pembuatan member
 }
 ```
 

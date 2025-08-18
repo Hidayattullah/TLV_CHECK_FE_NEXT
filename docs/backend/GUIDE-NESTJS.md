@@ -206,6 +206,15 @@ model SupportTicket {
 
 ```
 
+### Catatan Mengenai Penggunaan `enum` di Prisma
+Anda mungkin bertanya mengapa kolom seperti `gender`, `status`, dan `rfidType` didefinisikan sebagai `String` dan bukan menggunakan `enum` bawaan Prisma. Ini adalah keputusan arsitektural yang disengaja dengan beberapa keuntungan:
+
+1.  **Fleksibilitas Tinggi**: Menggunakan `String` membuat skema database lebih fleksibel. Jika di masa depan Anda perlu menambahkan status baru (misalnya, "Ditunda" pada `SupportTicket`), Anda tidak perlu melakukan migrasi database yang kompleks. Anda cukup memperbarui logika validasi di backend (NestJS).
+2.  **Backend sebagai *Single Source of Truth***: Aturan bisnis (seperti nilai apa saja yang valid untuk `status`) sebaiknya dikelola di level aplikasi (backend), bukan di level database. Dengan NestJS, kita akan menggunakan **DTOs (Data Transfer Objects)** dengan `class-validator` untuk memastikan bahwa hanya nilai yang valid (misal: "Proses", "Selesai", "Ditolak") yang dapat diterima oleh API. Ini membuat backend menjadi satu-satunya sumber kebenaran untuk aturan bisnis.
+3.  **Kemudahan Pengembangan**: Mengelola daftar nilai yang valid di kode aplikasi seringkali lebih mudah dan lebih cepat daripada mengelola `enum` di level database, terutama dalam fase pengembangan yang cepat.
+
+**Kesimpulan:** Meskipun Prisma mendukung `enum` native, pendekatan ini memprioritaskan kelincahan pengembangan dengan memusatkan validasi data di backend NestJS. Frontend (baik web maupun Flutter) akan merujuk pada aturan yang ditetapkan oleh backend ini, bukan pada struktur database secara langsung.
+
 ---
 
 ## 4. Struktur Proyek yang Direkomendasikan

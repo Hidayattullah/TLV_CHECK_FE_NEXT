@@ -300,4 +300,3 @@ Riverpod digunakan untuk *Dependency Injection* dan manajemen state.
 - `qr_flutter`: Menampilkan QR code.
 - `intl`: Format tanggal, angka, dan waktu.
 - `get_it` & `injectable`: (Alternatif/tambahan untuk DI jika diperlukan).
-```

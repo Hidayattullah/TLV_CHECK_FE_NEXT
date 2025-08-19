@@ -117,7 +117,7 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="tel" placeholder="Nomor Telepon" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" disabled={isLoading} />
+                    <Input type="tel" placeholder="Nomor Telepon (cth: 0812...)" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

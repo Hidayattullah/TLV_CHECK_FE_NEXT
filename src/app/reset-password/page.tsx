@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
                   <Input 
                     id="tel" 
                     type="tel" 
-                    placeholder="Masukkan nomor telepon terdaftar" 
+                    placeholder="cth: 081234567890" 
                     required 
                     className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg"
                     value={phoneNumber}

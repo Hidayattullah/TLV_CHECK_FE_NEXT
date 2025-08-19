@@ -42,6 +42,7 @@ import type { SupportTicket, TicketStatus } from "@/lib/api/types";
 import { getAllSupportTickets, updateSupportTicket } from "@/lib/repository_mock/tickets";
 import { Search, Loader2, Save, AlertTriangle, Send } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -66,7 +67,6 @@ function TicketDetailDialog({
   const canEditTicket = useMemo(() => {
     const permissions = user?.permissions?.tickets;
     if (!permissions) return false;
-    // Can edit if they have any permission other than just 'read'
     return permissions.includes("edit") || permissions.includes("create") || permissions.includes("delete");
   }, [user]);
   
@@ -116,6 +116,12 @@ function TicketDetailDialog({
     }
   };
 
+  const disabledTooltip = (
+    <TooltipContent>
+      <p>Anda perlu memiliki akses untuk fitur ini</p>
+    </TooltipContent>
+  );
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -135,27 +141,43 @@ function TicketDetailDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="response">Tanggapan Admin</Label>
-              <Textarea
-                id="response"
-                placeholder="Tulis tanggapan untuk pengguna di sini..."
-                rows={5}
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
-                disabled={!canEditTicket || isSaving}
-              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Textarea
+                      id="response"
+                      placeholder={!canEditTicket ? "Anda tidak memiliki akses untuk menanggapi." : "Tulis tanggapan untuk pengguna di sini..."}
+                      rows={5}
+                      value={response}
+                      onChange={(e) => setResponse(e.target.value)}
+                      disabled={!canEditTicket || isSaving}
+                    />
+                  </TooltipTrigger>
+                  {!canEditTicket && disabledTooltip}
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Ubah Status Tiket</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as TicketStatus)} disabled={!canEditTicket || isSaving}>
-                <SelectTrigger id="status" className="w-[180px]">
-                  <SelectValue placeholder="Pilih status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Proses">Proses</SelectItem>
-                  <SelectItem value="Selesai">Selesai</SelectItem>
-                  <SelectItem value="Ditolak">Ditolak</SelectItem>
-                </SelectContent>
-              </Select>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div> {/* TooltipTrigger needs a DOM element child when asChild, div works */}
+                      <Select value={status} onValueChange={(value) => setStatus(value as TicketStatus)} disabled={!canEditTicket || isSaving}>
+                        <SelectTrigger id="status" className="w-[180px]">
+                          <SelectValue placeholder="Pilih status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Proses">Proses</SelectItem>
+                          <SelectItem value="Selesai">Selesai</SelectItem>
+                          <SelectItem value="Ditolak">Ditolak</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TooltipTrigger>
+                  {!canEditTicket && disabledTooltip}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

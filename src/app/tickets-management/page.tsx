@@ -33,7 +33,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -63,6 +62,13 @@ function TicketDetailDialog({
   const [isConfirmOpen, setConfirmOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const canEditTicket = useMemo(() => {
+    const permissions = user?.permissions?.tickets;
+    if (!permissions) return false;
+    // Can edit if they have any permission other than just 'read'
+    return permissions.includes("edit") || permissions.includes("create") || permissions.includes("delete");
+  }, [user]);
   
   useEffect(() => {
     if (ticket) {
@@ -135,11 +141,12 @@ function TicketDetailDialog({
                 rows={5}
                 value={response}
                 onChange={(e) => setResponse(e.target.value)}
+                disabled={!canEditTicket || isSaving}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Ubah Status Tiket</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as TicketStatus)}>
+              <Select value={status} onValueChange={(value) => setStatus(value as TicketStatus)} disabled={!canEditTicket || isSaving}>
                 <SelectTrigger id="status" className="w-[180px]">
                   <SelectValue placeholder="Pilih status" />
                 </SelectTrigger>
@@ -155,10 +162,12 @@ function TicketDetailDialog({
             <DialogClose asChild>
               <Button type="button" variant="secondary">Batal</Button>
             </DialogClose>
-            <Button type="button" onClick={() => setConfirmOpen(true)}>
-              <Save className="mr-2 h-4 w-4" />
-              Simpan Perubahan
-            </Button>
+            {canEditTicket && (
+              <Button type="button" onClick={() => setConfirmOpen(true)} disabled={isSaving}>
+                <Save className="mr-2 h-4 w-4" />
+                Simpan Perubahan
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

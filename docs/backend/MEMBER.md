@@ -52,6 +52,7 @@ model Member {
   // Relasi balik
   checkIns      CheckIn[]
   questions     Question[]
+  prayerRequests PrayerRequest[]
 }
 ```
 
@@ -74,7 +75,7 @@ Berikut adalah daftar endpoint API yang perlu Anda buat di dalam direktori `/pag
   {
     "name": "Nama Lengkap",
     "email": "email@opsional.com",
-    "phoneNumber": "+6281234567890",
+    "phoneNumber": "081234567890",
     "address": "Alamat Lengkap",
     "dateOfBirth": "YYYY-MM-DD",
     "gender": "Laki-laki",
@@ -102,7 +103,7 @@ Berikut adalah daftar endpoint API yang perlu Anda buat di dalam direktori `/pag
 - **Request Body:**
   ```json
   {
-    "phoneNumber": "+6281234567890",
+    "phoneNumber": "081234567890",
     "password": "password_plain_text"
   }
   ```
@@ -126,7 +127,7 @@ Berikut adalah daftar endpoint API yang perlu Anda buat di dalam direktori `/pag
 
 - **Endpoint 1:** `POST /api/auth/reset-password/request`
   - **Tujuan:** Memverifikasi nomor telepon dan mengirim kode reset (via SMS/WA di aplikasi nyata).
-  - **Request Body:** `{ "phoneNumber": "+6281234567890" }`
+  - **Request Body:** `{ "phoneNumber": "081234567890" }`
   - **Logika:**
     1. Cek apakah nomor telepon terdaftar.
     2. Jika ya, buat kode OTP acak, simpan sementara (misal: di cache atau tabel terpisah) dengan masa berlaku singkat.
@@ -135,7 +136,7 @@ Berikut adalah daftar endpoint API yang perlu Anda buat di dalam direktori `/pag
 
 - **Endpoint 2:** `POST /api/auth/reset-password/verify`
   - **Tujuan:** Memverifikasi OTP dan mengganti password.
-  - **Request Body:** `{ "phoneNumber": "+6281234567890", "otp": "123456", "newPassword": "password_baru" }`
+  - **Request Body:** `{ "phoneNumber": "081234567890", "otp": "123456", "newPassword": "password_baru" }`
   - **Logika:**
     1. Verifikasi OTP yang tersimpan.
     2. Jika valid, hash `newPassword`.
@@ -163,13 +164,23 @@ Untuk semua endpoint di bawah ini, Anda perlu membuat *middleware* atau *helper*
   - **Logika:** Verifikasi bahwa pengguna memiliki hak akses `read` pada modul `members`.
   - **Success Response (200 OK):** `[ { ...data_jemaat_1 }, { ...data_jemaat_2 } ]`
 
+- **Endpoint (Khusus Admin):** `POST /api/members/admin-create`
+  - **Tujuan:** Menambahkan jemaat baru melalui panel admin.
+  - **Logika:** Verifikasi bahwa pengguna memiliki hak akses `create` pada modul `members`.
+  - **Success Response (201 Created):** `{ ...data_jemaat_baru }`
+
+- **Endpoint (Khusus Admin):** `DELETE /api/members/:id`
+  - **Tujuan:** Menghapus jemaat.
+  - **Logika:** Verifikasi bahwa pengguna memiliki hak akses `delete` pada modul `members`.
+  - **Success Response (204 No Content):** (Tidak ada body respons)
+
 - **Endpoint (Khusus Admin):** `PATCH /api/members/:id/permissions`
   - **Tujuan:** Memperbarui hak akses seorang jemaat.
   - **Request Body:**
     ```json
     {
       "permissions": {
-        "members": ["read", "edit"],
+        "members": ["create", "read", "edit", "delete"],
         "checkin": ["read"],
         ...
       }

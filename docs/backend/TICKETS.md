@@ -48,7 +48,7 @@ Berikut adalah daftar endpoint API yang perlu Anda buat. Endpoint untuk manajeme
 
 - **Endpoint:** `POST /api/tickets`
   - **Tujuan:** Membuat tiket dukungan baru. Digunakan oleh jemaat dari halaman "Tiket Dukungan".
-  - **Request Body:** `{ "userName": "Nama Jemaat", "phoneNumber": "+62...", "description": "Deskripsi masalah..." }`
+  - **Request Body:** `{ "userName": "Nama Jemaat", "phoneNumber": "0812...", "description": "Deskripsi masalah..." }`
   - **Logika:**
     1. Validasi input.
     2. Buat entri baru di tabel `SupportTicket` dengan status default "Proses".
@@ -82,7 +82,7 @@ Endpoint berikut memerlukan verifikasi JWT dan hak akses `read` atau `edit` pada
     }
     ```
   - **Logika:**
-    1. Verifikasi JWT dan hak akses `edit` pada modul `tickets`.
+    1. Verifikasi JWT dan hak akses `edit`. Pengguna dengan akses `read` saja tidak bisa melakukan operasi ini.
     2. Cari tiket berdasarkan `:id`.
     3. Update kolom `status`, `response`, dan `resolvedBy`.
     4. Jika status diubah menjadi "Selesai" atau "Ditolak", set juga `resolvedDate` ke waktu saat ini.

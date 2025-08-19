@@ -203,7 +203,15 @@ Riverpod digunakan untuk *Dependency Injection* dan manajemen state.
   ```
 
 ### b. Data Layer
-- **Model**: `lib/data/models/member_model.dart` (extends `Member` entity, dengan `fromJson`/`toJson`).
+- **Model**: `lib/data/models/member_model.dart` (extends `Member` entity, dengan `fromJson`/`toJson`). Model ini juga harus mencakup `permissions`.
+  ```dart
+  // Contoh struktur permissions di dalam model
+  class Permissions {
+      final List<String> members;
+      final List<String> checkin;
+      // ...modul lainnya
+  }
+  ```
 - **Implementasi Repository**: `lib/data/repositories/auth_repository_impl.dart`
   ```dart
   class AuthRepositoryImpl implements AuthRepository {
@@ -226,7 +234,7 @@ Riverpod digunakan untuk *Dependency Injection* dan manajemen state.
   class LoginState with _$LoginState {
     const factory LoginState.initial() = _Initial;
     const factory LoginState.loading() = _Loading;
-    const factory LoginState.success() = _Success;
+    const factory LoginState.success(Member member) = _Success; // Kirim data member
     const factory LoginState.error(String message) = _Error;
   }
   
@@ -238,8 +246,9 @@ Riverpod digunakan untuk *Dependency Injection* dan manajemen state.
     Future<void> login(String phoneNumber, String password) async {
       state = const LoginState.loading();
       try {
-        await _authRepository.login(phoneNumber, password);
-        state = const LoginState.success();
+        // Asumsi API login me-return data member
+        final member = await _authRepository.login(phoneNumber, password);
+        state = LoginState.success(member);
       } catch (e) {
         state = LoginState.error(e.toString());
       }
@@ -256,7 +265,11 @@ Riverpod digunakan untuk *Dependency Injection* dan manajemen state.
       // Listen ke perubahan state dari ViewModel
       ref.listen<LoginState>(loginViewModelProvider, (previous, next) {
         next.maybeWhen(
-          success: () => context.go('/dashboard'), // Navigasi pakai GoRouter
+          success: (member) {
+            // Simpan data user ke provider lain jika perlu diakses global
+            ref.read(userProvider.notifier).state = member;
+            context.go('/dashboard');
+          },
           error: (message) => ScaffoldMessenger.of(context).showSnackBar(...),
           orElse: () {},
         );
@@ -281,6 +294,34 @@ Riverpod digunakan untuk *Dependency Injection* dan manajemen state.
             ),
           ],
         ),
+      );
+    }
+  }
+  ```
+
+### d. Logika Berbasis Hak Akses (Permissions)
+- Simpan data `Member` yang didapat setelah login ke dalam `Provider` global.
+  ```dart
+  // lib/core/providers/user_provider.dart
+  final userProvider = StateProvider<Member?>((ref) => null);
+  ```
+- Di dalam UI, periksa hak akses sebelum menampilkan widget tertentu.
+  ```dart
+  // Contoh di halaman manajemen
+  class MemberManagementScreen extends ConsumerWidget {
+    @override
+    Widget build(BuildContext context, WidgetRef ref) {
+      final user = ref.watch(userProvider);
+      final canCreate = user?.permissions.members.contains('create') ?? false;
+
+      return Scaffold(
+        floatingActionButton: canCreate
+          ? FloatingActionButton(
+              onPressed: () { /* Buka halaman tambah member */ },
+              child: const Icon(Icons.add),
+            )
+          : null,
+        body: // ... daftar member
       );
     }
   }

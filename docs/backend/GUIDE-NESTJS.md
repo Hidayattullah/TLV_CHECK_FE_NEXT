@@ -351,7 +351,7 @@ Gunakan `class-validator` di dalam file DTO Anda. Aktifkan `ValidationPipe` seca
 import { IsNotEmpty, IsString, IsPhoneNumber } from 'class-validator';
 
 export class LoginDto {
-  @IsPhoneNumber('ID') // Validasi nomor telepon Indonesia
+  @IsPhoneNumber('ID') // Validasi nomor telepon Indonesia (misal: 0812...)
   @IsNotEmpty()
   phoneNumber: string;
 
@@ -405,7 +405,7 @@ Selain autentikasi dengan JWT, pertimbangkan lapisan keamanan tambahan:
     - Controller memanggil `this.membersService.update(id, updateMemberDto, user)`.
 4.  **Service (`members.service.ts`):**
     - Menerima data dan melakukan logika bisnis.
-    - Cek hak akses: "Apakah `user` boleh mengedit profil dengan `id` ini?"
+    - Cek hak akses: "Apakah `user` boleh mengedit profil dengan `id` ini?" (misal: `user.id === id` atau `user.permissions.members.includes('edit')`).
     - Memanggil `PrismaService` untuk memperbarui data di database.
     - Mengembalikan data yang sudah diperbarui.
 5.  **Response:** Controller mengembalikan data dari service sebagai respons HTTP 200 OK.

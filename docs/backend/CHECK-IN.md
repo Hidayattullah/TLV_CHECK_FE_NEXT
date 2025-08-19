@@ -76,7 +76,7 @@ Berikut adalah daftar endpoint API yang perlu Anda buat di dalam direktori `/pag
 - **Endpoint:** `POST /api/check-in/events`
   - **Tujuan:** Membuat acara check-in baru.
   - **Request Body:** `{ "eventName": "Ibadah Raya Pagi", "eventDate": "YYYY-MM-DD" }`
-  - **Logika:** Verifikasi hak akses `edit` pada modul `checkin`. Buat entri baru di tabel `Event`. `isActive` default-nya `true`.
+  - **Logika:** Verifikasi hak akses `create` pada modul `checkin`. Buat entri baru di tabel `Event`. `isActive` default-nya `true`.
   - **Success Response (201 Created):** `{ ...data_event_baru }`
 
 - **Endpoint:** `PATCH /api/check-in/events/:id`

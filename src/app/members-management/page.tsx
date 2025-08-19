@@ -535,6 +535,12 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
         newPermissions.add(permission);
       } else {
         newPermissions.delete(permission);
+        // If 'read' is unchecked, uncheck all others
+        if (permission === 'read') {
+          newPermissions.delete('create');
+          newPermissions.delete('edit');
+          newPermissions.delete('delete');
+        }
       }
       return { ...prev, [module]: Array.from(newPermissions) };
     });
@@ -627,26 +633,32 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-            {(Object.keys(moduleLabels) as Module[]).map((module) => (
-              <div key={module} className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3">{moduleLabels[module]}</h4>
-                <div className="flex items-center space-x-6">
-                  {(Object.keys(permissionLabels) as Permission[]).map((permission) => (
-                    <div key={permission} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`${member.id}-${module}-${permission}`}
-                        checked={currentPermissions[module].includes(permission)}
-                        onCheckedChange={(checked) => handlePermissionChange(module, permission, !!checked)}
-                        disabled={isSaving}
-                      />
-                      <Label htmlFor={`${member.id}-${module}-${permission}`} className="font-normal">
-                        {permissionLabels[permission]}
-                      </Label>
-                    </div>
-                  ))}
+            {(Object.keys(moduleLabels) as Module[]).map((module) => {
+              const hasReadAccess = currentPermissions[module].includes("read");
+              return (
+                <div key={module} className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-3">{moduleLabels[module]}</h4>
+                  <div className="flex items-center space-x-6">
+                    {(Object.keys(permissionLabels) as Permission[]).map((permission) => (
+                      <div key={permission} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`${member.id}-${module}-${permission}`}
+                          checked={currentPermissions[module].includes(permission)}
+                          onCheckedChange={(checked) => handlePermissionChange(module, permission, !!checked)}
+                          disabled={isSaving || (permission !== 'read' && !hasReadAccess)}
+                        />
+                        <Label
+                          htmlFor={`${member.id}-${module}-${permission}`}
+                          className="font-normal"
+                        >
+                          {permissionLabels[permission]}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={handleCancelClick} disabled={isSaving}>Batal</Button>

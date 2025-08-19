@@ -40,7 +40,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -57,6 +56,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Member, Module, Permission, RfidType, Gender } from "@/lib/api/types";
 import { getMembers, addMember, updateMember, deleteMember as removeMember } from "@/lib/repository_mock/members";
+import { useAuth } from "@/hooks/use-auth";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 const moduleLabels: Record<Module, string> = {
@@ -68,6 +69,7 @@ const moduleLabels: Record<Module, string> = {
 };
 
 const permissionLabels: Record<Permission, string> = {
+  create: "Buat",
   read: "Baca",
   edit: "Edit",
   delete: "Hapus",
@@ -734,6 +736,11 @@ function MemberDetailDialog({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const { user: currentUser } = useAuth();
+  const canEdit = currentUser?.permissions?.members?.includes("edit");
+  const canDelete = currentUser?.permissions?.members?.includes("delete");
+  const canManage = canEdit || canDelete;
+
   useEffect(() => {
     if (member) {
       setFormData(member);
@@ -903,6 +910,73 @@ function MemberDetailDialog({
 
   const userInitials = member.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   const currentAvatar = isEditMode ? avatarPreview : member.avatarUrl;
+
+  const manageButton = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-full" disabled={!canManage}>
+            <Settings className="mr-2 h-4 w-4" />
+            Kelola
+          </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {canEdit && (
+          <DropdownMenuItem onSelect={() => setIsEditMode(true)}>
+            <Edit className="mr-2 h-4 w-4" />
+            <span>Edit Profil</span>
+          </DropdownMenuItem>
+        )}
+
+        <RfidManagementDialog
+          member={member}
+          onSave={onRfidSave}
+        >
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Nfc className="mr-2 h-4 w-4" />
+              <span>Kelola RFID</span>
+          </DropdownMenuItem>
+        </RfidManagementDialog>
+        
+        <PermissionsDialog 
+          member={member} 
+          onSave={onPermissionsSave}
+          open={openPermissionDialogs[member.id] || false}
+          onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
+        >
+          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onPermissionDialogOpen(member.id, true); }}>
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            <span>Hak Akses</span>
+          </DropdownMenuItem>
+        </PermissionsDialog>
+
+        {canDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Hapus Jemaat</span>
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(member.id)} className="bg-destructive hover:bg-destructive/90">Lanjutkan Hapus</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <>
@@ -1117,64 +1191,20 @@ function MemberDetailDialog({
                   </>
                 ) : (
                    <div className="w-full flex gap-2">
-                     <DropdownMenu>
-                       <DropdownMenuTrigger asChild>
-                         <Button variant="outline" className="w-full">
-                           <Settings className="mr-2 h-4 w-4" />
-                           Kelola
-                         </Button>
-                       </DropdownMenuTrigger>
-                       <DropdownMenuContent align="start">
-                          <DropdownMenuItem onSelect={() => setIsEditMode(true)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Edit Profil</span>
-                          </DropdownMenuItem>
-
-                          <RfidManagementDialog
-                            member={member}
-                            onSave={onRfidSave}
-                          >
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                               <Nfc className="mr-2 h-4 w-4" />
-                               <span>Kelola RFID</span>
-                            </DropdownMenuItem>
-                          </RfidManagementDialog>
-                          
-                          <PermissionsDialog 
-                            member={member} 
-                            onSave={onPermissionsSave}
-                            open={openPermissionDialogs[member.id] || false}
-                            onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
-                          >
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onPermissionDialogOpen(member.id, true); }}>
-                              <ShieldCheck className="mr-2 h-4 w-4" />
-                              <span>Hak Akses</span>
-                            </DropdownMenuItem>
-                          </PermissionsDialog>
-
-                         <DropdownMenuSeparator />
-                         <AlertDialog>
-                           <AlertDialogTrigger asChild>
-                             <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                               <Trash2 className="mr-2 h-4 w-4" />
-                               <span>Hapus Jemaat</span>
-                             </DropdownMenuItem>
-                           </AlertDialogTrigger>
-                           <AlertDialogContent>
-                             <AlertDialogHeader>
-                               <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
-                               <AlertDialogDescription>
-                                 Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data jemaat <strong>{member.name}</strong> secara permanen.
-                               </AlertDialogDescription>
-                             </AlertDialogHeader>
-                             <AlertDialogFooter>
-                               <AlertDialogCancel>Batal</AlertDialogCancel>
-                               <AlertDialogAction onClick={() => onDelete(member.id)} className="bg-destructive hover:bg-destructive/90">Lanjutkan Hapus</AlertDialogAction>
-                             </AlertDialogFooter>
-                           </AlertDialogContent>
-                         </AlertDialog>
-                       </DropdownMenuContent>
-                     </DropdownMenu>
+                    {!canManage ? (
+                       <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="w-full">
+                            {manageButton}
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Anda memerlukan akses untuk memanfaatkan fitur ini dari Admin</p>
+                          </TooltipContent>
+                        </Tooltip>
+                       </TooltipProvider>
+                    ) : (
+                      manageButton
+                    )}
                       <DialogClose asChild>
                         <Button type="button" variant="secondary" className="w-full">Close</Button>
                       </DialogClose>
@@ -1242,6 +1272,9 @@ export default function MembersManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const { user } = useAuth();
+
+  const canCreate = useMemo(() => user?.permissions?.members?.includes("create"), [user]);
 
   useEffect(() => {
     async function loadMembers() {
@@ -1373,11 +1406,13 @@ export default function MembersManagementPage() {
           }}
           className="max-w-sm bg-card"
         />
-        <AddMemberDialog 
-          open={isAddMemberDialogOpen}
-          onOpenChange={setIsAddMemberDialogOpen}
-          onAddMember={handleAddNewMember}
-        />
+        {canCreate && (
+          <AddMemberDialog 
+            open={isAddMemberDialogOpen}
+            onOpenChange={setIsAddMemberDialogOpen}
+            onAddMember={handleAddNewMember}
+          />
+        )}
       </div>
 
       <div className="border rounded-lg">
@@ -1500,5 +1535,3 @@ export default function MembersManagementPage() {
     </>
   );
 }
-
-    

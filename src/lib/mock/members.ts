@@ -15,7 +15,7 @@ export const initialMembers: Member[] = [
     dateOfBirth: "1990-01-01",
     gender: "Laki-laki",
     permissions: {
-      members: ["read", "edit", "delete"],
+      members: ["create", "read", "edit", "delete"],
       checkin: ["read", "edit"],
       prayers: ["read"],
       questions: ["read", "edit"],
@@ -57,8 +57,8 @@ export const initialMembers: Member[] = [
     dateOfBirth: "1985-11-10",
     gender: "Laki-laki",
     permissions: {
-      members: ["read", "edit", "delete"],
-      checkin: ["read", "edit", "delete"],
+      members: ["create", "read", "edit", "delete"],
+      checkin: ["create", "read", "edit", "delete"],
       prayers: ["read", "edit", "delete"],
       questions: ["read", "edit", "delete"],
       tickets: ["read", "edit", "delete"],

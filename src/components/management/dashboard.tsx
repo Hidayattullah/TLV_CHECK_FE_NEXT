@@ -56,13 +56,14 @@ const managementSections = [
 export function ManagementDashboard() {
   const { user } = useAuth();
 
-  // Filter sections berdasarkan permission 'read' dari user yang login
+  // Filter sections berdasarkan permission dari user yang login
   const accessibleSections = useMemo(() => {
     if (!user || !user.permissions) {
       return [];
     }
+    // A user can see the management card if they have ANY permission for that module.
     return managementSections.filter(section => 
-      user.permissions[section.module]?.includes("read")
+      user.permissions[section.module]?.length > 0
     );
   }, [user]);
 

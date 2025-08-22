@@ -41,7 +41,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -73,10 +72,9 @@ const moduleLabels: Record<Module, string> = {
 const permissionLabels: Record<Permission, string> = {
   create: "Buat",
   read: "Baca",
-  edit: "Edit",
+  update: "Update",
   delete: "Hapus",
   write: "Tulis",
-  update: "Perbarui",
 };
 
 const addMemberFormSchema = z.object({
@@ -659,7 +657,7 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
                 <div key={module} className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-3">{moduleLabels[module]}</h4>
                   <div className="flex items-center space-x-6">
-                    {(Object.keys(permissionLabels) as (keyof typeof permissionLabels)[]).filter(p => p !== 'write' && p !== 'update').map((permission) => (
+                    {(Object.keys(permissionLabels) as (keyof typeof permissionLabels)[]).map((permission) => (
                       <div key={permission} className="flex items-center space-x-2">
                         <Checkbox
                           id={`${member.id}-${module}-${permission}`}
@@ -773,7 +771,7 @@ function MemberDetailDialog({
   
   const canEdit = useMemo(() => {
     const permissions = currentUser?.permissions?.members || [];
-    return permissions.includes("edit") || permissions.includes("write") || permissions.includes("update");
+    return permissions.includes("update") || permissions.includes("write");
   }, [currentUser]);
   
   const canDelete = useMemo(() => currentUser?.permissions?.members?.includes("delete"), [currentUser]);

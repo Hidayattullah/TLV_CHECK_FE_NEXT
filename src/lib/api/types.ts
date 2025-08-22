@@ -1,4 +1,4 @@
-export type Permission = "create" | "read" | "edit" | "delete";
+export type Permission = "create" | "read" | "update" | "delete" | "write";
 export type Module = "members" | "checkin" | "prayers" | "questions" | "tickets";
 export type RfidType = "Card" | "Tag" | "Stiker";
 export type Gender = "Laki-laki" | "Perempuan";

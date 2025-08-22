@@ -9,14 +9,15 @@ export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login`,
   REGISTER: `${API_BASE_URL}/auth/register`,
   GET_PROFILE: `${API_BASE_URL}/auth/profile`,
-  UPDATE_PROFILE: `${API_BASE_URL}/auth/profile`, // Endpoint for updating current user's profile
+  UPDATE_PROFILE: `${API_BASE_URL}/auth/profile`,
 
-  // Endpoint untuk Jemaat (Members)
-  GET_MEMBERS: `${API_BASE_URL}/members`,
+  // Endpoint untuk Jemaat (Members) - Admin Only
+  MEMBERS: `${API_BASE_URL}/members`,
   GET_MEMBER_BY_ID: (id: string) => `${API_BASE_URL}/members/${id}`,
-  GET_MEMBER_BY_PHONE: (phone: string) => `${API_BASE_URL}/members/phone/${phone}`,
   UPDATE_MEMBER: (id: string) => `${API_BASE_URL}/members/${id}`,
   DELETE_MEMBER: (id: string) => `${API_BASE_URL}/members/${id}`,
+  SET_PERMISSIONS: (id: string) => `${API_BASE_URL}/members/${id}/permissions/set`,
+
 
   // Endpoint untuk Acara Check-in
   GET_CHECK_IN_EVENTS: `${API_BASE_URL}/check-in/events`,

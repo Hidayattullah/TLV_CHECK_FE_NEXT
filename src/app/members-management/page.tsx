@@ -56,7 +56,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Member, Module, Permission, RfidType, Gender } from "@/lib/api/types";
-import { getMembers, addMember, updateMember, deleteMember as removeMember } from "@/lib/repository_mock/members";
+import { getMembers, addMember, updateMember, deleteMember as removeMember, setMemberPermissions } from "@/lib/repository/members";
 import { useAuth } from "@/hooks/use-auth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -114,7 +114,6 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
     try {
       const newMemberData = await addMember({
         ...formData,
-        email: formData.email || `${formData.name.toLowerCase().replace(/\s/g, '.')}@generated.com`,
       });
       onAddMember(newMemberData);
       toast({
@@ -124,10 +123,11 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
       onOpenChange(false);
       form.reset();
     } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat menambahkan jemaat baru.";
        toast({
         variant: "destructive",
         title: "Gagal Menambahkan",
-        description: "Terjadi kesalahan saat menambahkan jemaat baru.",
+        description: errorMessage,
       });
     } finally {
       setIsSaving(false);
@@ -201,7 +201,7 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
                 <FormItem>
                   <FormLabel>Nomor Telepon</FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder="+62..." {...field} />
+                    <Input type="tel" placeholder="08..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -332,9 +332,9 @@ function AddMemberDialog({ open, onOpenChange, onAddMember }: { open: boolean; o
 
 
 function RfidManagementDialog({ member, onSave, children }: { member: Member; onSave: (id: string, rfid: Member['rfid']) => void; children: React.ReactNode; }) {
-  const [rfidId, setRfidId] = useState(member.rfid.id || '');
-  const [rfidType, setRfidType] = useState<RfidType | null>(member.rfid.type);
-  const [isEditingRfid, setIsEditingRfid] = useState(!member.rfid.id);
+  const [rfidId, setRfidId] = useState(member.rfid?.id || '');
+  const [rfidType, setRfidType] = useState<RfidType | null>(member.rfid?.type || null);
+  const [isEditingRfid, setIsEditingRfid] = useState(!member.rfid?.id);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
@@ -346,13 +346,13 @@ function RfidManagementDialog({ member, onSave, children }: { member: Member; on
   const onOpenChange = (open: boolean) => {
     if (!open) {
       // Reset state when closing dialog
-      setRfidId(member.rfid.id || '');
-      setRfidType(member.rfid.type);
-      setIsEditingRfid(!member.rfid.id);
+      setRfidId(member.rfid?.id || '');
+      setRfidType(member.rfid?.type || null);
+      setIsEditingRfid(!member.rfid?.id);
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!rfidId || !rfidType) {
        toast({
         variant: "destructive",
@@ -364,38 +364,48 @@ function RfidManagementDialog({ member, onSave, children }: { member: Member; on
     }
 
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      await updateMember(member.id, { rfid: { id: rfidId, type: rfidType } });
       onSave(member.id, { id: rfidId, type: rfidType });
       toast({
         title: "Berhasil!",
         description: `RFID untuk ${member.name} berhasil disimpan.`,
       });
-      setIsSaving(false);
-      setSaveAlertOpen(false);
       onOpenChange(false);
-    }, 1500);
+    } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan RFID.";
+       toast({ variant: "destructive", title: "Gagal!", description: errorMessage });
+    } finally {
+        setIsSaving(false);
+        setSaveAlertOpen(false);
+    }
   };
   
-  const handleReset = () => {
+  const handleReset = async () => {
     setIsResetting(true);
-    setTimeout(() => {
-       onSave(member.id, { id: null, type: null });
-       toast({
-          title: "Berhasil Dihapus",
-          description: `RFID untuk ${member.name} telah dihapus.`,
-          variant: "destructive"
+    try {
+        await updateMember(member.id, { rfid: { id: null, type: null } });
+        onSave(member.id, { id: null, type: null });
+        toast({
+            title: "Berhasil Dihapus",
+            description: `RFID untuk ${member.name} telah dihapus.`,
+            variant: "destructive"
         });
-      setIsResetting(false);
-      setResetAlertOpen(false);
-      onOpenChange(false);
-    }, 1500);
+        onOpenChange(false);
+    } catch (error) {
+         const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat mereset RFID.";
+         toast({ variant: "destructive", title: "Gagal!", description: errorMessage });
+    } finally {
+        setIsResetting(false);
+        setResetAlertOpen(false);
+    }
   };
 
   const handleToggleEdit = () => {
     if(isEditingRfid) {
       // If cancelling edit, revert to original state
-      setRfidId(member.rfid.id || '');
-      setRfidType(member.rfid.type);
+      setRfidId(member.rfid?.id || '');
+      setRfidType(member.rfid?.type || null);
     }
     setIsEditingRfid(!isEditingRfid);
   }
@@ -449,12 +459,12 @@ function RfidManagementDialog({ member, onSave, children }: { member: Member; on
             </div>
 
             <div className="flex gap-2 justify-between">
-              {member.rfid.id && (
+              {member.rfid?.id && (
                 <Button variant="outline" onClick={handleToggleEdit}>
                   {isEditingRfid ? 'Batal Ubah' : 'Ubah/Reset RFID'}
                 </Button>
               )}
-               {isEditingRfid && member.rfid.id && (
+               {isEditingRfid && member.rfid?.id && (
                 <AlertDialog open={isResetAlertOpen} onOpenChange={setResetAlertOpen}>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive">
@@ -487,7 +497,7 @@ function RfidManagementDialog({ member, onSave, children }: { member: Member; on
             </DialogClose>
              <AlertDialog open={isSaveAlertOpen} onOpenChange={setSaveAlertOpen}>
                <AlertDialogTrigger asChild>
-                <Button type="button" disabled={!isEditingRfid || isSaving}>Simpan</Button>
+                <Button type="button" disabled={!isEditingRfid || isSaving} onClick={() => setSaveAlertOpen(true)}>Simpan</Button>
                </AlertDialogTrigger>
                <AlertDialogContent>
                  <AlertDialogHeader>
@@ -535,11 +545,8 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
         newPermissions.add(permission);
       } else {
         newPermissions.delete(permission);
-        // If 'read' is unchecked, uncheck all others
         if (permission === 'read') {
-          newPermissions.delete('create');
-          newPermissions.delete('edit');
-          newPermissions.delete('delete');
+          newPermissions.clear();
         }
       }
       return { ...prev, [module]: Array.from(newPermissions) };
@@ -568,18 +575,23 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
     setIsSaveAlertOpen(true);
   };
 
-  const executeSave = () => {
+  const executeSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      await setMemberPermissions(member.id, currentPermissions);
       onSave(member.id, currentPermissions);
       toast({
         title: "Berhasil!",
         description: `Hak akses untuk ${member.name} berhasil diperbarui.`,
       });
+      onOpenChange(false);
+    } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan hak akses.";
+       toast({ variant: "destructive", title: "Gagal!", description: errorMessage });
+    } finally {
       setIsSaving(false);
       setIsSaveAlertOpen(false);
-      onOpenChange(false);
-    }, 1500);
+    }
   };
 
   const handleCancelClick = () => {
@@ -754,18 +766,32 @@ function MemberDetailDialog({
   const canDelete = currentUser?.permissions?.members?.includes("delete");
   const canManage = canEdit || canDelete;
 
+  const formatDateForInput = (dateString?: string): string => {
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  };
+
   useEffect(() => {
     if (member) {
-      setFormData(member);
+      const formattedMember = {
+        ...member,
+        dateOfBirth: formatDateForInput(member.dateOfBirth),
+        joinedDate: formatDateForInput(member.joinedDate),
+      };
+      setFormData(formattedMember);
       setAvatarPreview(member.avatarUrl);
     }
   }, [member]);
   
   useEffect(() => {
-    if (isEditMode && member && !originalDataOnEdit) {
-      setOriginalDataOnEdit(JSON.parse(JSON.stringify(member)));
+    if (isEditMode && formData && !originalDataOnEdit) {
+      setOriginalDataOnEdit(JSON.parse(JSON.stringify(formData)));
     }
-  }, [isEditMode, member, originalDataOnEdit]);
+  }, [isEditMode, formData, originalDataOnEdit]);
   
   useEffect(() => {
     if (!open) {
@@ -877,10 +903,11 @@ function MemberDetailDialog({
           description: `Perubahan pada ${formData.name} berhasil dilakukan.`,
         });
       } catch (error) {
+         const errorMessage = error instanceof Error ? error.message : "Gagal menyimpan perubahan.";
          toast({
           variant: "destructive",
           title: "Gagal!",
-          description: `Gagal menyimpan perubahan untuk ${formData.name}, periksa koneksi Anda.`,
+          description: errorMessage,
         });
       } finally {
          setIsSaving(false);
@@ -897,16 +924,12 @@ function MemberDetailDialog({
       setIsCancelAlertOpen(true);
     } else {
       setIsEditMode(false);
-      setFormData(member);
-      setAvatarPreview(member?.avatarUrl);
       setOriginalDataOnEdit(null);
     }
   };
   
   const handleCancelConfirm = () => {
     setIsEditMode(false);
-    setFormData(member);
-    setAvatarPreview(member?.avatarUrl);
     setIsCancelAlertOpen(false);
     setOriginalDataOnEdit(null);
   };
@@ -1276,6 +1299,7 @@ const ITEMS_PER_PAGE = 5;
 
 export default function MembersManagementPage() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [pagination, setPagination] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [openPermissionDialogs, setOpenPermissionDialogs] = useState<Record<string, boolean>>({});
   const [viewingMember, setViewingMember] = useState<Member | null>(null);
@@ -1289,24 +1313,27 @@ export default function MembersManagementPage() {
 
   const canCreate = useMemo(() => user?.permissions?.members?.includes("create"), [user]);
 
-  useEffect(() => {
-    async function loadMembers() {
-      setIsLoading(true);
-      try {
-        const data = await getMembers();
-        setMembers(data);
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Gagal Memuat Data",
-          description: "Tidak dapat memuat data jemaat. Coba lagi nanti.",
-        });
-      } finally {
-        setIsLoading(false);
-      }
+  const loadMembers = useCallback(async (page: number, search: string) => {
+    setIsLoading(true);
+    try {
+      const { data, pagination: pagInfo } = await getMembers(page, ITEMS_PER_PAGE, search);
+      setMembers(data);
+      setPagination(pagInfo);
+    } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : "Tidak dapat memuat data jemaat.";
+      toast({
+        variant: "destructive",
+        title: "Gagal Memuat Data",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
     }
-    loadMembers();
   }, [toast]);
+
+  useEffect(() => {
+    loadMembers(currentPage, searchTerm);
+  }, [currentPage, searchTerm, loadMembers]);
 
   const handlePermissionsSave = (id: string, permissions: Record<Module, Permission[]>) => {
      setMembers(prevMembers =>
@@ -1325,6 +1352,9 @@ export default function MembersManagementPage() {
         member.id === id ? { ...member, ...updatedData } : member
       )
     );
+    if (viewingMember && viewingMember.id === id) {
+        setViewingMember(prev => prev ? { ...prev, ...updatedData } : null);
+    }
   };
   
   const handleRfidSave = (id: string, rfid: Member['rfid']) => {
@@ -1366,10 +1396,11 @@ export default function MembersManagementPage() {
             variant: "destructive"
         });
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus jemaat.";
         toast({
             variant: "destructive",
             title: "Gagal Menghapus",
-            description: "Terjadi kesalahan saat menghapus jemaat.",
+            description: errorMessage,
         });
     }
   };
@@ -1377,20 +1408,8 @@ export default function MembersManagementPage() {
   const handleAddNewMember = (newMember: Member) => {
     setMembers(prev => [newMember, ...prev]);
   };
-
-  const filteredMembers = useMemo(() => {
-    return members.filter(member => 
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [members, searchTerm]);
   
-  const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
-
-  const paginatedMembers = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredMembers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredMembers, currentPage]);
+  const totalPages = pagination ? (pagination as any).totalPages : 1;
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -1446,8 +1465,8 @@ export default function MembersManagementPage() {
                   <TableCell className="text-center"><Skeleton className="h-6 w-24 mx-auto" /></TableCell>
                 </TableRow>
               ))
-            ) : paginatedMembers.length > 0 ? (
-              paginatedMembers.map(member => (
+            ) : members.length > 0 ? (
+              members.map(member => (
               <TableRow key={member.id} className="h-16">
                  <TableCell>
                   <Dialog>

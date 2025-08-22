@@ -18,19 +18,14 @@ export const API_ENDPOINTS = {
   DELETE_MEMBER: (id: string) => `${API_BASE_URL}/members/${id}`,
   SET_PERMISSIONS: (id: string) => `${API_BASE_URL}/members/${id}/permissions/set`,
 
-
   // Endpoint untuk Acara Check-in
-  GET_CHECK_IN_EVENTS: `${API_BASE_URL}/check-in/events`,
+  CHECK_IN_EVENTS: `${API_BASE_URL}/check-in/events`,
   GET_CHECK_IN_EVENT_BY_ID: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
-  ADD_CHECK_IN_EVENT: `${API_BASE_URL}/check-in/events`,
-  UPDATE_CHECK_IN_EVENT: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
-  DELETE_CHECK_IN_EVENT: (id: string) => `${API_BASE_URL}/check-in/events/${id}`,
-  UPDATE_CHECK_IN_EVENT_STATUS: (id: string) => `${API_BASE_URL}/check-in/events/${id}/status`,
-  SET_CHECK_IN_EVENT_TIMER: (id: string) => `${API_BASE_URL}/check-in/events/${id}/timer`,
   ADD_ATTENDEE_TO_EVENT: (eventId: string) => `${API_BASE_URL}/check-in/events/${eventId}/attendees`,
+  SELF_CHECK_IN_SCAN: `${API_BASE_URL}/check-in/scan`,
   
   // Endpoint untuk Riwayat Check-in Pribadi
-  GET_PERSONAL_CHECK_IN_HISTORY: (userId: string) => `${API_BASE_URL}/members/${userId}/check-in-history`,
+  GET_PERSONAL_CHECK_IN_HISTORY: `${API_BASE_URL}/check-in/history`,
 
   // Endpoint untuk Pokok Doa (Prayer Requests)
   GET_PRAYER_REQUESTS: `${API_BASE_URL}/prayers`,

@@ -11,15 +11,19 @@ import type { PersonalCheckInRecord } from "@/lib/api/types";
  */
 
 /**
- * Mengambil riwayat check-in pribadi untuk pengguna tertentu dari server.
+ * Mengambil riwayat check-in pribadi untuk pengguna yang sedang login dari server.
  * Fungsi ini akan memanggil endpoint API yang sesuai untuk mendapatkan data.
  *
- * @param {string} userId - ID pengguna yang riwayatnya akan diambil.
- * @returns {Promise<PersonalCheckInRecord[]>} Daftar riwayat check-in pribadi.
+ * @returns {Promise<{data: PersonalCheckInRecord[], pagination: any}>} Daftar riwayat check-in pribadi dan info paginasi.
  * @throws {Error} Jika panggilan API gagal.
  */
-export async function getPersonalCheckInHistory(userId: string): Promise<PersonalCheckInRecord[]> {
-  console.log(`(API) Mengambil riwayat check-in untuk pengguna: ${userId}...`);
-  // Ganti baris di bawah ini dengan logika panggilan API Anda yang sesungguhnya.
-  return customFetch<PersonalCheckInRecord[]>(API_ENDPOINTS.GET_PERSONAL_CHECK_IN_HISTORY(userId));
+export async function getPersonalCheckInHistory(page = 1, limit = 10, search = ''): Promise<{data: PersonalCheckInRecord[], pagination: any}> {
+  console.log(`(API) Mengambil riwayat check-in pribadi...`);
+  const url = new URL(API_ENDPOINTS.GET_PERSONAL_CHECK_IN_HISTORY);
+  url.searchParams.append('page', String(page));
+  url.searchParams.append('limit', String(limit));
+  if (search) {
+      url.searchParams.append('search', search);
+  }
+  return customFetch<{data: PersonalCheckInRecord[], pagination: any}>(url.toString());
 }

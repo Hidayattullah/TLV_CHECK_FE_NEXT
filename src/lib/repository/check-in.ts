@@ -11,15 +11,21 @@ import type { CheckInEvent, Attendee } from "@/lib/api/types";
  */
 
 /**
- * Mengambil semua data acara check-in dari server.
+ * Mengambil semua data acara check-in dari server dengan paginasi.
  * Panggil endpoint GET untuk mendapatkan daftar semua acara.
  *
- * @returns {Promise<CheckInEvent[]>} Daftar semua acara check-in.
+ * @returns {Promise<{data: CheckInEvent[], pagination: any}>} Daftar semua acara check-in.
  * @throws {Error} Jika panggilan API gagal.
  */
-export async function getCheckInEvents(): Promise<CheckInEvent[]> {
+export async function getCheckInEvents(page = 1, limit = 10, search = ''): Promise<{data: CheckInEvent[], pagination: any}> {
   console.log("(API) Mengambil semua data acara check-in...");
-  return customFetch<CheckInEvent[]>(API_ENDPOINTS.GET_CHECK_IN_EVENTS);
+  const url = new URL(API_ENDPOINTS.CHECK_IN_EVENTS);
+  url.searchParams.append('page', String(page));
+  url.searchParams.append('limit', String(limit));
+  if (search) {
+      url.searchParams.append('search', search);
+  }
+  return customFetch<{data: CheckInEvent[], pagination: any}>(url.toString());
 }
 
 /**
@@ -44,13 +50,13 @@ export async function getCheckInEventById(id: string): Promise<CheckInEvent | nu
  * Panggil endpoint POST dengan ID acara dan data jemaat.
  *
  * @param {string} eventId - ID acara check-in.
- * @param {Omit<Attendee, 'checkinTime' | 'checkinMethod'>} attendeeData - Data jemaat (misal: {id, name}).
+ * @param {Omit<Attendee, 'checkinTime' | 'checkinMethod' | 'name' | 'id'> & { memberId: string, checkinMethod: string }} attendeeData - Data jemaat.
  * @returns {Promise<CheckInEvent>} Data acara yang telah diperbarui.
  * @throws {Error} Jika panggilan API gagal.
  */
-export async function addAttendee(eventId: string, attendeeData: Omit<Attendee, 'checkinTime' | 'checkinMethod'>): Promise<CheckInEvent> {
+export async function addAttendee(eventId: string, attendeeData: { memberId: string; checkinMethod: string }): Promise<any> {
   console.log(`(API) Menambahkan jemaat ke acara ${eventId}...`);
-  return customFetch<CheckInEvent>(API_ENDPOINTS.ADD_ATTENDEE_TO_EVENT(eventId), {
+  return customFetch<any>(API_ENDPOINTS.ADD_ATTENDEE_TO_EVENT(eventId), {
     method: 'POST',
     body: JSON.stringify(attendeeData),
   });
@@ -66,7 +72,7 @@ export async function addAttendee(eventId: string, attendeeData: Omit<Attendee, 
  */
 export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {
   console.log("(API) Menambahkan acara check-in baru...");
-  return customFetch<CheckInEvent>(API_ENDPOINTS.ADD_CHECK_IN_EVENT, {
+  return customFetch<CheckInEvent>(API_ENDPOINTS.CHECK_IN_EVENTS, {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -83,7 +89,7 @@ export async function addCheckInEvent(data: Pick<CheckInEvent, "eventName" | "ev
  */
 export async function updateCheckInEvent(id: string, data: Pick<CheckInEvent, "eventName" | "eventDate">): Promise<CheckInEvent> {
   console.log(`(API) Memperbarui acara ${id}...`);
-  return customFetch<CheckInEvent>(API_ENDPOINTS.UPDATE_CHECK_IN_EVENT(id), {
+  return customFetch<CheckInEvent>(`${API_ENDPOINTS.CHECK_IN_EVENTS}/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
@@ -99,7 +105,7 @@ export async function updateCheckInEvent(id: string, data: Pick<CheckInEvent, "e
  */
 export async function deleteCheckInEvent(id: string): Promise<void> {
   console.log(`(API) Menghapus acara ${id}...`);
-  await customFetch<void>(API_ENDPOINTS.DELETE_CHECK_IN_EVENT(id), {
+  await customFetch<void>(`${API_ENDPOINTS.CHECK_IN_EVENTS}/${id}`, {
     method: 'DELETE',
   });
 }
@@ -115,7 +121,7 @@ export async function deleteCheckInEvent(id: string): Promise<void> {
  */
 export async function updateCheckInEventStatus(id: string, isActive: boolean): Promise<CheckInEvent> {
   console.log(`(API) Memperbarui status acara ${id}...`);
-  return customFetch<CheckInEvent>(API_ENDPOINTS.UPDATE_CHECK_IN_EVENT_STATUS(id), {
+  return customFetch<CheckInEvent>(`${API_ENDPOINTS.CHECK_IN_EVENTS}/${id}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ isActive }),
   });
@@ -127,15 +133,29 @@ export async function updateCheckInEventStatus(id: string, isActive: boolean): P
  *
  * @param {string} id - ID acara yang akan diatur timernya.
  * @param {number} hours - Durasi timer dalam jam.
- * @param {(eventId: string, isActive: boolean) => void} onTimerEnd - Callback (opsional) untuk dieksekusi setelah timer berakhir.
  * @returns {Promise<CheckInEvent>} Acara yang telah diatur timernya.
  * @throws {Error} Jika panggilan API gagal.
  */
-export async function setCheckInEventTimer(id: string, hours: number, onTimerEnd: (eventId: string, isActive: boolean) => void): Promise<CheckInEvent> {
+export async function setCheckInEventTimer(id: string, hours: number): Promise<CheckInEvent> {
     console.log(`(API) Mengatur timer untuk acara ${id}...`);
     // Backend akan menangani logika timer. Frontend hanya mengirim permintaan.
-    return customFetch<CheckInEvent>(API_ENDPOINTS.SET_CHECK_IN_EVENT_TIMER(id), {
+    return customFetch<CheckInEvent>(`${API_ENDPOINTS.CHECK_IN_EVENTS}/${id}/timer`, {
         method: 'POST',
         body: JSON.stringify({ hours }),
+    });
+}
+
+/**
+ * Melakukan check-in mandiri melalui pemindaian QR.
+ *
+ * @param {string} eventId - ID acara yang di-scan.
+ * @param {string} checkinMethod - Metode check-in.
+ * @returns {Promise<any>} Hasil dari proses check-in.
+ */
+export async function selfCheckIn(eventId: string, checkinMethod: string): Promise<any> {
+    console.log(`(API) Melakukan self check-in untuk event ${eventId}...`);
+    return customFetch<any>(API_ENDPOINTS.SELF_CHECK_IN_SCAN, {
+        method: 'POST',
+        body: JSON.stringify({ eventId, checkinMethod }),
     });
 }

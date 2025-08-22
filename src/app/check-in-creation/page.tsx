@@ -31,7 +31,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
@@ -59,7 +58,7 @@ import {
   deleteCheckInEvent,
   updateCheckInEventStatus,
   setCheckInEventTimer,
-} from "@/lib/repository_mock/check-in";
+} from "@/lib/repository/check-in";
 
 
 const ITEMS_PER_PAGE = 4;
@@ -80,10 +79,19 @@ function AddEditEventDialog({
   const [eventDate, setEventDate] = useState("");
   const { toast } = useToast();
 
+  const formatDateForInput = (dateString?: string): string => {
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  };
+
   React.useEffect(() => {
     if (event) {
       setEventName(event.eventName);
-      setEventDate(event.eventDate);
+      setEventDate(formatDateForInput(event.eventDate));
     } else {
       setEventName("");
       setEventDate("");
@@ -150,15 +158,17 @@ function AttendanceListDialog({ event, children, asChild }: { event: CheckInEven
     }
   }, [open]);
   
+  const attendees = event.attendees || [];
+
   const filteredAttendees = useMemo(() => {
-    return event.attendees
+    return attendees
       .filter(attendee => 
         attendee.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .filter(attendee => 
         filterMethod === "all" ? true : attendee.checkinMethod === filterMethod
       );
-  }, [event.attendees, searchTerm, filterMethod]);
+  }, [attendees, searchTerm, filterMethod]);
 
   const totalPages = Math.ceil(filteredAttendees.length / ATTENDEES_PER_PAGE);
 
@@ -176,7 +186,7 @@ function AttendanceListDialog({ event, children, asChild }: { event: CheckInEven
         <DialogHeader>
           <DialogTitle>Daftar Hadir: {event.eventName}</DialogTitle>
           <DialogDescription>
-            Jemaat yang telah melakukan check-in pada {new Date(event.eventDate).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
+            Jemaat yang telah melakukan check-in pada {new Date(event.eventDate).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}.
           </DialogDescription>
         </DialogHeader>
 
@@ -224,12 +234,12 @@ function AttendanceListDialog({ event, children, asChild }: { event: CheckInEven
                 </TableHeader>
                 <TableBody>
                   {paginatedAttendees.length > 0 ? (
-                    paginatedAttendees.map((att) => (
-                      <TableRow key={att.id}>
+                    paginatedAttendees.map((att, index) => (
+                      <TableRow key={`${att.id}-${index}`}>
                         <TableCell className="font-medium">{att.name}</TableCell>
-                        <TableCell>{att.checkinTime}</TableCell>
+                        <TableCell>{new Date(att.checkinTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                         <TableCell className="text-right">
-                          <Badge variant={att.checkinMethod === "Barcode" ? "default" : "secondary"}>
+                          <Badge variant={att.checkinMethod === "QR_CODE" ? "default" : "secondary"}>
                             {att.checkinMethod}
                           </Badge>
                         </TableCell>
@@ -406,8 +416,6 @@ function TimerCountdown({ endTime }: { endTime: number }) {
       if (newTimeLeft <= 0) {
         clearInterval(timer);
         setTimeLeft(0);
-        // Note: The actual status change is handled by the mock repository's logic now.
-        // This component just displays the countdown.
       } else {
         setTimeLeft(newTimeLeft);
       }
@@ -437,19 +445,20 @@ function TimerCountdown({ endTime }: { endTime: number }) {
 
 export default function CheckInCreationPage() {
   const [events, setEvents] = useState<CheckInEvent[]>([]);
+  const [pagination, setPagination] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
-  const [isDeleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<CheckInEvent | null>(null);
   const { toast } = useToast();
 
   const loadEvents = useCallback(async () => {
     // No setIsLoading(true) here to allow background refresh
     try {
-      const data = await getCheckInEvents();
+      const { data, pagination: pagInfo } = await getCheckInEvents(currentPage, ITEMS_PER_PAGE, searchTerm);
       setEvents(data);
+      setPagination(pagInfo);
     } catch (error) {
        toast({
         variant: "destructive",
@@ -459,13 +468,10 @@ export default function CheckInCreationPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, currentPage, searchTerm]);
 
   useEffect(() => {
     loadEvents();
-    // Set up an interval to periodically refresh event data
-    const interval = setInterval(loadEvents, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
   }, [loadEvents]);
 
   const handleSaveEvent = (data: Pick<CheckInEvent, 'eventName' | 'eventDate'>, id?: string) => {
@@ -487,7 +493,6 @@ export default function CheckInCreationPage() {
   
   const confirmDeleteEvent = (event: CheckInEvent) => {
     setEventToDelete(event);
-    setDeleteAlertOpen(true);
   };
   
   const handleDeleteEvent = () => {
@@ -496,12 +501,12 @@ export default function CheckInCreationPage() {
     startTransition(async () => {
         try {
             await deleteCheckInEvent(eventToDelete!.id);
-            setEvents(events.filter(e => e.id !== eventToDelete!.id));
             toast({ variant: "destructive", title: "Dihapus!", description: `Acara ${eventToDelete!.eventName} telah dihapus.` });
+            loadEvents(); // Reload to reflect deletion
         } catch (error) {
-            toast({ variant: "destructive", title: "Gagal!", description: "Gagal menghapus acara." });
+            const errorMessage = error instanceof Error ? error.message : "Gagal menghapus acara.";
+            toast({ variant: "destructive", title: "Gagal!", description: errorMessage });
         } finally {
-            setDeleteAlertOpen(false);
             setEventToDelete(null);
         }
     });
@@ -525,7 +530,7 @@ export default function CheckInCreationPage() {
   const handleTimerSet = useCallback((eventId: string, hours: number) => {
     startTransition(async () => {
       try {
-        const eventWithTimer = await setCheckInEventTimer(eventId, hours, handleStatusChange);
+        const eventWithTimer = await setCheckInEventTimer(eventId, hours);
         setEvents(prevEvents => prevEvents.map(event =>
           event.id === eventId ? eventWithTimer : event
         ));
@@ -537,20 +542,9 @@ export default function CheckInCreationPage() {
         toast({ variant: "destructive", title: "Gagal!", description: "Gagal menyetel timer." });
       }
     });
-  }, [handleStatusChange, toast]);
+  }, [toast]);
 
-  const filteredEvents = useMemo(() => {
-    return events.filter(event =>
-      event.eventName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [events, searchTerm]);
-
-  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
-
-  const paginatedEvents = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredEvents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredEvents, currentPage]);
+  const totalPages = pagination ? (pagination as any).totalPages : 1;
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -616,8 +610,8 @@ export default function CheckInCreationPage() {
                   </CardFooter>
               </Card>
             ))
-          ) : paginatedEvents.length > 0 ? (
-            paginatedEvents.map(event => (
+          ) : events.length > 0 ? (
+            events.map(event => (
               <Card key={event.id} className="flex flex-col">
                 <CardHeader>
                   <AttendanceListDialog event={event} asChild>
@@ -625,7 +619,7 @@ export default function CheckInCreationPage() {
                   </AttendanceListDialog>
                   <div className="flex items-center text-sm text-muted-foreground gap-2 pt-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric'})}</span>
+                      <span>{new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC'})}</span>
                   </div>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-2">
@@ -633,21 +627,15 @@ export default function CheckInCreationPage() {
                    <div className="flex justify-between items-start pt-2">
                        <div className="flex items-center gap-2">
                            <Users className="h-5 w-5 text-muted-foreground" />
-                           <span className="font-medium">{event.attendees.length} Jemaat Hadir</span>
+                           <span className="font-medium">{event._count?.checkIns || 0} Jemaat Hadir</span>
                        </div>
                        <div className="flex flex-col items-end gap-1">
                           <Badge variant={event.isActive ? "default" : "secondary"}>
                             {event.isActive ? <CheckCircle className="mr-2 h-4 w-4"/> : <XCircle className="mr-2 h-4 w-4"/>}
                             {event.isActive ? 'Aktif' : 'Selesai'}
                           </Badge>
-                          {event.isActive && event.activationType === 'timer' && event.timerEndsAt && event.timerEndsAt > Date.now() && (
-                            <TimerCountdown endTime={event.timerEndsAt} />
-                          )}
-                          {event.isActive && event.activationType === 'manual' && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Fingerprint className="h-3 w-3" />
-                              <span>Manual</span>
-                            </div>
+                          {event.isActive && event.autoDeactivateAt && new Date(event.autoDeactivateAt).getTime() > Date.now() && (
+                            <TimerCountdown endTime={new Date(event.autoDeactivateAt).getTime()} />
                           )}
                        </div>
                    </div>
@@ -731,7 +719,7 @@ export default function CheckInCreationPage() {
         )}
 
       </div>
-       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+       <AlertDialog open={!!eventToDelete} onOpenChange={(open) => !open && setEventToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Konfirmasi Hapus Acara</AlertDialogTitle>
@@ -740,7 +728,7 @@ export default function CheckInCreationPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setEventToDelete(null)}>Batal</AlertDialogCancel>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteEvent} className="bg-destructive hover:bg-destructive/90">
                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Lanjutkan & Hapus

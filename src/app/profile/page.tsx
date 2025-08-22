@@ -18,7 +18,7 @@ import { BottomNav } from "@/components/common/bottom-nav";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Member } from "@/lib/api/types";
-import { getMemberById, updateMember } from "@/lib/repository_mock/members";
+import { updateMember } from "@/lib/repository/members";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -36,10 +36,23 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const router = useRouter();
   
+  const formatDateForInput = (dateString?: string): string => {
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toISOString().split('T')[0];
+    } catch (e) {
+      return '';
+    }
+  };
+
   useEffect(() => {
     if (user) {
-      setMember(user);
-      setEditFormData(user);
+      const formattedUser = {
+        ...user,
+        dateOfBirth: formatDateForInput(user.dateOfBirth),
+      };
+      setMember(formattedUser);
+      setEditFormData(formattedUser);
     }
   }, [user]);
 
@@ -98,8 +111,7 @@ export default function ProfilePage() {
     
     try {
       const updatedData = await updateMember(member.id, editFormData);
-      setMember(updatedData);
-      refetchUser(); // Refetch user data in context
+      await refetchUser(); // Refetch user data in context to update everywhere
       toast({
         title: "Berhasil!",
         description: "Profil Anda telah berhasil diperbarui.",
@@ -201,7 +213,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                     <p className="font-medium text-muted-foreground">Tanggal Lahir</p>
-                    <p>{new Date(member.dateOfBirth).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    <p>{new Date(member.dateOfBirth).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}</p>
                     </div>
                     <div>
                     <p className="font-medium text-muted-foreground">Jenis Kelamin</p>

@@ -51,9 +51,9 @@ export type CheckInEvent = {
 
 export type PersonalCheckInRecord = {
   id: string;
-  service: string;
-  checkinDate: string;
-  checkinMethod: "Barcode" | "RFID";
+  eventName: string; // Changed from 'service'
+  checkinTime: string; // Changed from 'checkinDate'
+  checkinMethod: "Barcode" | "RFID" | "QR_CODE";
 };
 
 

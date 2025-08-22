@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CameraOff, RotateCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import jsQR from "jsqr";
-import { addAttendee, getCheckInEventById } from "@/lib/repository_mock/check-in";
+import { selfCheckIn } from "@/lib/repository/check-in";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function ScannerPage() {
@@ -62,51 +62,43 @@ export default function ScannerPage() {
     }
   }, [toast]);
 
-  const handleQrCode = async (eventId: string) => {
+  const handleQrCode = async (scannedData: string) => {
     if (!user) {
       toast({ variant: "destructive", title: "Gagal", description: "Anda harus login untuk check-in." });
       setIsProcessing(false);
       setIsScanning(true);
       return;
     }
+
+    let eventId;
+    try {
+      const parsedData = JSON.parse(scannedData);
+      if (typeof parsedData !== 'object' || parsedData === null || !('eventId' in parsedData)) {
+        throw new Error("Invalid QR code format");
+      }
+      eventId = parsedData.eventId;
+    } catch (error) {
+      toast({ variant: "destructive", title: "QR Tidak Valid", description: "Kode QR ini tidak dikenali oleh sistem." });
+      setTimeout(() => {
+        setIsProcessing(false);
+        setIsScanning(true);
+      }, 3000);
+      return;
+    }
   
     try {
-      const event = await getCheckInEventById(eventId);
+      const result = await selfCheckIn(eventId, "QR_CODE");
       
-      if (event && event.isActive) {
-        const alreadyCheckedIn = Array.isArray(event.attendees) && 
-          event.attendees.some(attendee => attendee.id === user.id);
-        
-        if (alreadyCheckedIn) {
-          router.push(`/scanner-duplicate?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
-          return;
-        }
-  
-        const updatedEvent = await addAttendee(eventId, {
-          id: user.id,
-          name: user.name,
-          checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-          checkinMethod: "Barcode"
-        });
-        
-        router.push(`/scanner-success?eventName=${encodeURIComponent(event.eventName)}&userName=${encodeURIComponent(user.name)}`);
-      
-      } else if (event && !event.isActive) {
-        toast({ variant: "destructive", title: "Gagal", description: `Acara "${event.eventName}" sudah selesai.` });
-        setTimeout(() => {
-          setIsProcessing(false);
-          setIsScanning(true);
-        }, 3000);
-      } else {
-        toast({ variant: "destructive", title: "Gagal", description: "Kode QR tidak valid atau acara tidak ditemukan." });
-        setTimeout(() => {
-          setIsProcessing(false);
-          setIsScanning(true);
-        }, 3000);
+      if (result.status === 'success') {
+        router.push(`/scanner-success?eventName=${encodeURIComponent(result.eventName)}&userName=${encodeURIComponent(user.name)}`);
+      } else if (result.status === 'duplicate') {
+        router.push(`/scanner-duplicate?eventName=${encodeURIComponent(result.eventName)}&userName=${encodeURIComponent(user.name)}`);
       }
+      // The API should handle other error cases by throwing an error which is caught below
     } catch (error) {
       console.error("Error in handleQrCode:", error);
-      toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat check-in." });
+      const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat check-in.";
+      toast({ variant: "destructive", title: "Gagal", description: errorMessage });
       setTimeout(() => {
         setIsProcessing(false);
         setIsScanning(true);

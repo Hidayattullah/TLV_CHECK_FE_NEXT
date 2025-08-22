@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { addMember } from "@/lib/repository_mock/members";
+import { addMember } from "@/lib/repository/members"; // Changed to use real repository
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Nama tidak boleh kosong." }),
@@ -57,6 +57,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       const { ulangiPassword, ...newMemberData } = values;
+      // The API returns a token, but we'll direct the user to log in manually for simplicity.
       await addMember(newMemberData);
       toast({
         title: "Registrasi Berhasil",
@@ -64,10 +65,11 @@ export default function RegisterPage() {
       });
       setTimeout(() => router.push("/login"), 1500);
     } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan. Nomor telepon atau email mungkin sudah terdaftar.";
       toast({
         variant: "destructive",
         title: "Registrasi Gagal",
-        description: "Terjadi kesalahan. Nomor telepon mungkin sudah terdaftar.",
+        description: errorMessage,
       });
        setIsLoading(false);
     }
@@ -117,7 +119,7 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="tel" placeholder="Nomor Telepon" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" disabled={isLoading} />
+                    <Input type="tel" placeholder="Nomor Telepon (08...)" {...field} className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

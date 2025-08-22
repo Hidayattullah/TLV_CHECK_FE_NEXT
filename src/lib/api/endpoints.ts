@@ -1,3 +1,4 @@
+
 // File ini mendefinisikan semua endpoint API yang digunakan dalam aplikasi.
 // Ganti nilai API_BASE_URL dengan URL backend Anda yang sesungguhnya.
 
@@ -6,12 +7,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 export const API_ENDPOINTS = {
   // Endpoint untuk otentikasi
   LOGIN: `${API_BASE_URL}/auth/login`,
+  REGISTER: `${API_BASE_URL}/auth/register`,
+  GET_PROFILE: `${API_BASE_URL}/auth/profile`,
 
   // Endpoint untuk Jemaat (Members)
   GET_MEMBERS: `${API_BASE_URL}/members`,
   GET_MEMBER_BY_ID: (id: string) => `${API_BASE_URL}/members/${id}`,
   GET_MEMBER_BY_PHONE: (phone: string) => `${API_BASE_URL}/members/phone/${phone}`,
-  ADD_MEMBER: `${API_BASE_URL}/members`,
   UPDATE_MEMBER: (id: string) => `${API_BASE_URL}/members/${id}`,
   DELETE_MEMBER: (id: string) => `${API_BASE_URL}/members/${id}`,
 

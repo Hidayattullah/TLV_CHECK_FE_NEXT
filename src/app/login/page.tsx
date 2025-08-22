@@ -9,7 +9,7 @@ import { Eye, EyeOff, Loader2, Headset } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { login as loginUser } from "@/lib/repository_mock/members";
+import { login as loginUser } from "@/lib/repository/members"; // Changed to use real repository
 import { useAuth } from "@/hooks/use-auth";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -39,9 +39,9 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { token, member } = await loginUser(phoneNumber, password);
+      const { access_token, user } = await loginUser(phoneNumber, password);
       
-      if (!member.isActive) {
+      if (!user.isActive) {
         toast({
           variant: "destructive",
           title: "Akun Tidak Aktif",
@@ -60,7 +60,7 @@ export default function LoginPage() {
         return;
       }
       
-      setAuthSession(token);
+      setAuthSession(access_token);
       
       if (rememberMe) {
         localStorage.setItem("rememberedPhoneNumber", phoneNumber);
@@ -72,7 +72,7 @@ export default function LoginPage() {
       
       toast({
         title: "Login Berhasil!",
-        description: `Selamat datang kembali, ${member.name}.`,
+        description: `Selamat datang kembali, ${user.name}.`,
       });
       
       setTimeout(() => router.push("/dashboard"), 1000);
@@ -124,7 +124,7 @@ export default function LoginPage() {
               <Input 
                 id="telephone"
                 type="tel"
-                placeholder="Masukkan nomor telepon Anda" 
+                placeholder="081234567890" 
                 className="bg-secondary border-0 placeholder:text-foreground/60 h-12 rounded-lg"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}

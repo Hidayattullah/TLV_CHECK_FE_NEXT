@@ -1,14 +1,16 @@
+
 import customFetch from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { Member, NewMember } from "@/lib/api/types";
 
 /**
- * @fileoverview Repositori untuk manajemen data Jemaat (Members).
+ * @fileoverview Repositori untuk manajemen data Jemaat (Members) dan Autentikasi.
  *
  * Repositori ini digunakan untuk aplikasi dalam mode produksi.
  * Fungsi-fungsi di dalamnya akan melakukan panggilan API sesungguhnya ke backend.
- * Pastikan backend Anda memiliki endpoint yang sesuai untuk setiap fungsi.
  */
+
+// --- Authentication Functions ---
 
 /**
  * Mengotentikasi pengguna dengan mengirimkan nomor telepon dan password ke server.
@@ -16,16 +18,47 @@ import type { Member, NewMember } from "@/lib/api/types";
  *
  * @param {string} phoneNumber - Nomor telepon pengguna.
  * @param {string} password - Password pengguna.
- * @returns {Promise<{ token: string; member: Member }>} Objek yang berisi token JWT dan data member.
+ * @returns {Promise<{ access_token: string; user: Member }>} Objek yang berisi token JWT dan data member.
  * @throws {Error} Jika login gagal (misalnya, kredensial salah).
  */
-export async function login(phoneNumber: string, password: string): Promise<{ token: string; member: Member }> {
+export async function login(phoneNumber: string, password: string): Promise<{ access_token: string; user: Member }> {
   console.log("(API) Mencoba login...");
-  return customFetch<{ token: string; member: Member }>(API_ENDPOINTS.LOGIN, {
+  return customFetch<{ access_token: string; user: Member }>(API_ENDPOINTS.LOGIN, {
     method: 'POST',
     body: JSON.stringify({ phoneNumber, password }),
   });
 }
+
+/**
+ * Menambahkan jemaat baru (registrasi) ke server.
+ * Panggil endpoint POST dengan data jemaat baru.
+ *
+ * @param {NewMember} newMemberData - Data jemaat baru yang akan didaftarkan.
+ * @returns {Promise<{ access_token: string, user: Member }>} Data user dan token.
+ * @throws {Error} Jika pendaftaran gagal (misalnya, nomor telepon sudah ada).
+ */
+export async function addMember(newMemberData: NewMember): Promise<{ access_token: string, user: Member }> {
+  console.log("(API) Menambahkan jemaat baru (registrasi)...");
+  return customFetch<{ access_token: string, user: Member }>(API_ENDPOINTS.REGISTER, {
+    method: 'POST',
+    body: JSON.stringify(newMemberData),
+  });
+}
+
+/**
+ * Mengambil data profil pengguna yang sedang login dari server.
+ * Memerlukan token otentikasi yang valid di header.
+ *
+ * @returns {Promise<Member>} Data detail jemaat yang sedang login.
+ * @throws {Error} Jika token tidak valid atau panggilan API gagal.
+ */
+export async function getProfile(): Promise<Member> {
+  console.log(`(API) Mengambil data profil pengguna saat ini...`);
+  return customFetch<Member>(API_ENDPOINTS.GET_PROFILE);
+}
+
+
+// --- Member Management Functions (for Admins) ---
 
 /**
  * Mengambil semua data jemaat dari server.
@@ -67,22 +100,6 @@ export async function getMemberByPhoneNumber(phoneNumber: string): Promise<Membe
     console.error(`(API) Jemaat dengan nomor ${phoneNumber} tidak ditemukan:`, error);
     return null;
   }
-}
-
-/**
- * Menambahkan jemaat baru ke server.
- * Panggil endpoint POST dengan data jemaat baru.
- *
- * @param {NewMember} newMemberData - Data jemaat baru yang akan didaftarkan.
- * @returns {Promise<Member>} Data jemaat yang baru dibuat.
- * @throws {Error} Jika pendaftaran gagal (misalnya, nomor telepon sudah ada).
- */
-export async function addMember(newMemberData: NewMember): Promise<Member> {
-  console.log("(API) Menambahkan jemaat baru...");
-  return customFetch<Member>(API_ENDPOINTS.ADD_MEMBER, {
-    method: 'POST',
-    body: JSON.stringify(newMemberData),
-  });
 }
 
 /**

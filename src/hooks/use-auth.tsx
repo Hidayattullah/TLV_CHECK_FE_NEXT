@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Member } from '@/lib/api/types';
-import { getMemberById } from '@/lib/repository_mock/members';
+import { getProfile } from '@/lib/repository/members'; // Updated to use getProfile
 
 /**
  * @fileoverview Hook dan Provider untuk Manajemen Autentikasi Pengguna.
@@ -13,7 +13,7 @@ import { getMemberById } from '@/lib/repository_mock/members';
  * - Menyediakan AuthProvider yang mengelola sesi pengguna menggunakan JSON Web Token (JWT).
  * - Mengekspos hook `useAuth` untuk mengakses data pengguna dan fungsi autentikasi di seluruh aplikasi.
  * - Menangani penyimpanan dan pengambilan token dari localStorage.
- * - Mendekode token untuk mendapatkan ID pengguna dan mengambil data pengguna terkait.
+ * - Mengambil data profil pengguna yang sedang login dari backend.
  */
 
 /**
@@ -38,28 +38,6 @@ interface AuthContextType {
  */
 const AUTH_STORAGE_KEY = 'authToken';
 
-/**
- * Fungsi untuk mendekode payload dari sebuah JWT.
- * @param {string} token - JSON Web Token.
- * @returns {any | null} Payload yang telah didekode, atau null jika token tidak valid.
- */
-const decodeJwtPayload = (token: string): { sub: string, [key: string]: any } | null => {
-  try {
-    const base64Url = token.split('.')[1];
-    if (!base64Url) return null;
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error("Gagal mendekode JWT:", error);
-    return null;
-  }
-};
-
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
@@ -72,18 +50,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   /**
-   * Mengambil data pengguna dari server berdasarkan ID.
-   * @param {string} userId - ID pengguna.
+   * Mengambil data profil pengguna yang sedang terautentikasi dari server.
    * @returns {Promise<void>}
    */
-  const fetchUser = useCallback(async (userId: string) => {
+  const fetchUser = useCallback(async () => {
     setIsLoading(true);
+    const token = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!token) {
+        setIsLoading(false);
+        return;
+    }
+    
     try {
-      const userData = await getMemberById(userId);
+      const userData = await getProfile();
       setUser(userData);
     } catch (error) {
-      console.error("Gagal mengambil data pengguna yang login:", error);
-      logout(); // Logout jika pengguna tidak ditemukan (misalnya, dihapus)
+      console.error("Gagal mengambil data profil:", error);
+      logout(); // Logout jika token tidak valid atau ada error
     } finally {
       setIsLoading(false);
     }
@@ -93,32 +76,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * Memuat ulang data pengguna saat ini. Berguna setelah profil diperbarui.
    */
   const refetchUser = useCallback(() => {
-    const token = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (token) {
-        const payload = decodeJwtPayload(token);
-        if (payload && payload.sub) {
-            fetchUser(payload.sub);
-        }
-    }
+    fetchUser();
   }, [fetchUser]);
 
   /**
    * Efek untuk memeriksa sesi login saat komponen dimuat pertama kali.
    */
   useEffect(() => {
-    const token = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (token) {
-      const payload = decodeJwtPayload(token);
-      if (payload && payload.sub) {
-        fetchUser(payload.sub);
-      } else {
-        // Token tidak valid atau tidak memiliki 'sub'
-        logout();
-        setIsLoading(false);
-      }
-    } else {
-      setIsLoading(false);
-    }
+    fetchUser();
   }, [fetchUser]);
 
   /**
@@ -127,13 +92,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    * @param {string} token - JSON Web Token yang diterima dari backend.
    */
   const login = (token: string) => {
-    const payload = decodeJwtPayload(token);
-    if (payload && payload.sub) {
-      localStorage.setItem(AUTH_STORAGE_KEY, token);
-      fetchUser(payload.sub);
-    } else {
-      console.error("Login gagal: Token JWT tidak valid atau tidak memiliki 'sub' (user ID).");
-    }
+    localStorage.setItem(AUTH_STORAGE_KEY, token);
+    fetchUser();
   };
 
   /**

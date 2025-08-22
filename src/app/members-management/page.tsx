@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useTransition, useCallback } from "react";
@@ -74,6 +75,8 @@ const permissionLabels: Record<Permission, string> = {
   read: "Baca",
   edit: "Edit",
   delete: "Hapus",
+  write: "Tulis",
+  update: "Perbarui",
 };
 
 const addMemberFormSchema = z.object({
@@ -656,7 +659,7 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
                 <div key={module} className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-3">{moduleLabels[module]}</h4>
                   <div className="flex items-center space-x-6">
-                    {(Object.keys(permissionLabels) as Permission[]).map((permission) => (
+                    {(Object.keys(permissionLabels) as (keyof typeof permissionLabels)[]).filter(p => p !== 'write' && p !== 'update').map((permission) => (
                       <div key={permission} className="flex items-center space-x-2">
                         <Checkbox
                           id={`${member.id}-${module}-${permission}`}
@@ -666,7 +669,7 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
                         />
                         <Label
                           htmlFor={`${member.id}-${module}-${permission}`}
-                          className="font-normal"
+                          className="font-normal capitalize"
                         >
                           {permissionLabels[permission]}
                         </Label>
@@ -767,8 +770,13 @@ function MemberDetailDialog({
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const { user: currentUser } = useAuth();
-  const canEdit = currentUser?.permissions?.members?.includes("edit");
-  const canDelete = currentUser?.permissions?.members?.includes("delete");
+  
+  const canEdit = useMemo(() => {
+    const permissions = currentUser?.permissions?.members || [];
+    return permissions.includes("edit") || permissions.includes("write") || permissions.includes("update");
+  }, [currentUser]);
+  
+  const canDelete = useMemo(() => currentUser?.permissions?.members?.includes("delete"), [currentUser]);
   const canManage = canEdit || canDelete;
 
   const formatDateForInput = (dateString?: string): string => {
@@ -996,7 +1004,7 @@ function MemberDetailDialog({
 
         {canDelete && (
           <>
-            <DropdownMenuSeparator />
+            {canEdit && <DropdownMenuSeparator />}
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={(e) => e.preventDefault()}>

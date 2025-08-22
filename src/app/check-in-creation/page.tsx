@@ -62,7 +62,7 @@ import {
 } from "@/lib/repository/check-in";
 
 
-const INITIAL_ITEMS_PER_PAGE = 4;
+const INITIAL_ITEMS_PER_PAGE = 8;
 
 function AddEditEventDialog({
   event,
@@ -458,9 +458,9 @@ export default function CheckInCreationPage() {
   const loadEvents = useCallback(async () => {
     // No setIsLoading(true) here to allow background refresh
     try {
-      const { data, pagination: pagInfo } = await getCheckInEvents(currentPage, itemsPerPage, searchTerm);
+      const { data, meta } = await getCheckInEvents(currentPage, itemsPerPage, searchTerm);
       setEvents(data);
-      setPagination(pagInfo);
+      setPagination(meta);
     } catch (error) {
        toast({
         variant: "destructive",
@@ -473,7 +473,14 @@ export default function CheckInCreationPage() {
   }, [toast, currentPage, itemsPerPage, searchTerm]);
 
   useEffect(() => {
-    loadEvents();
+    setIsLoading(true);
+    const handler = setTimeout(() => {
+      loadEvents();
+    }, 500); // Debounce search
+
+    return () => {
+      clearTimeout(handler);
+    };
   }, [loadEvents]);
   
   const handleItemsPerPageChange = (value: string) => {
@@ -704,7 +711,7 @@ export default function CheckInCreationPage() {
         {pagination && pagination.total > 0 && (
           <div className="flex items-center justify-between mt-8">
             <span className="text-sm text-muted-foreground">
-              Halaman {currentPage} dari {totalPages} ({pagination.total} total acara)
+              Halaman {pagination.page} dari {totalPages} ({pagination.total} total acara)
             </span>
             <div className="flex items-center gap-4">
               <Button
@@ -717,11 +724,10 @@ export default function CheckInCreationPage() {
               </Button>
               
               <Select onValueChange={handleItemsPerPageChange} defaultValue={String(itemsPerPage)}>
-                  <SelectTrigger className="w-24 h-9 text-xs">
+                  <SelectTrigger className="w-28 h-9 text-xs">
                       <SelectValue placeholder="Items per page" />
                   </SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="4">4 per halaman</SelectItem>
                       <SelectItem value="8">8 per halaman</SelectItem>
                       <SelectItem value="12">12 per halaman</SelectItem>
                   </SelectContent>

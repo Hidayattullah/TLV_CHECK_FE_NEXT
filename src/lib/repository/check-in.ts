@@ -14,10 +14,10 @@ import type { CheckInEvent, Attendee } from "@/lib/api/types";
  * Mengambil semua data acara check-in dari server dengan paginasi.
  * Panggil endpoint GET untuk mendapatkan daftar semua acara.
  *
- * @returns {Promise<{data: CheckInEvent[], pagination: any}>} Daftar semua acara check-in.
+ * @returns {Promise<{data: CheckInEvent[], meta: any}>} Daftar semua acara check-in.
  * @throws {Error} Jika panggilan API gagal.
  */
-export async function getCheckInEvents(page = 1, limit = 10, search = ''): Promise<{data: CheckInEvent[], pagination: any}> {
+export async function getCheckInEvents(page = 1, limit = 10, search = ''): Promise<{data: CheckInEvent[], meta: any}> {
   console.log("(API) Mengambil semua data acara check-in...");
   const url = new URL(API_ENDPOINTS.CHECK_IN_EVENTS);
   url.searchParams.append('page', String(page));
@@ -25,7 +25,7 @@ export async function getCheckInEvents(page = 1, limit = 10, search = ''): Promi
   if (search) {
       url.searchParams.append('search', search);
   }
-  return customFetch<{data: CheckInEvent[], pagination: any}>(url.toString());
+  return customFetch<{data: CheckInEvent[], meta: any}>(url.toString());
 }
 
 /**

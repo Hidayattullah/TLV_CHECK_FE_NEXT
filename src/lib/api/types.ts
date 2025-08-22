@@ -31,7 +31,7 @@ export type Attendee = {
   id: string;
   name: string;
   checkinTime: string;
-  checkinMethod: "Barcode" | "RFID";
+  checkinMethod: "Barcode" | "RFID" | "QR_CODE";
 };
 
 export type CheckInEvent = {
@@ -43,6 +43,10 @@ export type CheckInEvent = {
   activationType?: 'manual' | 'timer';
   deactivationTimer?: ReturnType<typeof setTimeout>;
   timerEndsAt?: number;
+  autoDeactivateAt?: string;
+  _count?: {
+    checkIns: number;
+  };
 };
 
 export type PersonalCheckInRecord = {

@@ -1,9 +1,10 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import QRCode from 'qrcode';
-import { getCheckInEventById, addAttendee } from '@/lib/repository_mock/check-in';
+import { getCheckInEventById } from '@/lib/repository/check-in'; // DIUBAH: Menggunakan repository asli
 import type { CheckInEvent, Attendee } from '@/lib/api/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, QrCode, Settings, RectangleHorizontal, RectangleVertical } from 'lucide-react';
@@ -32,7 +33,8 @@ export default function DisplayPage() {
 
   useEffect(() => {
     if (eventId) {
-      QRCode.toDataURL(eventId, { width: 800, margin: 2 }) // Generate high-res QR
+      const qrPayload = JSON.stringify({ eventId });
+      QRCode.toDataURL(qrPayload, { width: 800, margin: 2 }) // Generate high-res QR
         .then(url => setQrCodeDataUrl(url))
         .catch(err => console.error("Failed to generate QR Code", err));
     }
@@ -44,19 +46,19 @@ export default function DisplayPage() {
     try {
       const data = await getCheckInEventById(eventId);
       
-      // Check if event exists and is active
       if (!data || !data.isActive) {
         setEventNotFound(true);
         setEvent(null);
         return;
       }
       
-      // Reset event not found state if event is now active
       setEventNotFound(false);
       setEvent(data);
 
-      if (data.attendees.length > 0) {
-        const latestAttendee = data.attendees[data.attendees.length - 1];
+      if (data.attendees && data.attendees.length > 0) {
+        // Sort attendees by checkinTime to find the latest one
+        const sortedAttendees = [...data.attendees].sort((a, b) => new Date(b.checkinTime).getTime() - new Date(a.checkinTime).getTime());
+        const latestAttendee = sortedAttendees[0];
         
         if (lastAttendeeRef.current?.id !== latestAttendee.id) {
           setLastAttendee(latestAttendee);
@@ -72,34 +74,16 @@ export default function DisplayPage() {
       setEventNotFound(true);
       setEvent(null);
     } finally {
-      // Always set loading to false after the first fetch attempt
       if (isLoading) {
         setIsLoading(false);
       }
     }
   }, [eventId, isLoading]);
   
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-        if (e.key === 's' && eventId && event?.isActive) {
-            console.log("Simulating a scan...");
-            addAttendee(eventId, {
-                id: `user-${Date.now()}`,
-                name: "Tubagus Rifan",
-                checkinTime: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                checkinMethod: "Barcode"
-            }).then(() => {
-                fetchEventData();
-            });
-        }
-    };
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [eventId, fetchEventData, event?.isActive]);
 
   useEffect(() => {
     fetchEventData();
-    const interval = setInterval(fetchEventData, 2000);
+    const interval = setInterval(fetchEventData, 2000); // Poll every 2 seconds
     return () => clearInterval(interval);
   }, [fetchEventData]);
 
@@ -177,7 +161,7 @@ export default function DisplayPage() {
       )}>
         <header className="w-full text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-headline font-bold">{event.eventName}</h1>
-          <p className="text-lg sm:text-xl opacity-80 mt-2">{new Date(event.eventDate).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <p className="text-lg sm:text-xl opacity-80 mt-2">{new Date(event.eventDate).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
         </header>
 
         <main className="flex flex-col items-center justify-center my-8">

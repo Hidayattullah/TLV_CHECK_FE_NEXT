@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useTransition } from "react";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle, ExternalLink, PlusCircle, Copy } from "lucide-react";
+import { CheckCircle, XCircle, ExternalLink, Copy } from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,
@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import type { CheckInEvent } from "@/lib/api/types";
 import { getCheckInEvents } from "@/lib/repository/check-in";
 
+const INITIAL_ITEMS_PER_PAGE = 5;
 
 function CreateEditScreenDialog({
   event,
@@ -135,18 +136,22 @@ function CreateEditScreenDialog({
 
 export default function DisplayScreensPage() {
   const [events, setEvents] = useState<CheckInEvent[]>([]);
+  const [allActiveEvents, setAllActiveEvents] = useState<CheckInEvent[]>([]);
+  const [pagination, setPagination] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(INITIAL_ITEMS_PER_PAGE);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
   useEffect(() => {
     async function loadEvents() {
       setIsLoading(true);
       try {
-        // Fetch a large number of events to simulate fetching all of them, as this page has no pagination.
-        const { data } = await getCheckInEvents(1, 100); 
-        // Sort events by date descending
+        const { data, meta } = await getCheckInEvents(currentPage, itemsPerPage);
         const sortedData = data.sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
         setEvents(sortedData);
+        setPagination(meta);
       } catch (error) {
          toast({
           variant: "destructive",
@@ -158,11 +163,36 @@ export default function DisplayScreensPage() {
       }
     }
     loadEvents();
-  }, [toast]);
+  }, [toast, currentPage, itemsPerPage]);
+  
+  useEffect(() => {
+    async function loadAllActiveEvents() {
+        try {
+            // Fetch a large number of events to find active ones
+            const { data } = await getCheckInEvents(1, 100);
+            setAllActiveEvents(data.filter(e => e.isActive));
+        } catch (error) {
+            console.error("Failed to load active events for dialog", error);
+        }
+    }
+    loadAllActiveEvents();
+  }, []);
 
-  const activeEvents = useMemo(() => {
-    return events.filter(e => e.isActive);
-  }, [events]);
+  const totalPages = pagination?.totalPages || 1;
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    startTransition(() => {
+      setCurrentPage(newPage);
+    });
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    startTransition(() => {
+      setItemsPerPage(Number(value));
+      setCurrentPage(1);
+    });
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -186,8 +216,8 @@ export default function DisplayScreensPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, index) => (
+            {isLoading || isPending ? (
+              Array.from({ length: itemsPerPage }).map((_, index) => (
                 <TableRow key={`skeleton-${index}`}>
                   <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-40" /></TableCell>
@@ -197,7 +227,7 @@ export default function DisplayScreensPage() {
               ))
             ) : events.length > 0 ? (
               events.map(event => (
-                <CreateEditScreenDialog key={event.id} event={event} activeEvents={activeEvents}>
+                <CreateEditScreenDialog key={event.id} event={event} activeEvents={allActiveEvents}>
                   <TableRow className="cursor-pointer">
                     <TableCell>
                       {new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC'})}
@@ -230,6 +260,47 @@ export default function DisplayScreensPage() {
           </TableBody>
         </Table>
       </div>
+
+      {pagination && pagination.total > 0 && (
+        <div className="flex items-center justify-between mt-8">
+          <span className="text-sm text-muted-foreground">
+            Halaman {pagination.page} dari {totalPages} ({pagination.total} total acara)
+          </span>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading || isPending}
+            >
+              Sebelumnya
+            </Button>
+            
+            <Select 
+              onValueChange={handleItemsPerPageChange} 
+              defaultValue={String(itemsPerPage)}
+              disabled={isLoading || isPending || pagination.total <= 5}
+            >
+                <SelectTrigger className="w-24 h-9 text-xs">
+                    <SelectValue placeholder="Items" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isLoading || isPending}
+            >
+              Berikutnya
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

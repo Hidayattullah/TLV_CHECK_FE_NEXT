@@ -173,6 +173,6 @@ export async function setMemberPermissions(id: string, permissions: Record<Modul
     console.log(`(API) Mengatur hak akses untuk jemaat ${id}...`);
     return customFetch<Member>(API_ENDPOINTS.SET_PERMISSIONS(id), {
         method: 'PUT',
-        body: JSON.stringify({ permissions }), // Wrap the permissions object
+        body: JSON.stringify({ permissions }),
     });
 }

@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login`,
   REGISTER: `${API_BASE_URL}/auth/register`,
   GET_PROFILE: `${API_BASE_URL}/auth/profile`,
+  UPDATE_PROFILE: `${API_BASE_URL}/auth/profile`, // Endpoint for updating current user's profile
 
   // Endpoint untuk Jemaat (Members)
   GET_MEMBERS: `${API_BASE_URL}/members`,

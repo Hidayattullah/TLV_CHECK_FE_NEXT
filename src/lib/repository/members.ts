@@ -57,6 +57,22 @@ export async function getProfile(): Promise<Member> {
   return customFetch<Member>(API_ENDPOINTS.GET_PROFILE);
 }
 
+/**
+ * Memperbarui data profil pengguna yang sedang login.
+ * Panggil endpoint PUT dengan data yang akan diubah.
+ *
+ * @param {Partial<Member>} updatedData - Data yang akan diubah.
+ * @returns {Promise<Member>} Data profil yang telah diperbarui.
+ * @throws {Error} Jika pembaruan gagal.
+ */
+export async function updateProfile(updatedData: Partial<Member>): Promise<Member> {
+  console.log("(API) Memperbarui profil pengguna saat ini...");
+  return customFetch<Member>(API_ENDPOINTS.UPDATE_PROFILE, {
+    method: 'PUT',
+    body: JSON.stringify(updatedData),
+  });
+}
+
 
 // --- Member Management Functions (for Admins) ---
 
@@ -103,7 +119,7 @@ export async function getMemberByPhoneNumber(phoneNumber: string): Promise<Membe
 }
 
 /**
- * Memperbarui data jemaat yang sudah ada di server.
+ * Memperbarui data jemaat yang sudah ada di server. (Admin)
  * Panggil endpoint PATCH atau PUT dengan ID jemaat dan data yang akan diubah.
  *
  * @param {string} id - ID jemaat yang akan diperbarui.

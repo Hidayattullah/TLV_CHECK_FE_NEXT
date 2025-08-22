@@ -18,7 +18,7 @@ import { BottomNav } from "@/components/common/bottom-nav";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Member } from "@/lib/api/types";
-import { updateMember } from "@/lib/repository/members";
+import { updateProfile } from "@/lib/repository/members";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -39,8 +39,10 @@ export default function ProfilePage() {
   const formatDateForInput = (dateString?: string): string => {
     if (!dateString) return '';
     try {
+      // Handles full ISO timestamps by splitting at 'T'
       return new Date(dateString).toISOString().split('T')[0];
     } catch (e) {
+      // Returns empty if the date is invalid
       return '';
     }
   };
@@ -110,7 +112,8 @@ export default function ProfilePage() {
     setIsSaving(true);
     
     try {
-      const updatedData = await updateMember(member.id, editFormData);
+      // Use the new updateProfile function
+      const updatedData = await updateProfile(editFormData);
       await refetchUser(); // Refetch user data in context to update everywhere
       toast({
         title: "Berhasil!",
@@ -118,10 +121,11 @@ export default function ProfilePage() {
       });
       setIsDialogOpen(false);
     } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan profil.";
        toast({
         variant: "destructive",
         title: "Gagal Menyimpan",
-        description: "Terjadi kesalahan saat menyimpan profil.",
+        description: errorMessage,
       });
     } finally {
       setIsSaving(false);

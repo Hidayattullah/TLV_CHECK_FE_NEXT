@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useTransition } from "react";
+import React, { useState, useEffect, useMemo, useTransition, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -543,8 +543,13 @@ function PermissionsDialog({ open, member, onSave, onOpenChange, children }: { o
       const newPermissions = new Set(prev[module]);
       if (checked) {
         newPermissions.add(permission);
+        if (permission !== 'read') {
+          // Automatically add 'read' if any other permission is checked
+          newPermissions.add('read');
+        }
       } else {
         newPermissions.delete(permission);
+        // If 'read' is unchecked, clear all other permissions for that module
         if (permission === 'read') {
           newPermissions.clear();
         }
@@ -963,27 +968,31 @@ function MemberDetailDialog({
           </DropdownMenuItem>
         )}
 
-        <RfidManagementDialog
-          member={member}
-          onSave={onRfidSave}
-        >
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <Nfc className="mr-2 h-4 w-4" />
-              <span>Kelola RFID</span>
-          </DropdownMenuItem>
-        </RfidManagementDialog>
+        {canEdit && (
+          <RfidManagementDialog
+            member={member}
+            onSave={onRfidSave}
+          >
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <Nfc className="mr-2 h-4 w-4" />
+                <span>Kelola RFID</span>
+            </DropdownMenuItem>
+          </RfidManagementDialog>
+        )}
         
-        <PermissionsDialog 
-          member={member} 
-          onSave={onPermissionsSave}
-          open={openPermissionDialogs[member.id] || false}
-          onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
-        >
-          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onPermissionDialogOpen(member.id, true); }}>
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            <span>Hak Akses</span>
-          </DropdownMenuItem>
-        </PermissionsDialog>
+        {canEdit && (
+          <PermissionsDialog 
+            member={member} 
+            onSave={onPermissionsSave}
+            open={openPermissionDialogs[member.id] || false}
+            onOpenChange={(open) => onPermissionDialogOpen(member.id, open)}
+          >
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onPermissionDialogOpen(member.id, true); }}>
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              <span>Hak Akses</span>
+            </DropdownMenuItem>
+          </PermissionsDialog>
+        )}
 
         {canDelete && (
           <>

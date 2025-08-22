@@ -62,7 +62,7 @@ import {
 } from "@/lib/repository/check-in";
 
 
-const INITIAL_ITEMS_PER_PAGE = 8;
+const INITIAL_ITEMS_PER_PAGE = 5;
 
 function AddEditEventDialog({
   event,
@@ -718,18 +718,22 @@ export default function CheckInCreationPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || isLoading || isPending}
+                disabled={currentPage === 1 || isLoading || isPending || pagination.total <= itemsPerPage}
               >
                 Sebelumnya
               </Button>
               
-              <Select onValueChange={handleItemsPerPageChange} defaultValue={String(itemsPerPage)}>
-                  <SelectTrigger className="w-28 h-9 text-xs">
+              <Select 
+                onValueChange={handleItemsPerPageChange} 
+                defaultValue={String(itemsPerPage)}
+                disabled={pagination.total <= 5}
+              >
+                  <SelectTrigger className="w-24 h-9 text-xs">
                       <SelectValue placeholder="Items per page" />
                   </SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="8">8 per halaman</SelectItem>
-                      <SelectItem value="12">12 per halaman</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
                   </SelectContent>
               </Select>
 
@@ -737,7 +741,7 @@ export default function CheckInCreationPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || isLoading || isPending}
+                disabled={currentPage === totalPages || isLoading || isPending || pagination.total <= itemsPerPage}
               >
                 Berikutnya
               </Button>

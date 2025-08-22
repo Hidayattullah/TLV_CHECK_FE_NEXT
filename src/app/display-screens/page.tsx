@@ -30,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import type { CheckInEvent } from "@/lib/api/types";
-import { getCheckInEvents } from "@/lib/repository_mock/check-in";
+import { getCheckInEvents } from "@/lib/repository/check-in";
 
 
 function CreateEditScreenDialog({
@@ -142,7 +142,8 @@ export default function DisplayScreensPage() {
     async function loadEvents() {
       setIsLoading(true);
       try {
-        const data = await getCheckInEvents();
+        // Fetch a large number of events to simulate fetching all of them, as this page has no pagination.
+        const { data } = await getCheckInEvents(1, 100); 
         // Sort events by date descending
         const sortedData = data.sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime());
         setEvents(sortedData);
@@ -199,7 +200,7 @@ export default function DisplayScreensPage() {
                 <CreateEditScreenDialog key={event.id} event={event} activeEvents={activeEvents}>
                   <TableRow className="cursor-pointer">
                     <TableCell>
-                      {new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric'})}
+                      {new Date(event.eventDate).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC'})}
                     </TableCell>
                     <TableCell className="font-medium">{event.eventName}</TableCell>
                     <TableCell>

@@ -62,7 +62,7 @@ import {
 } from "@/lib/repository/check-in";
 
 
-const ITEMS_PER_PAGE = 4;
+const INITIAL_ITEMS_PER_PAGE = 4;
 
 function AddEditEventDialog({
   event,
@@ -446,9 +446,10 @@ function TimerCountdown({ endTime }: { endTime: number }) {
 
 export default function CheckInCreationPage() {
   const [events, setEvents] = useState<CheckInEvent[]>([]);
-  const [pagination, setPagination] = useState(null);
+  const [pagination, setPagination] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(INITIAL_ITEMS_PER_PAGE);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [eventToDelete, setEventToDelete] = useState<CheckInEvent | null>(null);
@@ -457,7 +458,7 @@ export default function CheckInCreationPage() {
   const loadEvents = useCallback(async () => {
     // No setIsLoading(true) here to allow background refresh
     try {
-      const { data, pagination: pagInfo } = await getCheckInEvents(currentPage, ITEMS_PER_PAGE, searchTerm);
+      const { data, pagination: pagInfo } = await getCheckInEvents(currentPage, itemsPerPage, searchTerm);
       setEvents(data);
       setPagination(pagInfo);
     } catch (error) {
@@ -469,11 +470,18 @@ export default function CheckInCreationPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, currentPage, searchTerm]);
+  }, [toast, currentPage, itemsPerPage, searchTerm]);
 
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
+  
+  const handleItemsPerPageChange = (value: string) => {
+    startTransition(() => {
+      setItemsPerPage(Number(value));
+      setCurrentPage(1); // Reset to first page when changing page size
+    });
+  };
 
   const handleSaveEvent = (data: Pick<CheckInEvent, 'eventName' | 'eventDate'>, id?: string) => {
     startTransition(async () => {
@@ -545,7 +553,7 @@ export default function CheckInCreationPage() {
     });
   }, [toast]);
 
-  const totalPages = pagination ? (pagination as any).totalPages : 1;
+  const totalPages = pagination?.totalPages || 1;
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
@@ -594,9 +602,9 @@ export default function CheckInCreationPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {(isLoading || isPending) ? (
-            Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+            Array.from({ length: itemsPerPage }).map((_, index) => (
               <Card key={`skeleton-${index}`}>
                   <CardHeader>
                       <Skeleton className="h-6 w-3/4" />
@@ -687,36 +695,48 @@ export default function CheckInCreationPage() {
               </Card>
             ))
           ) : (
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-24">
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 xl:grid-cols-4 text-center py-24">
                 <p className="text-muted-foreground">Tidak ada acara yang cocok.</p>
             </div>
           )}
         </div>
         
-        {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-8">
+        {pagination && pagination.total > 0 && (
+          <div className="flex items-center justify-between mt-8">
             <span className="text-sm text-muted-foreground">
-                Halaman {currentPage} dari {totalPages}
+              Halaman {currentPage} dari {totalPages} ({pagination.total} total acara)
             </span>
-            <div className="flex gap-2">
-                <Button
+            <div className="flex items-center gap-4">
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1 || isLoading || isPending}
-                >
+              >
                 Sebelumnya
-                </Button>
-                <Button
+              </Button>
+              
+              <Select onValueChange={handleItemsPerPageChange} defaultValue={String(itemsPerPage)}>
+                  <SelectTrigger className="w-24 h-9 text-xs">
+                      <SelectValue placeholder="Items per page" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="4">4 per halaman</SelectItem>
+                      <SelectItem value="8">8 per halaman</SelectItem>
+                      <SelectItem value="12">12 per halaman</SelectItem>
+                  </SelectContent>
+              </Select>
+
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || isLoading || isPending}
-                >
+              >
                 Berikutnya
-                </Button>
+              </Button>
             </div>
-            </div>
+          </div>
         )}
 
       </div>

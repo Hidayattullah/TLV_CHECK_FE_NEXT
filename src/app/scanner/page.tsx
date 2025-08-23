@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -9,11 +8,15 @@ import { Button } from "@/components/ui/button";
 import jsQR from "jsqr";
 import { selfCheckIn } from "@/lib/repository/check-in";
 import { useAuth } from "@/hooks/use-auth";
-
+//disini adalah halaman untuk scanner
 export default function ScannerPage() {
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<
+    boolean | null
+  >(null);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [currentDeviceId, setCurrentDeviceId] = useState<string | undefined>(undefined);
+  const [currentDeviceId, setCurrentDeviceId] = useState<string | undefined>(
+    undefined
+  );
   const [isScanning, setIsScanning] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -25,46 +28,53 @@ export default function ScannerPage() {
 
   const stopStream = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
   };
-  
-  const getStream = useCallback(async (deviceId?: string) => {
-    stopStream(); 
 
-    const constraints: MediaStreamConstraints = {
-      video: deviceId 
-        ? { deviceId: { exact: deviceId } } 
-        : { facingMode: "environment" }
-    };
+  const getStream = useCallback(
+    async (deviceId?: string) => {
+      stopStream();
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+      const constraints: MediaStreamConstraints = {
+        video: deviceId
+          ? { deviceId: { exact: deviceId } }
+          : { facingMode: "environment" },
+      };
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setHasCameraPermission(true);
+
+        const currentTrack = stream.getVideoTracks()[0];
+        const currentSettings = currentTrack.getSettings();
+        setCurrentDeviceId(currentSettings.deviceId);
+      } catch (err) {
+        console.error("Error getting stream:", err);
+        setHasCameraPermission(false);
+        toast({
+          variant: "destructive",
+          title: "Akses Kamera Ditolak",
+          description:
+            "Tidak dapat memulai kamera. Mohon izinkan akses di pengaturan browser Anda.",
+        });
       }
-      setHasCameraPermission(true);
-
-      const currentTrack = stream.getVideoTracks()[0];
-      const currentSettings = currentTrack.getSettings();
-      setCurrentDeviceId(currentSettings.deviceId);
-      
-    } catch (err) {
-      console.error("Error getting stream:", err);
-      setHasCameraPermission(false);
-      toast({
-        variant: "destructive",
-        title: "Akses Kamera Ditolak",
-        description: "Tidak dapat memulai kamera. Mohon izinkan akses di pengaturan browser Anda.",
-      });
-    }
-  }, [toast]);
+    },
+    [toast]
+  );
 
   const handleQrCode = async (scannedData: string) => {
     if (!user) {
-      toast({ variant: "destructive", title: "Gagal", description: "Anda harus login untuk check-in." });
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Anda harus login untuk check-in.",
+      });
       setIsProcessing(false);
       setIsScanning(true);
       return;
@@ -73,32 +83,55 @@ export default function ScannerPage() {
     let eventId;
     try {
       const parsedData = JSON.parse(scannedData);
-      if (typeof parsedData !== 'object' || parsedData === null || !('eventId' in parsedData)) {
+      if (
+        typeof parsedData !== "object" ||
+        parsedData === null ||
+        !("eventId" in parsedData)
+      ) {
         throw new Error("Invalid QR code format");
       }
       eventId = parsedData.eventId;
     } catch (error) {
-      toast({ variant: "destructive", title: "QR Tidak Valid", description: "Kode QR ini tidak dikenali oleh sistem." });
+      toast({
+        variant: "destructive",
+        title: "QR Tidak Valid",
+        description: "Kode QR ini tidak dikenali oleh sistem.",
+      });
       setTimeout(() => {
         setIsProcessing(false);
         setIsScanning(true);
       }, 3000);
       return;
     }
-  
+
     try {
       const result = await selfCheckIn(eventId, "QR_CODE");
-      
-      if (result.status === 'success') {
-        router.push(`/scanner-success?eventName=${encodeURIComponent(result.eventName)}&userName=${encodeURIComponent(user.name)}`);
-      } else if (result.status === 'duplicate') {
-        router.push(`/scanner-duplicate?eventName=${encodeURIComponent(result.eventName)}&userName=${encodeURIComponent(user.name)}`);
+
+      if (result.status === "success") {
+        router.push(
+          `/scanner-success?eventName=${encodeURIComponent(
+            result.eventName
+          )}&userName=${encodeURIComponent(user.name)}`
+        );
+      } else if (result.status === "duplicate") {
+        router.push(
+          `/scanner-duplicate?eventName=${encodeURIComponent(
+            result.eventName
+          )}&userName=${encodeURIComponent(user.name)}`
+        );
       }
       // The API should handle other error cases by throwing an error which is caught below
     } catch (error) {
       console.error("Error in handleQrCode:", error);
-      const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat check-in.";
-      toast({ variant: "destructive", title: "Gagal", description: errorMessage });
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat check-in.";
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: errorMessage,
+      });
       setTimeout(() => {
         setIsProcessing(false);
         setIsScanning(true);
@@ -107,7 +140,12 @@ export default function ScannerPage() {
   };
 
   const scanQrCode = useCallback(() => {
-    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && canvasRef.current && isScanning) {
+    if (
+      videoRef.current &&
+      videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA &&
+      canvasRef.current &&
+      isScanning
+    ) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
@@ -116,7 +154,12 @@ export default function ScannerPage() {
         canvas.height = video.videoHeight;
         canvas.width = video.videoWidth;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
         const code = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: "dontInvert",
         });
@@ -133,17 +176,18 @@ export default function ScannerPage() {
     }
   }, [isScanning, handleQrCode]);
 
-
   useEffect(() => {
     const initializeCamera = async () => {
-        await getStream();
-        try {
-            const allDevices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = allDevices.filter(device => device.kind === 'videoinput');
-            setDevices(videoDevices);
-        } catch (error) {
-            console.error("Tidak dapat menghitung perangkat media:", error);
-        }
+      await getStream();
+      try {
+        const allDevices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = allDevices.filter(
+          (device) => device.kind === "videoinput"
+        );
+        setDevices(videoDevices);
+      } catch (error) {
+        console.error("Tidak dapat menghitung perangkat media:", error);
+      }
     };
 
     initializeCamera();
@@ -156,15 +200,15 @@ export default function ScannerPage() {
   useEffect(() => {
     let animationFrameId: number;
     if (isScanning && hasCameraPermission) {
-       animationFrameId = requestAnimationFrame(scanQrCode);
+      animationFrameId = requestAnimationFrame(scanQrCode);
     }
     return () => {
-      if(animationFrameId) {
+      if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
-    }
+    };
   }, [scanQrCode, isScanning, hasCameraPermission]);
-  
+
   useEffect(() => {
     const handleFocus = () => {
       if (!isScanning && !isProcessing) {
@@ -173,18 +217,23 @@ export default function ScannerPage() {
         setIsScanning(true);
       }
     };
-    window.addEventListener('focus', handleFocus);
+    window.addEventListener("focus", handleFocus);
     return () => {
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener("focus", handleFocus);
     };
   }, [isScanning, isProcessing]);
 
   const handleSwitchCamera = () => {
     if (devices.length < 2) {
-      toast({ title: "Tidak ada kamera lain", description: "Hanya satu kamera yang terdeteksi." });
+      toast({
+        title: "Tidak ada kamera lain",
+        description: "Hanya satu kamera yang terdeteksi.",
+      });
       return;
     }
-    const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
+    const currentIndex = devices.findIndex(
+      (device) => device.deviceId === currentDeviceId
+    );
     const nextIndex = (currentIndex + 1) % devices.length;
     const nextDeviceId = devices[nextIndex].deviceId;
     setCurrentDeviceId(nextDeviceId);
@@ -195,7 +244,13 @@ export default function ScannerPage() {
     <div className="flex flex-col items-center justify-center h-full p-4">
       <canvas ref={canvasRef} className="hidden" />
       <div className="relative w-full max-w-md aspect-square bg-black rounded-lg overflow-hidden shadow-lg">
-        <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          autoPlay
+          muted
+          playsInline
+        />
         {isProcessing && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4">
             <Loader2 className="w-12 h-12 mb-4 animate-spin" />
@@ -206,19 +261,26 @@ export default function ScannerPage() {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4">
             <CameraOff className="w-16 h-16 mb-4" />
             <h2 className="text-xl font-bold">Kamera Tidak Tersedia</h2>
-            <p className="text-center">Pastikan Anda telah memberikan izin akses kamera.</p>
+            <p className="text-center">
+              Pastikan Anda telah memberikan izin akses kamera.
+            </p>
           </div>
         )}
-         {hasCameraPermission === true && !isProcessing && (
+        {hasCameraPermission === true && !isProcessing && (
           <>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-3/4 h-3/4 border-4 border-dashed border-white/50 rounded-lg" />
             </div>
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                <div className="scanner-line absolute top-0 left-0 w-full h-1 bg-blue-400 rounded-full shadow-[0_0_10px_theme(colors.blue.400)]" />
+              <div className="scanner-line absolute top-0 left-0 w-full h-1 bg-blue-400 rounded-full shadow-[0_0_10px_theme(colors.blue.400)]" />
             </div>
             {devices.length > 1 && (
-              <Button onClick={handleSwitchCamera} size="icon" variant="ghost" className="absolute top-2 right-2 bg-black/50 hover:bg-black/75 text-white hover:text-white">
+              <Button
+                onClick={handleSwitchCamera}
+                size="icon"
+                variant="ghost"
+                className="absolute top-2 right-2 bg-black/50 hover:bg-black/75 text-white hover:text-white"
+              >
                 <RotateCw className="h-6 w-6" />
               </Button>
             )}
@@ -227,11 +289,17 @@ export default function ScannerPage() {
       </div>
       <div className="mt-4 w-full max-w-md space-y-4">
         {hasCameraPermission === false ? (
-             <p className="text-center text-destructive">Akses kamera diperlukan untuk memindai.</p>
+          <p className="text-center text-destructive">
+            Akses kamera diperlukan untuk memindai.
+          </p>
         ) : hasCameraPermission === true ? (
-            <p className="text-center text-muted-foreground">Posisikan kode QR di dalam bingkai untuk memindai.</p>
+          <p className="text-center text-muted-foreground">
+            Posisikan kode QR di dalam bingkai untuk memindai.
+          </p>
         ) : (
-            <p className="text-center text-muted-foreground">Meminta izin kamera...</p>
+          <p className="text-center text-muted-foreground">
+            Meminta izin kamera...
+          </p>
         )}
       </div>
     </div>
